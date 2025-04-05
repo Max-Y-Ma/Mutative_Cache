@@ -1,0 +1,9 @@
+./hdl/aribter.sv
+./hdl/cache.sv
+./hdl/core.sv
+./hdl/cpu.sv
+./hdl/memory.sv
+./hdl/snoop_bus.sv
+./hdl/xbar.sv
+./hvl/top_tb.sv
+./pkg/types.sv
