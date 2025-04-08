@@ -1,0 +1,7 @@
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/riscv_formal_monitor_rv32imc.v"
+lint_off -rule UNDRIVEN -file "*/icache_sram.v"
+lint_off -rule UNDRIVEN -file "*/ex_stage.sv"
+lint_off -rule SYNCASYNCNET -file "*/DW_div_seq.v"
+lint_off -rule UNOPTFLAT -file "*/icache.sv"

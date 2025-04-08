@@ -1,3 +1,15 @@
 {
-    "clock"       : 2000
+  "clock"       : 8000,
+  "m_ext"       : true,
+  "c_ext"       : true,
+  "f_ext"       : false,
+  "bmem_0_on_x" : false,
+  "dw_ip"       : ["DW_div_seq", "DW_mult_seq", "DW02_mult_6_stage", "DW_div_pipe"],
+  "synth": {
+    "compile_ultra" : true,
+    "ungroup"       : false,
+    "gate_clock"    : true,
+    "retime"        : false,
+    "min_power"     : false
+  }
 }

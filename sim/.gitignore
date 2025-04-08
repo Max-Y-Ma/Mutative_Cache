@@ -1,5 +1,4 @@
 bin
-vcs
+sim
 verdi
-verilator
-spike
+hdl
