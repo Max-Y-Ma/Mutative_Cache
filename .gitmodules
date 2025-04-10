@@ -1,0 +1,3 @@
+[submodule "OpenRAM"]
+	path = OpenRAM
+	url = https://github.com/VLSIDA/OpenRAM
