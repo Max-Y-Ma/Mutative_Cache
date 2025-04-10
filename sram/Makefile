@@ -6,9 +6,10 @@ SHELL=/bin/bash -o pipefail
 export PYTHONDONTWRITEBYTECODE=1
 export PYTHONUNBUFFERED=1
 
-export CONDA_HOME=$(OPENRAM)/miniconda
-export OPENRAM_HOME=$(OPENRAM)/compiler
-export OPENRAM_TECH=$(OPENRAM)/technology
+export OPENRAM_PATH=$(PWD)/../OpenRAM
+export CONDA_HOME=$(OPENRAM_PATH)/miniconda
+export OPENRAM_HOME=$(OPENRAM_PATH)/compiler
+export OPENRAM_TECH=$(OPENRAM_PATH)/technology
 export PYTHONPATH=$(OPENRAM_HOME)
 
 .PHONY: all
