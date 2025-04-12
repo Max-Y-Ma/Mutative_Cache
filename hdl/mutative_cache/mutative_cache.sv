@@ -22,6 +22,7 @@ import mutative_types::*;
 );
     //cache addr = 32 bits = 23 bits for tag, 4 bits for set (16 sets), 5 bits for blk offset
     logic cpu_request, hit, wb_en;
+    input logic [2:0] setup;
     logic cache_wen, dirty_en;
     cache_output_t cache_output[WAYS];
     cache_address_t cache_address;
@@ -79,50 +80,6 @@ import mutative_types::*;
         true_data = cache_output[hit_way].data[cache_address.block_offset[4:2]*32 +: 32];
         hit = |compare_result;
         ufp_rdata = (ufp_resp && |ufp_rmask)? true_data : 'x;
-    end
-
-    always_ff @(posedge clk)begin: plru_1 //TODO: FIX MAYBE MAKE $ OF THEM
-        if(rst) begin
-            for(int unsigned i = 0; i < SET_SIZE; i++) begin
-                PLRU_bits[i] <= {(WAYS-1){1'b0}};
-            end
-        end
-        else if(hit)begin
-            for(int i = 0; i < WAYS; i++) begin
-                if(hit_way == i) 
-                    PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][2], 2'b00};
-            end
-
-
-            // unique case (hit_way)
-            //     2'd0: PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][2], 2'b00};
-            //     2'd1: PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][2], 2'b10};
-            //     2'd2: PLRU_bits[cache_address.set_index] <= {1'b0, PLRU_bits[cache_address.set_index][1], 1'b1};
-            //     2'd3: PLRU_bits[cache_address.set_index] <= {1'b1, PLRU_bits[cache_address.set_index][1], 1'b1};
-            // endcase
-        end
-    end
-
-    logic [1:0] evict_way;
-    always_comb begin : replacement_1 //TODO: MAKE 4 and FIX
-        casez (~PLRU_bits[cache_address.set_index])
-            3'b?00: begin
-                evict_we = 4'b0001;//replace way 0
-                evict_way = 2'b00;
-            end
-            3'b?10: begin
-                evict_we = 4'b0010;//replace way 1
-                evict_way = 2'b01;
-            end
-            3'b0?1: begin 
-                evict_we = 4'b0100;//replace way 2
-                evict_way = 2'b10;
-            end
-            3'b1?1: begin 
-                evict_we = 4'b1000;//replace way 3
-                evict_way = 2'b11;
-            end
-        endcase
     end
 
     //32 bits each bit represents 8 bits of 256 so 4 bits high will be 32 bti mask
