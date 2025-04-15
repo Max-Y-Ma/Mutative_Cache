@@ -31,6 +31,7 @@ import mutative_types::*;
     logic [31:0] cache_data_wmask;
     logic [255:0] cache_wdata;
     logic [WAYS-1:0] evict_we;
+    logic [WAY_IDX_BITS-1:0] evict_way;
     logic [WAYS-1:0] way_we;
     logic [1:0] setup;
     assign cpu_request = (|ufp_rmask || |ufp_wmask);
@@ -184,7 +185,7 @@ import mutative_types::*;
                 full_assoc_cache[i] <= '0;
         end else if(cache_wen) begin
             full_assoc_cache[full_assoc_hit_idx].valid <= 1'b1;
-            full_assoc_cache[full_assoc_hit_idx].dirty <= set_dirty;
+            full_assoc_cache[full_assoc_hit_idx].dirty <= dirty_en;
             full_assoc_cache[full_assoc_hit_idx].tag <= full_assoc_tag;
         end
     end
@@ -232,7 +233,7 @@ import mutative_types::*;
                 end
             end
         end
-        for (int k=0; k<MAX; ++k) begin
+        for (int k=0; k<(SET_SIZE*WAYS); ++k) begin
             if(full_assoc_cache[k].valid == 0) begin
                 full_assoc_full = 1'b0;
             end
@@ -240,7 +241,7 @@ import mutative_types::*;
     end
 
 
-    mutative_control control (
+    mutative_control setup_control (
         .clk(clk),
         .rst(rst), 
         .real_cache_valid(full_assoc_cache[full_assoc_hit_idx].valid),
