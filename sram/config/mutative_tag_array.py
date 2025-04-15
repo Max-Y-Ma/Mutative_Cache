@@ -6,7 +6,7 @@ num_w_ports = 0
 
 word_size = 20
 # write_size = 24
-num_words = 1024
+num_words = 128
 
 nominal_corner_only = True
 process_corners = ["TT"]

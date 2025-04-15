@@ -22,7 +22,7 @@ import mutative_types::*;
 );
     //cache addr = 32 bits = 23 bits for tag, 4 bits for set (16 sets), 5 bits for blk offset
     logic cpu_request, hit, wb_en;
-    input logic [2:0] setup;
+    logic [2:0] setup; //0: DM, 1: 2-WAY, 2: 4-WAY, 3: 8-WAY
     logic cache_wen, dirty_en;
     cache_output_t cache_output[WAYS];
     cache_address_t cache_address;
@@ -32,6 +32,7 @@ import mutative_types::*;
     logic [255:0] cache_wdata;
     logic [WAYS-1:0] evict_we;
     logic [WAYS-1:0] way_we;
+    logic [1:0] setup;
     assign cpu_request = (|ufp_rmask || |ufp_wmask);
     assign cache_address = ufp_addr;
     // i chose msb bit of tag array is dirty bit
@@ -68,13 +69,40 @@ import mutative_types::*;
     logic [31:0] true_data;
     logic true_valid;
     logic [WAY_IDX_BITS-1:0] hit_way;
+    logic [2:0] dm_way_index;
+    logic [1:0] two_way_index;
+    logic four_way_index;
     always_comb begin: comparator_1
         hit_way = {WAY_IDX_BITS{1'b0}};
         compare_result = {WAYS{1'b0}};
-        for (int unsigned i = 0; i < WAYS; i++) begin
-            if(cache_output[i].valid&&(cache_output[i].tag[TAG_BITS-1:0] == cache_address.tag)) begin
-                compare_result[i] = 1'b1;
-                hit_way = WAY_IDX_BITS'(i); 
+        dm_way_index = cache_address.tag[2:0];
+        two_way_index = cache_address.tag[1:0];
+        four_way_index = cache_address.tag;
+        if(setup == 0) begin //DM 
+            if(cache_output[dm_way_index].valid&&(cache_output[dm_way_index].tag[TAG_BITS-4:0] == cache_address.tag[TAG_BITS-4:0])) begin
+                compare_result[dm_way_index] = 1'b1;
+                hit_way = WAY_IDX_BITS'(dm_way_index); 
+            end
+        end else if(setup == 1) begin //2-way
+            for (int unsigned i = 0; i < (WAYS/4); i++) begin
+                if(cache_output[i+ (WAYS/4)*two_way_index].valid&&(cache_output[i+ (WAYS/4)*two_way_index].tag[TAG_BITS-3:0] == cache_address.tag[TAG_BITS-3:0])) begin
+                    compare_result[i+ (WAYS/4)*two_way_index] = 1'b1;
+                    hit_way = WAY_IDX_BITS'(i+ (WAYS/4)*two_way_index); 
+                end
+            end
+        end else if(setup == 2) begin //4-way
+            for (int unsigned i = 0; i < (WAYS/2); i++) begin
+                if(cache_output[i+ (WAYS/2)*four_way_index].valid&&(cache_output[i+ (WAYS/2)*four_way_index].tag[TAG_BITS-2:0] == cache_address.tag[TAG_BITS-2:0])) begin
+                    compare_result[i+ (WAYS/2)*four_way_index] = 1'b1;
+                    hit_way = WAY_IDX_BITS'(i+ (WAYS/2)*four_way_index); 
+                end
+            end
+        end else begin //8-way
+            for (int unsigned i = 0; i < WAYS; i++) begin
+                if(cache_output[i].valid&&(cache_output[i].tag[TAG_BITS-1:0] == cache_address.tag)) begin
+                    compare_result[i] = 1'b1;
+                    hit_way = WAY_IDX_BITS'(i); 
+                end
             end
         end
         true_data = cache_output[hit_way].data[cache_address.block_offset[4:2]*32 +: 32];
@@ -94,17 +122,12 @@ import mutative_types::*;
         else if(|ufp_wmask) begin //cpu writing cache
             cache_data_wmask[4*cache_address.block_offset[4:2] +: 4] = ufp_wmask; // 00100
             cache_wdata[cache_address.block_offset[4:2]*32 +: 32] = ufp_wdata;
+            way_we = {WAYS{1'b0}};
             for (int i=0; i<WAYS; ++i) begin
                 if(hit_way == i) begin
                     way_we = 1 << i;
                 end
             end
-            // unique case(hit_way)
-            //     2'd0: way_we = 4'b0001; 
-            //     2'd1: way_we = 4'b0010;
-            //     2'd2: way_we = 4'b0100;
-            //     2'd3: way_we = 4'b1000;
-            // endcase
         end
         else begin
             way_we = {WAYS{1'b0}};
@@ -132,6 +155,18 @@ import mutative_types::*;
         .mem_write_cache(mem_write_cache),
         .cache_write_mem(wb_en),
         .cache_ready(ufp_resp)
+    );
+
+    mutative_plru plru (
+        .clk(clk), 
+        .rst(rst),
+        .hit_way(hit_way),
+        .hit(hit),
+        .cache_address(cache_address),
+        .setup(),
+        .evict_way(evict_way),
+        .evict_we(evict_we)
+
     );
 
 endmodule

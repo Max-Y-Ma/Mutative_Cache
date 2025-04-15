@@ -1,9 +1,9 @@
 // OpenRAM SRAM model
-// Words: 16
+// Words: 128
 // Word size: 256
 // Write size: 8
 
-module mp_dcache_data_array(
+module mutative_data_array(
 `ifdef USE_POWER_PINS
     vdd,
     gnd,
@@ -14,7 +14,7 @@ module mp_dcache_data_array(
 
   parameter NUM_WMASKS = 32 ;
   parameter DATA_WIDTH = 256 ;
-  parameter ADDR_WIDTH = 4 ;
+  parameter ADDR_WIDTH = 7 ;
   parameter RAM_DEPTH = 1 << ADDR_WIDTH;
   // FIXME: This delay is arbitrary.
   parameter DELAY = 3 ;
