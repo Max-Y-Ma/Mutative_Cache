@@ -82,7 +82,7 @@ module mutative_plru #(
 
 
 
-    always_ff @(posedge clk)begin: plru_1 //TODO: FIX MAYBE MAKE $ OF THEM
+    always_ff @(posedge clk)begin: plru_1 
         if(rst) begin
             for(int unsigned i = 0; i < SET_SIZE; i++) begin
                 PLRU_bits[i] <= {(WAYS-1){1'b0}};

@@ -76,8 +76,8 @@ import mutative_types::*;
         hit_way = {WAY_IDX_BITS{1'b0}};
         compare_result = {WAYS{1'b0}};
         dm_way_index = cache_address.tag[2:0];
-        two_way_index = cache_address.tag[1:0];
-        four_way_index = cache_address.tag;
+        two_way_index = cache_address.tag[1:0]; //0-3
+        four_way_index = cache_address.tag[0];
         if(setup == 0) begin //DM 
             if(cache_output[dm_way_index].valid&&(cache_output[dm_way_index].tag[TAG_BITS-4:0] == cache_address.tag[TAG_BITS-4:0])) begin
                 compare_result[dm_way_index] = 1'b1;
