@@ -11,7 +11,7 @@ set hdlin_check_no_latch true
 set hdlin_while_loop_iterations 2000000000
 set_host_options -max_cores 4
 set_app_var report_default_significant_digits 6
-set design_toplevel cpu
+set design_toplevel [getenv SYNTH_TOP]
 
 # output port '%s' is connected directly to output port '%s'
 suppress_message LINT-31
@@ -107,7 +107,7 @@ set design_reset_pin rst
 
 analyze -library WORK -format sverilog [getenv PKG_SRCS]
 
-set modules [split [getenv HDL_SRCS] " "]
+set modules [split [getenv RTL_SRCS] " "]
 foreach module $modules {
    analyze -library WORK -format sverilog "${module}"
 }
