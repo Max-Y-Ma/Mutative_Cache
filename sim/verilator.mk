@@ -1,6 +1,6 @@
-VER_DIR := $(DIGITAL_PATH)/tb/verilator
-VER_CFG := $(DIGITAL_PATH)/tb/verilator/config.vlt
-VER_SRC := $(shell find $(DIGITAL_PATH)/tb/verilator -name '*.sv' -o -name '*.v')
+VER_DIR := $(DIGITAL_PATH)/hvl/verilator
+VER_CFG := $(DIGITAL_PATH)/hvl/verilator/config.vlt
+VER_SRC := $(shell find $(DIGITAL_PATH)/hvl/verilator -name '*.sv' -o -name '*.v')
 VER_CPP := $(VER_DIR)/top_tb.cpp
 
 VERILATOR_SRCS := $(VER_CFG) $(VER_SRC) $(PKG_SRCS) $(RTL_SRCS) $(SRAM_SRCS) $(MEM_SRCS) $(DW_IP)

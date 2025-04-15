@@ -28,29 +28,17 @@ SHELL=/bin/bash -o pipefail
 .SHELLFLAGS += -e
 
 # Directory paths
-DIGITAL_PATH := $(PWD)/../chip
+DIGITAL_PATH := $(PWD)/..
 
 # Testbench sources
 PKG_SRCS  := $(shell find $(DIGITAL_PATH)/pkg -name '*.svh' -o -name '*.sv')
-RTL_SRCS  := $(shell find $(DIGITAL_PATH)/rtl -name '*.sv' -o -name '*.v')
-IP_SRCS   := $(shell find $(DIGITAL_PATH)/ip -name '*.sv' -o -name '*.v')
-MIXED_SRCS:= $(shell find $(DIGITAL_PATH/spice -name '*.spi'))
-IP_INC    := +incdir+$(DIGITAL_PATH)/ip/w25q128jv
-VC_SRCS   := $(shell find $(DIGITAL_PATH)/tb/vc/$(DIR) -name '*.sv' -o -name '*.v')
-VC_INC    := +incdir+$(DIGITAL_PATH)/tb/vc/$(DIR)
-MEM_SRCS  := $(shell find $(DIGITAL_PATH)/memory/output -name '*.v')
-CELL_SRCS := $(shell find $(DIGITAL_PATH)/stdcells -name '*.sv' -o -name '*.v')
+HDL_SRCS  := $(shell find $(DIGITAL_PATH)/hdl -name '*.sv' -o -name '*.v')
+VC_SRCS   := $(shell find $(DIGITAL_PATH)/hvl/vc/$(DIR) -name '*.sv' -o -name '*.v')
+VC_INC    := +incdir+$(DIGITAL_PATH)/hvl/vc/$(DIR)
 DW        := /software/Synopsys-2021_x86_64/syn/R-2020.09-SP4/dw
 DW_IP     := $(shell python3 get_dw_ip.py)
-SRCS      := $(PKG_SRCS) $(RTL_SRCS) $(IP_SRCS) $(VC_SRCS) $(MEM_SRCS) $(DW_IP) $(CELL_SRCS)
-CELL_LIB  := $(PWD)/../chip/stdcells/tsmc65_rvt_sc_adv10.v
-GATE_SRCS := $(PWD)/../synth/outputs/core.gate.v $(PKG_SRCS)  $(IP_SRCS) $(VC_SRCS) $(MEM_SRCS) $(DW_IP) $(CELL_LIB) $(MIXED_SRCS)
-SDF_SRCS  := $(PWD)/../synth/outputs/core.gate.sdf
-PNR_GATE_SRCS := $(PWD)/../pnr/outputs/core.pnr.v $(PKG_SRCS)  $(IP_SRCS) $(VC_SRCS) $(MEM_SRCS) $(DW_IP) $(CELL_LIB)
-PNR_SDF_SRCS  := $(PWD)/../pnr/outputs/core.pnr.sdf
-SYN_GATE_SRCS := $(PWD)/../synth/outputs/core.gate.v $(PKG_SRCS)  $(IP_SRCS) $(VC_SRCS) $(MEM_SRCS) $(DW_IP) $(CELL_LIB)
-SYN_SDF_SRCS  := $(PWD)/../synth/outputs/core.gate.sdf
-TOP       := $(basename $(notdir $(shell find $(DIGITAL_PATH)/tb/vc/$(DIR) -name 'top_tb**.sv')))
+SRCS      := $(PKG_SRCS) $(HDL_SRCS) $(VC_SRCS) $(DW_IP)
+TOP       := $(basename $(notdir $(shell find $(DIGITAL_PATH)/hvl/vc/$(DIR) -name 'top_tb**.sv')))
 
 # Toggle UVM
 UVM_FLAGS := $(if $(TEST),$(VCS),)
@@ -74,7 +62,7 @@ info:
 	@echo -e 
 	@echo -e ${GREEN}make vc DIR=... DEFINE=... TEST=...${RESET}
 	@echo -e 
-	@echo -e ${GREEN}DIR is the name of your directory in 'chip/tb/vc/...'${RESET}
+	@echo -e ${GREEN}DIR is the name of your directory in 'hvl/vc/...'${RESET}
 	@echo -e ${GREEN}DEFINE includes any CLI defines to alter testbench behavior${RESET}
 	@echo -e ${GREEN}TEST is the name of your UVM test, UVM testbench specific${RESET}
 	@echo -e 
@@ -94,64 +82,14 @@ sim/top_tb: $(SRCS)
 
 .PHONY: vc
 vc: sim/top_tb
-	@echo -e ${GREEN}Running Verification Component: $(TOP) @ /chip/tb/vc/$(DIR)${RESET}
+	@echo -e ${GREEN}Running Verification Component: $(TOP) @ hvl/vc/$(DIR)${RESET}
 	@echo -e ${GREEN}Running UVM TEST: $(TEST)${RESET}
 	rm -f sim/dump.fsdb
 	python3 ../synth/get_clock.py
 	export ECE411_CLOCK_PERIOD_PS=$(shell python3 ../synth/get_clock.py) ;\
 	export ECE411_MEMLST=$(PWD)/sim/memory ;\
-	export IP_DIR=$(DIGITAL_PATH)/ip ;\
-	cd sim && ./top_tb -u -l simulation.log
+	cd sim && ./top_tb $(SIMV) -l simulation.log
 	bash check_sim_error.sh
-
-sim/top_tb_gl: $(PNR_GATE_SRCS)
-	mkdir -p sim
-	python3 ../bin/rvfi_reference.py
-	python3 set_dw_ip.py
-	cd sim && vcs $(UVM_FLAGS) $(DEFINE_FLAGS) $(PNR_GATE_SRCS) $(VCS_FLAGS) $(VC_INC) $(IP_INC) \
-	-sdf max:top_tb.dut:$(PNR_SDF_SRCS) +transport_path_delays +pulse_e/0 +pulse_r/0 +neg_tchk \
-	+sdfverbose -j4 \
-	+transport_int_delays +pulse_int_e/0 +pulse_int_r/0 \
-	-diag timescale \
-	-msg_config=../vcs_warn.config -l compile.log -top $(TOP) -o top_tb_gl
-	bash check_compile_error.sh
-
-sim/top_tb_mixed: $(PNR_GATE_SRCS)
-	mkdir -p sim
-	python3 ../bin/rvfi_reference.py
-	python3 set_dw_ip.py
-	cd sim && vcs $(UVM_FLAGS) $(DEFINE_FLAGS) $(PNR_GATE_SRCS) $(VCS_FLAGS) $(VC_INC) $(IP_INC) \
-	-ad=/home/jjyun4/acadia/digital/chip/spice/analogTop.init \
-	-sdf max:top_tb.dut:$(PNR_SDF_SRCS) +transport_path_delays +pulse_e/0 +pulse_r/0 +neg_tchk \
-	+sdfverbose -j4 \
-	+transport_int_delays +pulse_int_e/0 +pulse_int_r/0 \
-	-diag timescale \
-	-msg_config=../vcs_warn.config -l compile.log -top $(TOP) -o top_tb_mixed
-	bash check_compile_error.sh
-
-
-.PHONY: gl
-gl: sim/top_tb_gl
-	@echo -e ${GREEN}Running Gate-Level Simluation: $(TOP) @ /chip/tb/vc/$(DIR)${RESET}
-	rm -f sim/dump.fsdb
-	python3 ../synth/get_clock.py
-	export ECE411_CLOCK_PERIOD_PS=$(shell python3 ../synth/get_clock.py) ;\
-	export ECE411_MEMLST=$(PWD)/sim/memory ;\
-	export IP_DIR=$(DIGITAL_PATH)/ip ;\
-	cd sim && ./top_tb_gl $(SIMV) -l simulation.log
-	bash check_sim_error.sh
-
-.PHONY: mixed
-mixed: sim/top_tb_mixed
-	@echo -e ${GREEN}Running Gate-Level Simluation: $(TOP) @ /chip/tb/vc/$(DIR)${RESET}
-	rm -f sim/dump.fsdb
-	python3 ../synth/get_clock.py
-	export ECE411_CLOCK_PERIOD_PS=$(shell python3 ../synth/get_clock.py) ;\
-	export ECE411_MEMLST=$(PWD)/sim/memory ;\
-	export IP_DIR=$(DIGITAL_PATH)/ip ;\
-	cd sim && ./top_tb_mixed -ucli -i ../ucli.cmd -l simulation.log
-	bash check_sim_error.sh
-
 
 .PHONY: compile
 compile: $(PROG)
@@ -169,11 +107,6 @@ covrep: sim/top_tb.vdb
 verdi:
 	mkdir -p verdi
 	cd verdi && $(VERDI_HOME)/bin/verdi -ssf $(PWD)/sim/dump.fsdb
-
-.PHONY: verdi_mixed
-verdi_mixed:
-	mkdir -p verdi
-	cd verdi && $(VERDI_HOME)/bin/verdi -ssf $(PWD)/sim/out.fsdb
 
 .PHONY: spike
 spike: $(ELF)

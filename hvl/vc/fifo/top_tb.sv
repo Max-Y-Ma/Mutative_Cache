@@ -2,7 +2,7 @@
 `include "fifo_pkg.svh"
 `include "fifo_itf.svh"
 
-module top_tb_fifo;
+module top_tb;
   timeunit 1ns;
   timeprecision 1ns;
 
@@ -52,4 +52,4 @@ module top_tb_fifo;
     $fsdbDumpvars(0, "+all");
   end
 
-endmodule : top_tb_fifo
+endmodule : top_tb

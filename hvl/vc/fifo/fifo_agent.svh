@@ -53,6 +53,7 @@ class specific_driver extends uvm_driver #(generic_item);
     fifo_if.drv_cb.rst <= 1'b1;
     @(fifo_if.drv_cb);
     fifo_if.drv_cb.rst <= 1'b0;
+    @(fifo_if.drv_cb);
     event_reset.trigger();
   endtask
 
