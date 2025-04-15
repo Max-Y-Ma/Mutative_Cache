@@ -22,7 +22,7 @@ import mutative_types::*;
 );
     //cache addr = 32 bits = 23 bits for tag, 4 bits for set (16 sets), 5 bits for blk offset
     logic cpu_request, hit, wb_en;
-    logic [2:0] setup; //0: DM, 1: 2-WAY, 2: 4-WAY, 3: 8-WAY
+    logic [1:0] setup; //0: DM, 1: 2-WAY, 2: 4-WAY, 3: 8-WAY
     logic cache_wen, dirty_en;
     cache_output_t cache_output[WAYS];
     cache_address_t cache_address;
@@ -33,7 +33,6 @@ import mutative_types::*;
     logic [WAYS-1:0] evict_we;
     logic [WAY_IDX_BITS-1:0] evict_way;
     logic [WAYS-1:0] way_we;
-    logic [1:0] setup;
     assign cpu_request = (|ufp_rmask || |ufp_wmask);
     assign cache_address = ufp_addr;
     // i chose msb bit of tag array is dirty bit
