@@ -1,7 +1,7 @@
 SHELL=/bin/bash -o pipefail
 .SHELLFLAGS += -e
 
-export PKG_SRCS = $(PWD)/../pkg/types.sv
+export PKG_SRCS = $(shell find $(PWD)/../pkg -name '*.svh' -o -name '*.sv')
 export HDL_SRCS = $(shell find $(PWD)/../hdl -name '*.sv')
 export SRAM_LIB = $(shell find $(PWD)/../sram/output/ -name '*.db')
 
