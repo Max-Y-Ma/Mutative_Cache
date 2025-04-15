@@ -11,6 +11,9 @@ package mutative_types;
 
     localparam TAG_BITS = 32 - SET_BITS - OFFSET_BITS;
 
+    localparam FULL_TAG_BITS = 32 - OFFSET_BITS;
+    localparam FULL_ASSOC_BITS = $clog2(SET_SIZE*WAYS);
+
     typedef struct packed {
         logic                           valid;
         logic                           dirty;
@@ -23,5 +26,11 @@ package mutative_types;
         logic [SET_BITS-1:0]        set_index;    
         logic [OFFSET_BITS-1:0]     block_offset;
     } cache_address_t;
+
+    typedef struct packed {
+        logic                           valid;
+        logic                           dirty;
+        logic [FULL_TAG_BITS-1:0]       tag;
+    } full_assoc_t;
 
 endpackage : mutative_types

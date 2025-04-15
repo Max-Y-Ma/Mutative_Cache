@@ -169,4 +169,88 @@ import mutative_types::*;
 
     );
 
+
+
+    logic [FULL_TAG_BITS-1:0]       full_assoc_tag;
+    full_assoc_t                    full_assoc_cache[SET_SIZE*WAYS];
+    logic                           full_assoc_hit;
+    logic [FULL_ASSOC_BITS-1:0]     full_assoc_hit_idx;
+
+    assign full_assoc_tag = ufp_addr >> OFFSET_BITS;
+
+    always_ff @(posedge clk) begin
+        if(rst) begin
+            for(int i = 0; i < (SET_SIZE*WAYS); i++)
+                full_assoc_cache[i] <= '0;
+        end else if(cache_wen) begin
+            full_assoc_cache[full_assoc_hit_idx].valid <= 1'b1;
+            full_assoc_cache[full_assoc_hit_idx].dirty <= set_dirty;
+            full_assoc_cache[full_assoc_hit_idx].tag <= full_assoc_tag;
+        end
+    end
+
+    always_comb begin //comparator 
+        full_assoc_hit_idx = '0;
+        full_assoc_hit = 1'b0;
+        for (int i=0; i < (SET_SIZE*WAYS); ++i) begin
+            if(full_assoc_tag == full_assoc_cache[i].tag && full_assoc_cache[i].valid) begin
+                full_assoc_hit = 1'b1;
+                full_assoc_hit_idx = i;
+                break;
+            end
+        end
+    end
+
+    
+    logic virt_valid_array[SET_SIZE][WAYS];
+    always_ff @(posedge clk) begin
+        if(rst) begin
+            for(int i = 0; i < SET_SIZE; i++) begin
+                for(int j = 0; j < WAYS; j++) begin
+                    virt_valid_array[i][j] <= '0;
+                end
+            end
+        end else if(cache_wen) begin
+            for(int i = 0; i < WAYS; i++) begin
+                if(way_we[i]) begin
+                    virt_valid_array[cache_address.set_index][i] <= 1'b1;
+                end
+            end
+
+        end
+    end
+
+    logic real_cache_full;
+    logic full_assoc_full;
+    always_comb begin
+        real_cache_full = 1'b1;
+        full_assoc_full = 1'b1;
+        for(int i = 0; i < SET_SIZE; i++) begin
+            for(int j = 0; j < WAYS; j++) begin
+                if(virt_valid_array[i][j] == 0) begin
+                    real_cache_full = 1'b0;
+                end
+            end
+        end
+        for (int k=0; k<MAX; ++k) begin
+            if(full_assoc_cache[k].valid == 0) begin
+                full_assoc_full = 1'b0;
+            end
+        end
+    end
+
+
+    mutative_control control (
+        .clk(clk),
+        .rst(rst), 
+        .real_cache_valid(full_assoc_cache[full_assoc_hit_idx].valid),
+        .real_cache_hit(hit),
+        .full_assoc_hit(full_assoc_hit),
+        .real_cache_full(real_cache_full),
+        .full_assoc_full(full_assoc_full),
+        .cache_ready(ufp_resp),
+        .cpu_req(cpu_request),
+        .setup(setup)
+        );
+
 endmodule
