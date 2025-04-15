@@ -20,6 +20,26 @@ import mutative_types::*;
     output  logic   [255:0] dfp_wdata, //main mem write data
     input   logic           dfp_resp //main mem response (from)
 );
+
+    logic   [31:0]  ufp_addr_ff;
+    logic   [3:0]   ufp_rmask_ff;
+    logic   [3:0]   ufp_wmask_ff;
+    logic   [31:0]  ufp_wdata_ff;
+
+    always_ff @(posedge clk) begin
+        if(rst) begin
+            ufp_addr_ff <= '0;
+            ufp_rmask_ff <= '0;
+            ufp_wmask_ff <= '0;
+            ufp_wdata_ff <= '0;
+        end else if(|ufp_rmask || |ufp_wmask) begin
+            ufp_addr_ff <= ufp_addr;
+            ufp_rmask_ff <= ufp_rmask;
+            ufp_wmask_ff <= ufp_wmask;
+            ufp_wdata_ff <= ufp_wdata;
+        end
+    end
+
     //cache addr = 32 bits = 23 bits for tag, 4 bits for set (16 sets), 5 bits for blk offset
     logic cpu_request, hit, wb_en;
     logic [1:0] setup; //0: DM, 1: 2-WAY, 2: 4-WAY, 3: 8-WAY
@@ -33,8 +53,8 @@ import mutative_types::*;
     logic [WAYS-1:0] evict_we;
     logic [WAY_IDX_BITS-1:0] evict_way;
     logic [WAYS-1:0] way_we;
-    assign cpu_request = (|ufp_rmask || |ufp_wmask);
-    assign cache_address = ufp_addr;
+    assign cpu_request = (|ufp_rmask_ff || |ufp_wmask_ff);
+    assign cache_address = ufp_addr_ff;
     // i chose msb bit of tag array is dirty bit
     generate for (genvar i = 0; i < WAYS; i++) begin : arrays //TODO 
         mutative_data_array data_array (
@@ -54,7 +74,7 @@ import mutative_types::*;
             .din0       ({dirty_en, cache_address.tag}),
             .dout0      ({cache_output[i].dirty, cache_output[i].tag})
         );
-        ff_array #(.WIDTH(1)) valid_array (
+        ff_array #(.S_INDEX(SET_BITS), .WIDTH(1)) valid_array (
             .clk0       (clk),
             .rst0       (rst),
             .csb0       (1'b0), //active low  r/w  en
@@ -107,7 +127,7 @@ import mutative_types::*;
         end
         true_data = cache_output[hit_way].data[cache_address.block_offset[4:2]*32 +: 32];
         hit = |compare_result;
-        ufp_rdata = (ufp_resp && |ufp_rmask)? true_data : 'x;
+        ufp_rdata = (ufp_resp && |ufp_rmask_ff)? true_data : 'x;
     end
 
     //32 bits each bit represents 8 bits of 256 so 4 bits high will be 32 bti mask
@@ -119,9 +139,9 @@ import mutative_types::*;
             cache_data_wmask = 32'hFFFFFFFF;
             cache_wdata = dfp_rdata;
         end
-        else if(|ufp_wmask) begin //cpu writing cache
-            cache_data_wmask[4*cache_address.block_offset[4:2] +: 4] = ufp_wmask; // 00100
-            cache_wdata[cache_address.block_offset[4:2]*32 +: 32] = ufp_wdata;
+        else if(|ufp_wmask_ff) begin //cpu writing cache
+            cache_data_wmask[4*cache_address.block_offset[4:2] +: 4] = ufp_wmask_ff; // 00100
+            cache_wdata[cache_address.block_offset[4:2]*32 +: 32] = ufp_wdata_ff;
             way_we = {WAYS{1'b0}};
             for (int i=0; i<WAYS; ++i) begin
                 if(hit_way == i) begin
@@ -147,7 +167,7 @@ import mutative_types::*;
         .cpu_req(cpu_request), 
         .cache_hit(hit), 
         .cache_dirty(cache_output[evict_way].dirty), 
-        .cpu_write_cache(|ufp_wmask), 
+        .cpu_write_cache(|ufp_wmask_ff), 
         .mem_resp(dfp_resp), 
         .cache_wen(cache_wen),
         .set_dirty(dirty_en),
@@ -176,7 +196,7 @@ import mutative_types::*;
     logic                           full_assoc_hit;
     logic [FULL_ASSOC_BITS-1:0]     full_assoc_hit_idx;
 
-    assign full_assoc_tag = ufp_addr >> OFFSET_BITS;
+    assign full_assoc_tag = ufp_addr_ff >> OFFSET_BITS;
 
     always_ff @(posedge clk) begin
         if(rst) begin

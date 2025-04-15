@@ -1,6 +1,6 @@
 // OpenRAM SRAM model
 // Words: 128
-// Word size: 20
+// Word size: 21
 
 module mutative_tag_array(
 `ifdef USE_POWER_PINS
@@ -11,7 +11,7 @@ module mutative_tag_array(
     clk0,csb0,web0,addr0,din0,dout0
   );
 
-  parameter DATA_WIDTH = 20 ;
+  parameter DATA_WIDTH = 21 ;
   parameter ADDR_WIDTH = 7 ;
   parameter RAM_DEPTH = 1 << ADDR_WIDTH;
   // FIXME: This delay is arbitrary.
@@ -45,7 +45,7 @@ module mutative_tag_array(
     web0_reg = web0;
     addr0_reg = addr0;
     din0_reg = din0;
-    #(T_HOLD) dout0 = 20'bx;
+    #(T_HOLD) dout0 = 21'bx;
     if ( !csb0_reg && web0_reg && VERBOSE )
       $display($time," Reading %m addr0=%b dout0=%b",addr0_reg,mem[addr0_reg]);
     if ( !csb0_reg && !web0_reg && VERBOSE )
@@ -58,7 +58,7 @@ module mutative_tag_array(
   always @ (negedge clk0)
   begin : MEM_WRITE0
     if ( !csb0_reg && !web0_reg ) begin
-        mem[addr0_reg][19:0] = din0_reg[19:0];
+        mem[addr0_reg][20:0] = din0_reg[20:0];
     end
   end
 
