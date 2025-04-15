@@ -1,6 +1,6 @@
-module mutative_plru #(
-    parameters
-) (
+module mutative_plru
+import mutative_types::*;
+(
     input logic clk, rst,
     input logic [WAY_IDX_BITS-1:0] hit_way,
     input logic hit,
@@ -16,8 +16,8 @@ module mutative_plru #(
     logic [WAY_IDX_BITS-1:0] hit_way_inv;
     assign hit_way_inv = ~hit_way;
 
-    //hardcoded do not use the below implementation
-    /*always_comb begin
+
+    always_comb begin
         PLRU_bits_next    = '0;
         PLRU_update_mask  = '0;
 
@@ -56,9 +56,9 @@ module mutative_plru #(
                 end
             end
         end
-    end */
+    end 
 
-    always_comb begin
+    /*always_comb begin
         PLRU_bits_next = '0;
         PLRU_update_mask = '0;
 
@@ -78,7 +78,7 @@ module mutative_plru #(
                     bit_index = bit_index*2+2;  // go right down the tree
             end
         end
-    end 
+    end */
 
 
 
@@ -106,7 +106,41 @@ module mutative_plru #(
         end
     end
 
-    always_comb begin : replacement_1 
+    always_comb begin
+        evict_way = '0;
+        evict_we  = '0;
+
+        if (setup == 2'b01) begin // 2-way
+            evict_way = PLRU_bits[cache_address.set_index][0];
+        end else if (setup != 2'b00 && setup != 2'b01) begin // > 2-way
+            if (PLRU_bits[cache_address.set_index][0] == 0) begin
+                if (setup == 2'b10) begin // 4-way
+                    evict_way = {1'b0, PLRU_bits[cache_address.set_index][1]};
+                end else begin //8-way
+                    if (PLRU_bits[cache_address.set_index][1] == 0) begin
+                        evict_way = {2'b00, PLRU_bits[cache_address.set_index][3]};
+                    end else begin
+                        evict_way = {2'b01, PLRU_bits[cache_address.set_index][4]};
+                    end
+                end
+            end else begin // pleubit0 == 1
+                if (setup == 2'b10) begin // 4-way
+                    evict_way = {1'b1, PLRU_bits[cache_address.set_index][2]};
+                end else begin // 8-way
+                    if (PLRU_bits[cache_address.set_index][2] == 0) begin
+                        evict_way = {2'b10, PLRU_bits[cache_address.set_index][5]};
+                    end else begin
+                        evict_way = {2'b11, PLRU_bits[cache_address.set_index][6]};
+                    end
+                end
+            end
+        end
+
+        evict_we = 1 << evict_way;
+    end
+
+
+    /*always_comb begin : replacement_1 
 
         int bit_index = 0;
         evict_way = '0;
@@ -125,26 +159,7 @@ module mutative_plru #(
         end
 
         evict_we = 1 << evict_way;
-
-        /*casez (~PLRU_bits[cache_address.set_index])
-            3'b?00: begin
-                evict_we = 4'b0001;//replace way 0
-                evict_way = 2'b00;
-            end
-            3'b?10: begin
-                evict_we = 4'b0010;//replace way 1
-                evict_way = 2'b01;
-            end
-            3'b0?1: begin 
-                evict_we = 4'b0100;//replace way 2
-                evict_way = 2'b10;
-            end
-            3'b1?1: begin 
-                evict_we = 4'b1000;//replace way 3
-                evict_way = 2'b11;
-            end
-        endcase*/
-    end
+    end */
 
 
 endmodule
