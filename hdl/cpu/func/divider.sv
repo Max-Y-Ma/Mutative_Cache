@@ -28,14 +28,11 @@ logic div_valid, udiv_valid, sdiv_valid;
 
 /* Divider Execution Logic (Needed Because Non-Pipelined) */
 logic div_busy;
-always_ff @(posedge clk, posedge rst) begin
+always_ff @(posedge clk) begin
   /* Reset when the divider operation completes */
-  if (rst) begin
+  if (rst || div_valid) begin
     div_busy <= 1'b0;
   end 
-  else if (div_valid) begin
-    div_busy <= 1'b0;
-  end
   /* Stall until the divider operation completes */
   else if (start) begin
     div_busy <= 1'b1;

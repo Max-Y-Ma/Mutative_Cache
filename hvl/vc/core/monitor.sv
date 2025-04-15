@@ -177,7 +177,7 @@ module monitor (
 
     always @ (posedge itf.clk) begin
         if(itf.valid) begin
-            if (itf.order % 1000 == 0 || itf.order < 200) begin
+            if (itf.order % 1000 == 0) begin
                 $display("dut commit No.%d, rd_s: x%02d, rd: 0x%h", itf.order, itf.rd_addr, itf.rd_addr ? itf.rd_wdata : 5'd0);
             end
             if (itf.inst[1:0] == 2'b11) begin

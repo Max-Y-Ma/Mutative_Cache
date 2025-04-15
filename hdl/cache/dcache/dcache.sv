@@ -4,7 +4,7 @@ import cache_types::*;
   parameter  WAYS            = 4,
   parameter  SETS            = 16,
   localparam SET_BITS        = $clog2(SETS),
-  localparam CACHELINE_BYTES = 32,
+  parameter  CACHELINE_BYTES = 32,
   localparam CACHELINE_BITS  = $clog2(CACHELINE_BYTES),
   localparam TAG_BITS        = 32 - SET_BITS - CACHELINE_BITS
 ) (
@@ -180,14 +180,14 @@ import cache_types::*;
       end
 
       // Cache Hit/WB and Data Logic and
-      cache_hit       = |cache_hit_vector;
+      cache_hit = |cache_hit_vector;
 
       // Update eviction logic when cache is replying
       evict_update = ~ufp_resp;
     end
 
     generate for (genvar i = 0; i < WAYS; i++) begin : arrays
-        mp_dcache_data_array data_array (
+        dcache_data_array data_array (
             .clk0       (clk),
             .csb0       (data_array_csb0[i]),
             .web0       (data_array_web0[i]),
@@ -196,7 +196,7 @@ import cache_types::*;
             .din0       (data_array_din0[i]),
             .dout0      (data_array_dout0[i])
         );
-        mp_dcache_tag_array tag_array (
+        dcache_tag_array tag_array (
             .clk0       (clk),
             .csb0       (tag_array_csb0[i]),
             .web0       (tag_array_web0[i]),
@@ -216,6 +216,6 @@ import cache_types::*;
     end endgenerate
 
     dcache_control #(.WAYS(WAYS)) cache_control0(.*);
-    plru    #(.WAYS(WAYS)) plru0(.*);
+    plru           #(.WAYS(WAYS)) plru0(.*);
 
 endmodule

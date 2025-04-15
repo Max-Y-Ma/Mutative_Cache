@@ -23,7 +23,7 @@ import rv32imc_types::*;
 logic [31:0] mem_addr;
 assign mem_addr = ex_stage_reg.func_out;
 always_comb begin
-  dmem_addr  = '0;
+  dmem_addr = '0;
   dmem_rmask = '0;
   dmem_wmask = '0;
   dmem_wdata = '0;
@@ -61,7 +61,7 @@ end
 
 // RVFI Mask Logic
 logic [3:0] rvfi_mem_rmask, rvfi_mem_wmask;
-always_ff @(posedge clk, posedge rst) begin
+always_ff @(posedge clk) begin
   if (rst) begin
     rvfi_mem_rmask <= '0;
     rvfi_mem_wmask <= '0;
@@ -72,7 +72,7 @@ always_ff @(posedge clk, posedge rst) begin
 end
 
 // Latch to Pipeline Registers
-always_ff @(posedge clk, posedge rst) begin
+always_ff @(posedge clk) begin
   if (rst) begin
     // Reset Pipeline Registers
     mem_stage_reg.rd_addr    <= '0;
@@ -88,16 +88,10 @@ always_ff @(posedge clk, posedge rst) begin
     // Latch Control Signals
     mem_stage_reg.mem_ctrl <= ex_stage_reg.mem_ctrl;
     mem_stage_reg.wb_ctrl  <= ex_stage_reg.wb_ctrl;
-    mem_stage_reg.int_flag <= ex_stage_reg.int_flag;
 
     // Latch RVFI Signals
-    mem_stage_reg.rvfi            <= '0;
-    mem_stage_reg.rvfi.valid      <= ex_stage_reg.rvfi.valid;
-    mem_stage_reg.rvfi.order      <= ex_stage_reg.rvfi.order;
-    mem_stage_reg.rvfi.int_valid  <= ex_stage_reg.rvfi.int_valid;
-    mem_stage_reg.rvfi.end_signal <= ex_stage_reg.rvfi.end_signal;
-    
-    mem_stage_reg.rvfi.int_order <= ex_stage_reg.rvfi.int_order;
+    mem_stage_reg.rvfi.valid     <= ex_stage_reg.rvfi.valid;
+    mem_stage_reg.rvfi.order     <= ex_stage_reg.rvfi.order;
     mem_stage_reg.rvfi.inst      <= ex_stage_reg.rvfi.inst;
     mem_stage_reg.rvfi.rs1_addr  <= ex_stage_reg.rvfi.rs1_addr;
     mem_stage_reg.rvfi.rs2_addr  <= ex_stage_reg.rvfi.rs2_addr;

@@ -40,15 +40,15 @@ module ordinary_dual_port #(
                 itf_i.error <= 1'b1;
             end
             if (itf_i.addr[1:0] != 2'b00) begin
-                // $error("Memory I-Port Error: address is not 32-bit aligned");
-                // itf_i.error <= 1'b1;
+                $error("Memory I-Port Error: address is not 32-bit aligned");
+                itf_i.error <= 1'b1;
             end
         end
-        if ((|itf_i.rmask) && itf_i.resp) begin
-            if ($isunknown(itf_i.rdata)) begin
-                $warning("Memory I-Port Warning: rdata contains 'x");
-            end
-        end
+        // if ((|itf_i.rmask) && itf_i.resp) begin
+        //     if ($isunknown(itf_i.rdata)) begin
+        //         $warning("Memory I-Port Warning: rdata contains 'x");
+        //     end
+        // end
     end
 
     always @(posedge itf_d.clk iff !itf_d.rst) begin

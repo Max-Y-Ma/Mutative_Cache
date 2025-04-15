@@ -42,20 +42,6 @@ monitor monitor(.itf(mon_itf));
   ordinary_dual_port mem(.itf_i(mem_itf_i), .itf_d(mem_itf_d));
 `endif
 
-
-  logic [4:0]  adp_rd_addr;
-  logic [31:0] adp_wdata;
-  logic        adp_reg_we;
-  logic        adp_pc_we;
-  logic        adp_ir_we;
-  logic        adp_ctrl_stall;
-
-  assign adp_ctrl_stall  = '0;
-  assign adp_rd_addr     = '0;
-  assign adp_wdata       = '0;
-  assign adp_pc_we       = '0;  
-  assign adp_ir_we       = '0;
-
 // DUT Instantiation
 cpu dut(
   .clk            (clk),
@@ -73,27 +59,11 @@ cpu dut(
   .dmem_wmask     (mem_itf_d.wmask),
   .dmem_rdata     (mem_itf_d.rdata),
   .dmem_wdata     (mem_itf_d.wdata),
-  .dmem_resp      (mem_itf_d.resp),
-
-    // ADP debug signal interface
-  .adp_core_reg(),
-  .adp_core_pc(),
-  .adp_core_ir(),
-  .adp_rd_addr(adp_rd_addr),
-  .adp_wdata(adp_wdata),
-  .adp_reg_we(),
-  .adp_pc_we(adp_pc_we),
-  .adp_ir_we(adp_ir_we),
-  .adp_imem_stall(adp_imem_stall),
-  .adp_dmem_stall(adp_dmem_stall),
-  .adp_func_stall(adp_func_stall),
-  .adp_load_hazard(adp_load_hazard),
-  .adp_ctrl_stall(adp_ctrl_stall)
+  .dmem_resp      (mem_itf_d.resp)
 );
 
-
 // Monitor Interface DUT Wiring
-`include "../../chip/tb/vc/cpu/rvfi_reference.svh"
+`include "../../chip/digital/tb/vc/cpu/rvfi_reference.svh"
 
 // Waveform Dumpfiles and Reset
 initial begin

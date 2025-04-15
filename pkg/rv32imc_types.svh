@@ -12,58 +12,8 @@ typedef enum bit [6:0] {
   op_load  = 7'b0000011, // I load 
   op_store = 7'b0100011, // S store 
   op_imm   = 7'b0010011, // I arith ops with register/immediate operands 
-  op_reg   = 7'b0110011, // R arith ops with register operands 
-  op_mret  = 7'b1110011  //
-} rv32im_inst_opcode_t;
-
-typedef enum bit [24:0]{
-  valid_int_opcode = 25'b0011000000100000000000000
-} ret_bits_t;
-
-typedef enum bit [1:0] {
-  c0 = 2'b00, // Indicates compressed instruction
-  c1 = 2'b01, // Indicates compressed instruction
-  c2 = 2'b10, // Indicates compressed instruction
-  c3 = 2'b11  // Indicates regular instruction
-} rv32c_inst_opcode_t;
-
-typedef enum bit [2:0] {
-  c_addi4spn  = 3'b000,
-  c_lw        = 3'b010,
-  c_sw        = 3'b110
-} c0_funct3_t;
-
-typedef enum bit [2:0] {
-  c_addi  = 3'b000,
-  c_jal   = 3'b001,
-  c_li    = 3'b010,
-  c_lui   = 3'b011,
-  c_logic = 3'b100,
-  c_j     = 3'b101,
-  c_beqz  = 3'b110,
-  c_bnez  = 3'b111
-} c1_funct3_t;
-
-typedef enum bit [1:0] {
-  c_srli = 2'b00,
-  c_srai = 2'b01,
-  c_andi = 2'b10,
-  c_sxoa = 2'b11
-} c1_logic_t;
-
-typedef enum bit [2:0] {
-  c_sub = 3'b000,
-  c_xor = 3'b001,
-  c_or  = 3'b010,
-  c_and = 3'b011
-} c1_logic_funct3_t;
-
-typedef enum bit [2:0] {
-  c_slli  = 3'b000,
-  c_lwsp  = 3'b010,
-  c_other = 3'b100,
-  c_swsp  = 3'b110
-} c2_funct3_t;
+  op_reg   = 7'b0110011  // R arith ops with register operands 
+} rv32_inst_opcode_t;
 
 typedef enum bit [2:0] {
   alu_add = 3'b000, // Check bit 30 for add/sub
@@ -199,7 +149,6 @@ typedef struct packed {
   func_mux_t        func_mux;
   target_addr_mux_t target_addr_mux;
   logic             branch;
-  logic             end_int;
   logic [2:0]       func_op;
   logic [2:0]       funct3;
 } ex_ctrl_t;
@@ -218,9 +167,7 @@ typedef struct packed {
 
 typedef struct packed {
   logic        valid;
-  logic        int_valid;
   logic [63:0] order;
-  logic [63:0] int_order;
   logic [31:0] inst;
   logic [4:0]  rs1_addr;
   logic [4:0]  rs2_addr;
@@ -235,7 +182,6 @@ typedef struct packed {
   logic [3:0]  mem_wmask;
   logic [31:0] mem_rdata;
   logic [31:0] mem_wdata;
-  logic        end_signal;
 } rvfi_signal_t;
 
 // Pipeline Stages
@@ -245,7 +191,6 @@ typedef struct packed {
   // Datapath Signals
   logic [31:0] pc;
   logic [31:0] pc_next;
-  logic        int_flag;
 } if_stage_t;
 
 typedef struct packed {
@@ -262,8 +207,6 @@ typedef struct packed {
   logic [31:0] imm;
   logic [31:0] rs1_rdata;
   logic [31:0] rs2_rdata;
-  logic        int_flag;
-  logic        end_int;
   ex_ctrl_t    ex_ctrl;
   mem_ctrl_t   mem_ctrl;
   wb_ctrl_t    wb_ctrl;
@@ -280,7 +223,6 @@ typedef struct packed {
   logic [31:0] rs2_rdata;
   mem_ctrl_t   mem_ctrl;
   wb_ctrl_t    wb_ctrl;
-  logic        int_flag;
 } ex_stage_t;
 
 typedef struct packed {
@@ -293,7 +235,6 @@ typedef struct packed {
   logic [4:0]  rd_addr;
   mem_ctrl_t   mem_ctrl;
   wb_ctrl_t    wb_ctrl;
-  logic        int_flag;
 } mem_stage_t;
 
 typedef struct packed {
@@ -320,7 +261,7 @@ typedef union packed {
     bit [4:0] rs1;
     bit [2:0] funct3;
     bit [4:0] rd;
-    rv32im_inst_opcode_t opcode;
+    rv32_inst_opcode_t opcode;
   } i_type;
 
   struct packed {
@@ -329,7 +270,7 @@ typedef union packed {
     bit [4:0] rs1;
     bit [2:0] funct3;
     bit [4:0] rd;
-    rv32im_inst_opcode_t opcode;
+    rv32_inst_opcode_t opcode;
   } r_type;
 
   struct packed {
@@ -338,7 +279,7 @@ typedef union packed {
     bit [4:0]  rs1;
     bit [2:0]  funct3;
     bit [4:0]  imm_s_bot;
-    rv32im_inst_opcode_t opcode;
+    rv32_inst_opcode_t opcode;
   } s_type;
 
   struct packed {
@@ -347,13 +288,13 @@ typedef union packed {
     bit [4:0]  rs1;
     bit [2:0]  funct3;
     bit [4:0]  imm_b_bot;
-    rv32im_inst_opcode_t opcode;
+    rv32_inst_opcode_t opcode;
   } b_type;
 
   struct packed {
     bit [31:12] imm;
     bit [4:0]  rd;
-    rv32im_inst_opcode_t opcode;
+    rv32_inst_opcode_t opcode;
   } j_type;
 
 } instr_t;

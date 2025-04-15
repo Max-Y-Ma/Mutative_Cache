@@ -35,9 +35,10 @@ PKG_SRCS  := $(shell find $(DIGITAL_PATH)/pkg -name '*.svh' -o -name '*.sv')
 HDL_SRCS  := $(shell find $(DIGITAL_PATH)/hdl -name '*.sv' -o -name '*.v')
 VC_SRCS   := $(shell find $(DIGITAL_PATH)/hvl/vc/$(DIR) -name '*.sv' -o -name '*.v')
 VC_INC    := +incdir+$(DIGITAL_PATH)/hvl/vc/$(DIR)
+SRAM_SRCS := $(shell find $(PWD)/../sram/output -name '*.v')
 DW        := /software/Synopsys-2021_x86_64/syn/R-2020.09-SP4/dw
 DW_IP     := $(shell python3 get_dw_ip.py)
-SRCS      := $(PKG_SRCS) $(HDL_SRCS) $(VC_SRCS) $(DW_IP)
+SRCS      := $(PKG_SRCS) $(HDL_SRCS) $(VC_SRCS) $(DW_IP) $(SRAM_SRCS)
 TOP       := $(basename $(notdir $(shell find $(DIGITAL_PATH)/hvl/vc/$(DIR) -name 'top_tb**.sv')))
 
 # Toggle UVM
@@ -48,13 +49,11 @@ DEFINE_FLAGS := $(addprefix +define+, $(DEFINE))
 
 # Simulator arguments
 export VCS_ARCH_OVERRIDE=linux
-VCS_FLAGS := -full64 -lca -sverilog -timescale=1ns/1ps -debug_acc+all -kdb \
+VCS_FLAGS := -full64 -lca -sverilog -timescale=1ns/1ns -debug_acc+all -kdb \
 -debug_access -suppress=LCA_FEATURES_ENABLED +incdir+$(DW)/sim_ver \
-+define+DW_SUPPRESS_WARN \
--xprop=../xprop.config -xprop=flowctrl
++define+DW_SUPPRESS_WARN
 
 # Environment arguments
-export PATH := $(PATH):/ece498hk/libs/riscv/bin
 
 .PHONY: info
 info:
@@ -93,7 +92,7 @@ vc: sim/top_tb
 
 .PHONY: compile
 compile: $(PROG)
-	../bin/generate_memory_file.sh $(PROG) $(SPIKE) $(INC)
+	../bin/generate_memory_file.sh $(PROG)
 
 .PHONY: compare
 compare:
@@ -111,12 +110,12 @@ verdi:
 .PHONY: spike
 spike: $(ELF)
 	mkdir -p sim
-	/class/ece411/riscv/bin/spike --isa=rv32imc -m0x60000000:0x01000000,0x70000000:0x00002000 --log-commits $(ELF) |& tail -n +6 > sim/spike.log
+	spike --isa=rv32imc -m0x60000000:0x20000000 --log-commits $(ELF) |& tail -n +6 > sim/spike.log
 
 .PHONY: interactive_spike
 interactive_spike: $(ELF)
 	mkdir -p sim
-	/class/ece411/riscv/bin/spike --isa=rv32imc -m0x60000000:0x01000000,0x70000000:0x00002000 --log-commits -d $(ELF)
+	spike --isa=rv32imc -m0x60000000:0x20000000 --log-commits -d $(ELF)
 
 .PHONY: clean
 clean:

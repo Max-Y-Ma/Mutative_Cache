@@ -14,9 +14,6 @@ import rv32imc_types::*;
   input  logic wb_stall,
   output logic dmem_stall,
 
-  //Interrupt Signals
-  output logic o_wb_int_flag,
-
   // Data Memory Ports
   input  logic [31:0] dmem_rdata,
   input  logic [3:0]  dmem_rmask,
@@ -31,11 +28,10 @@ import rv32imc_types::*;
 logic mem_read, mem_write;
 assign mem_read = mem_stage_reg.mem_ctrl.mem_read;
 assign mem_write = mem_stage_reg.mem_ctrl.mem_write;
-assign o_wb_int_flag = mem_stage_reg.int_flag;
 
 // Signal indicating if data memory is currently servicing a request
 logic dmem_busy;
-always_ff @(posedge clk, posedge rst) begin
+always_ff @(posedge clk) begin
   if (rst) begin
     dmem_busy <= 1'b0;
   end 
@@ -56,7 +52,7 @@ assign dmem_stall = dmem_busy;  // For non-pipeline interface
 
 // Data Memory Stall Logic
 logic [31:0] dmem_rdata_buffer;
-always_ff @(posedge clk, posedge rst) begin
+always_ff @(posedge clk) begin
   if (rst) begin
     dmem_rdata_buffer <= '0;
   end 
@@ -98,18 +94,14 @@ always_comb begin
 end
 
 // Latch to Pipeline Registers
-always_ff @(posedge clk, posedge rst) begin
+always_ff @(posedge clk) begin
   if (rst) begin
     // Reset Pipeline Registers
     wb_stage_reg.rvfi <= '0;
   end else if (!wb_stall) begin
     // Latch Data Signals
-    wb_stage_reg.rvfi.valid      <= mem_stage_reg.rvfi.valid;
-    wb_stage_reg.rvfi.order      <= mem_stage_reg.rvfi.order;
-    wb_stage_reg.rvfi.int_valid  <= mem_stage_reg.rvfi.int_valid;
-    wb_stage_reg.rvfi.int_order  <= mem_stage_reg.rvfi.int_order;
-    wb_stage_reg.rvfi.end_signal <= mem_stage_reg.rvfi.end_signal;
-    
+    wb_stage_reg.rvfi.valid     <= mem_stage_reg.rvfi.valid;
+    wb_stage_reg.rvfi.order     <= mem_stage_reg.rvfi.order;
     wb_stage_reg.rvfi.inst      <= mem_stage_reg.rvfi.inst;
     wb_stage_reg.rvfi.rs1_addr  <= mem_stage_reg.rvfi.rs1_addr;
     wb_stage_reg.rvfi.rs2_addr  <= mem_stage_reg.rvfi.rs2_addr;

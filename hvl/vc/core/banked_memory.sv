@@ -19,7 +19,7 @@ module banked_memory
     parameter int DRAM_PARAM_RA_WIDTH           = 20,   // in bits
     parameter int DRAM_PARAM_CA_WIDTH           = 3,    // in bits // artificially nerfed
     parameter int DRAM_PARAM_BUS_WIDTH          = 64,   // in bits
-    parameter int DRAM_PARAM_BURST_LEN          = 1,    // in bursts
+    parameter int DRAM_PARAM_BURST_LEN          = 4,    // in bursts
     parameter int DRAM_PARAM_QUEUE_SIZE         = 16    // in requests
 )(
     banked_mem_itf.mem itf
@@ -83,7 +83,7 @@ module banked_memory
     initial itf.rvalid = 1'b0;
 
     task automatic reset();
-        automatic string memfile = {getenv("ECE411_MEMLST"), "_8.lst"};
+        automatic string memfile = {getenv("ECE411_MEMLST"), "_32.lst"};
         internal_memory_array.delete();
         $readmemh(memfile, internal_memory_array);
         $display("using memory file %s", memfile);
