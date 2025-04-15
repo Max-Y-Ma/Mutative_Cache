@@ -1,14 +1,13 @@
 module plru
 import cache_types::*;
 #(
-  parameter WAYS = 4,
+  parameter  WAYS = 4,
   localparam PLRU_HEIGHT = $clog2(WAYS)-1,
   localparam PLRU_SIZE   = WAYS-1,
   localparam PLRU_IDX    = $clog2(PLRU_SIZE),
   localparam LEAF_START  = ((unsigned'(WAYS) >> 1'b1) - 1'b1),
   localparam WAYS_IDX    = $clog2(WAYS)
-)
-(
+) (
   input  logic clk, rst, evict_update,
   input  logic [3:0] set_addr,
   input  logic [WAYS-1:0] cache_hit_vector,
@@ -47,7 +46,7 @@ generate
   end
 
   /* Generate PLRU eviction algorithm */
-  else begin
+  else begin : plru_generate
     logic [PLRU_IDX-1:0]              plru_index;
     logic [WAYS_IDX-1:0]              evict_index;
     logic [WAYS_IDX-1:0]              evict_index_start;
@@ -123,7 +122,10 @@ generate
   end
 endgenerate
 
-ff_array #(.WIDTH(WAYS-1)) plru_array (
+ff_array #(
+  .S_INDEX(4),
+  .WIDTH(WAYS-1)
+) plru_array (
   .clk0       (clk),
   .rst0       (rst),
   .csb0       (1'b0),

@@ -4,7 +4,7 @@ import cache_types::*;
   parameter  WAYS            = 4,
   parameter  SETS            = 16,
   localparam SET_BITS        = $clog2(SETS),
-  localparam CACHELINE_BYTES = 32,
+  parameter  CACHELINE_BYTES = 32,
   localparam CACHELINE_BITS  = $clog2(CACHELINE_BYTES),
   localparam TAG_BITS        = 32 - SET_BITS - CACHELINE_BITS
 ) (
@@ -83,7 +83,7 @@ import cache_types::*;
     end
 
     always_comb begin
-      // DRAM signalsf
+      // DRAM signals
       dfp_wdata = 'x;
       for (int i = 0; i < WAYS; i++) begin
         if (evict_candidate[i]) begin
@@ -151,7 +151,7 @@ import cache_types::*;
     end
 
     generate for (genvar i = 0; i < WAYS; i++) begin : arrays
-        mp_icache_data_array data_array (
+        icache_data_array data_array (
             .clk0       (clk),
             .csb0       (data_array_csb0[i]),
             .web0       (data_array_web0[i]),
@@ -160,7 +160,7 @@ import cache_types::*;
             .din0       (data_array_din0[i]),
             .dout0      (data_array_dout0[i])
         );
-        mp_icache_tag_array tag_array (
+        icache_tag_array tag_array (
             .clk0       (clk),
             .csb0       (tag_array_csb0[i]),
             .web0       (tag_array_web0[i]),
@@ -180,6 +180,6 @@ import cache_types::*;
     end endgenerate
 
     icache_control #(.WAYS(WAYS)) cache_control0(.*);
-    plru    #(.WAYS(WAYS)) plru0(.*);
+    plru           #(.WAYS(WAYS)) plru0(.*);
 
 endmodule
