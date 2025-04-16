@@ -135,19 +135,14 @@ import mutative_types::*;
         cache_data_wmask = 32'h00000000;
         cache_wdata = 'x;
         if(mem_write_cache) begin //memory writing cache
-            way_we = (setup == 0) ? ( 1 << dm_way_index) : evict_we;
+            way_we = evict_we;
             cache_data_wmask = 32'hFFFFFFFF;
             cache_wdata = dfp_rdata;
         end
         else if(|ufp_wmask_ff) begin //cpu writing cache
             cache_data_wmask[4*cache_address.block_offset[4:2] +: 4] = ufp_wmask_ff; // 00100
             cache_wdata[cache_address.block_offset[4:2]*32 +: 32] = ufp_wdata_ff;
-            way_we = {WAYS{1'b0}};
-            for (int i=0; i<WAYS; ++i) begin
-                if(hit_way == i) begin
-                    way_we = 1 << i;
-                end
-            end
+            way_we = 1 << hit_way;
         end
         else begin
             way_we = {WAYS{1'b0}};
