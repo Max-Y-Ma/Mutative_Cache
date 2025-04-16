@@ -1,5 +1,5 @@
 // Execute Pipeline Stage
-module ex_stage 
+module ex_stage
 import rv32imc_types::*;
 (
   // Synchronous Signals
@@ -51,10 +51,10 @@ always_comb begin
   // Assign RS1 data based on forwarding unit
   if (fwd_src_a == ex_source) begin
     fwd_src_a_data = ex_stage_reg.func_out;
-  end 
+  end
   else if (fwd_src_a == mem_source) begin
     fwd_src_a_data = i_wb_data;
-  end 
+  end
   else begin
     fwd_src_a_data = id_stage_reg.rs1_rdata;
   end
@@ -62,25 +62,25 @@ always_comb begin
   // Assign RS2 data based on forwarding unit
   if (fwd_src_b == ex_source) begin
     fwd_src_b_data = ex_stage_reg.func_out;
-  end 
+  end
   else if (fwd_src_b == mem_source) begin
     fwd_src_b_data = i_wb_data;
-  end 
+  end
   else begin
     fwd_src_b_data = id_stage_reg.rs2_rdata;
   end
-  
+
   // Operand multiplexers
   if (id_stage_reg.ex_ctrl.alu1_mux == pc_out) begin
     a = id_stage_reg.pc;
-  end 
+  end
   else begin
     a = fwd_src_a_data;
   end
 
   if (id_stage_reg.ex_ctrl.alu2_mux == imm_out) begin
     b = id_stage_reg.imm;
-  end 
+  end
   else begin
     b = fwd_src_b_data;
   end
@@ -192,7 +192,7 @@ cmp cmp0 (
 );
 
 // Functional stall logic
-// Wait for data memory if we are forwarding from memory during a divide 
+// Wait for data memory if we are forwarding from memory during a divide
 // or multiply operation
 logic wait_stall;
 assign wait_stall = (multiply | divide) & mem_forward & dmem_stall;
@@ -207,13 +207,13 @@ always_comb begin
   end
   else if (id_stage_reg.ex_ctrl.func_mux == cmp_out) begin
     func_out = {31'd0, br_en};
-  end 
+  end
   else if (id_stage_reg.ex_ctrl.func_mux == addr_out) begin
     func_out = id_stage_reg.pc + 'h4;
-  end 
+  end
   else if (id_stage_reg.ex_ctrl.func_mux == mul_out) begin
     func_out = mul_fout;
-  end 
+  end
   else begin
     func_out = div_fout;
   end
@@ -228,18 +228,18 @@ always_comb begin
   // Determine base address value for branches or jumps
   if (id_stage_reg.ex_ctrl.target_addr_mux == rs1_op)
     base_addr = fwd_src_a_data;
-  else 
+  else
     base_addr = id_stage_reg.pc;
 
   // Add the immediate offset to the base address to form the target address
   target_addr = base_addr + id_stage_reg.imm;
-  
+
   // Assert the next program counter value in fetch stage
   o_pc_mux = branch_taken ? pc_offset : pc_next;
-  
+
   if (id_stage_reg.ex_ctrl.target_addr_mux == rs1_op)
     o_pc_offset = target_addr & 32'hfffffffe;
-  else 
+  else
     o_pc_offset = target_addr;
 end
 

@@ -5,7 +5,7 @@ import rv32imc_types::*;
 ) (
   input logic clk, rst,
 
-  input  logic [31:0] a, 
+  input  logic [31:0] a,
   input  logic [31:0] b,
   input  logic        start,
   input  logic [2:0]  div_op,
@@ -32,7 +32,7 @@ always_ff @(posedge clk) begin
   /* Reset when the divider operation completes */
   if (rst || div_valid) begin
     div_busy <= 1'b0;
-  end 
+  end
   /* Stall until the divider operation completes */
   else if (start) begin
     div_busy <= 1'b1;

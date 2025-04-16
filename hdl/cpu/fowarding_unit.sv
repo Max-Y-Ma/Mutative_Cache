@@ -1,4 +1,4 @@
-module forwarding_unit 
+module forwarding_unit
 import rv32imc_types::*;
 (
   input  logic [4:0]   rs1_addr,

@@ -1,5 +1,5 @@
 // Instruction Fetch Pipeline Stage
-module if_stage 
+module if_stage
 import rv32imc_types::*;
 (
   // Synchronous Signals
@@ -46,7 +46,7 @@ end
 // Program Counter Logic
 assign pc_next = (i_pc_mux == pc_offset) ? (i_pc_offset) : (pc + 'd4);
 
-// Assign instruction memory address to the branch target address during a 
+// Assign instruction memory address to the branch target address during a
 // flush cycle in which a branch was taken, otherwise just the current pc.
 assign imem_addr = i_flush ? pc_next : pc;
 

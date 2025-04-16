@@ -16,7 +16,7 @@ import rv32imc_types::*;
   output logic [31:0] dmem_wdata,
   input  logic        dmem_resp
 );
-    
+
 // Pipeline Stages
 if_stage_t  if_stage_reg;
 id_stage_t  id_stage_reg;
@@ -31,9 +31,9 @@ logic pc_we;
 // Flush Signals
 logic flush;
 
-// Indicates that the processor should stall for instruction memory 
+// Indicates that the processor should stall for instruction memory
 // in the current cycle. This current cycle, the processor does nothing.
-logic imem_stall;   
+logic imem_stall;
 
 // Indicates that the processor should stall for data memory
 // in the current cycle. This current cycle, the processor does nothing.
@@ -46,11 +46,11 @@ logic func_stall;
 logic load_hazard;
 
 // Combinational write enable signals
-logic if_stall; 
-logic id_stall; 
-logic ex_stall; 
+logic if_stall;
+logic id_stall;
+logic ex_stall;
 logic mem_stall;
-logic wb_stall; 
+logic wb_stall;
 assign if_stall  = imem_stall | dmem_stall | func_stall | load_hazard;
 assign id_stall  = imem_stall | dmem_stall | func_stall;
 assign ex_stall  = imem_stall | dmem_stall | func_stall;

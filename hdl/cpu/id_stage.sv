@@ -1,5 +1,5 @@
 // Instruction Decode Pipeline Stage
-module id_stage 
+module id_stage
 import rv32imc_types::*;
 (
   // Synchronous Signals
@@ -36,8 +36,8 @@ always_ff @(posedge clk) begin
   // still stalled because of other conditions
   if (rst || (imem_resp & (id_stall || load_hazard))) begin
     imem_busy <= 1'b0;
-  end 
-  // We are busy if there is a current read from instruction memory or a 
+  end
+  // We are busy if there is a current read from instruction memory or a
   // instruction memory response comes, in which we read again immediately
   else if (|imem_rmask || imem_resp) begin
     imem_busy <= 1'b1;
@@ -53,12 +53,12 @@ always_ff @(posedge clk) begin
   // If we get flushed, reset the instruction buffer
   if (rst) begin
     inst_buffer <= '0;
-  end 
+  end
   // If we are stalled, buffer the newest instruction data from memory
   else if ((id_stall || load_hazard) && imem_resp) begin
     inst_buffer <= imem_rdata;
   end
-end 
+end
 
 // Current instruction logic
 always_comb begin
@@ -120,7 +120,7 @@ logic [63:0] order;
 always_ff @(posedge clk) begin
   if (rst) begin
     order <= '0;
-  end 
+  end
   // Order unchanged if a flush or stall cycle
   else if (id_stall || load_hazard || i_flush) begin
     order <= order;

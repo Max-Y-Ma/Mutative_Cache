@@ -4,8 +4,8 @@ num_rw_ports = 1
 num_r_ports = 0
 num_w_ports = 0
 
-word_size = 24
-num_words = 16
+word_size = 20
+num_words = 512
 
 nominal_corner_only = True
 process_corners = ["TT"]
@@ -21,7 +21,7 @@ perimeter_pins = False
 load_scales = [0.5, 1, 4]
 slew_scales = [0.5, 1]
 
-output_name = "dcache_tag_array"
+output_name = "l2cache_tag_array"
 output_path = f"output/{output_name}"
 
 print_banner = False

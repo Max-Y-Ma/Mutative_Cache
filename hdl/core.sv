@@ -1,17 +1,11 @@
 module core
 (
   input  logic        clk,
-  input  logic        rst,
+  input  logic        rst
 
-  output logic [31:0] bmem_addr,
-  output logic        bmem_read,
-  output logic        bmem_write,
-  output logic [63:0] bmem_wdata,
-  input  logic        bmem_ready,
+  // Icache Coherence Port
 
-  input  logic [31:0] bmem_raddr,
-  input  logic [63:0] bmem_rdata,
-  input  logic        bmem_rvalid
+  // Dcache Coherence Port
 );
 
 /* Cache Signals */
@@ -49,32 +43,22 @@ logic           dmem_resp;
 
 logic           instr_ready;
 
-cache_line cache_line0(
+// RV32IM CPU
+cpu cpu0(
   .clk(clk),
   .rst(rst),
-  
-  .bmem_addr(bmem_addr),
-  .bmem_read(bmem_read),
-  .bmem_write(bmem_write),
-  .bmem_wdata(bmem_wdata),
-  .bmem_ready(bmem_ready),
-  .bmem_raddr(bmem_raddr),
-  .bmem_rdata(bmem_rdata),
-  .bmem_rvalid(bmem_rvalid),
 
-  .icache_addr(icache_addr),
-  .icache_read(icache_read),
-  .icache_write(icache_write),
-  .icache_rdata(icache_rdata),
-  .icache_wdata(icache_wdata),
-  .icache_resp(icache_resp),
+  .imem_addr(imem_addr),
+  .imem_rmask(imem_rmask),
+  .imem_rdata(imem_rdata),
+  .imem_resp(imem_resp),
 
-  .dcache_addr(dcache_addr),
-  .dcache_read(dcache_read),
-  .dcache_write(dcache_write),
-  .dcache_rdata(dcache_rdata),
-  .dcache_wdata(dcache_wdata),
-  .dcache_resp(dcache_resp)
+  .dmem_addr(dmem_addr),
+  .dmem_rmask(dmem_rmask),
+  .dmem_wmask(dmem_wmask),
+  .dmem_rdata(dmem_rdata),
+  .dmem_wdata(dmem_wdata),
+  .dmem_resp(dmem_resp)
 );
 
 icache #(
@@ -97,7 +81,10 @@ icache #(
   .dfp_resp(icache_resp)
 );
 
-mutative_cache mutative_cache0 (
+dcache #(
+  .WAYS(DCACHE_WAYS),
+  .SETS(DCACHE_SETS)
+) dcache0 (
   .clk(clk),
   .rst(rst),
 
@@ -114,46 +101,6 @@ mutative_cache mutative_cache0 (
   .dfp_rdata(dcache_rdata),
   .dfp_wdata(dcache_wdata),
   .dfp_resp(dcache_resp)
-);
-
-// dcache #(
-//   .WAYS(DCACHE_WAYS),
-//   .SETS(DCACHE_SETS)
-// ) dcache0 (
-//   .clk(clk),
-//   .rst(rst),
-
-//   .ufp_addr(dmem_addr),
-//   .ufp_rmask(dmem_rmask),
-//   .ufp_wmask(dmem_wmask),
-//   .ufp_rdata(dmem_rdata),
-//   .ufp_wdata(dmem_wdata),
-//   .ufp_resp(dmem_resp),
-
-//   .dfp_addr(dcache_addr),
-//   .dfp_read(dcache_read),
-//   .dfp_write(dcache_write),
-//   .dfp_rdata(dcache_rdata),
-//   .dfp_wdata(dcache_wdata),
-//   .dfp_resp(dcache_resp)
-// );
-
-// DUT Instantiation
-cpu cpu0(
-  .clk(clk),
-  .rst(rst),
-
-  .imem_addr(imem_addr),
-  .imem_rmask(imem_rmask),
-  .imem_rdata(imem_rdata),
-  .imem_resp(imem_resp),
-
-  .dmem_addr(dmem_addr),
-  .dmem_rmask(dmem_rmask),
-  .dmem_wmask(dmem_wmask),
-  .dmem_rdata(dmem_rdata),
-  .dmem_wdata(dmem_wdata),
-  .dmem_resp(dmem_resp)
 );
 
 endmodule : core

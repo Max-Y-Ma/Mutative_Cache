@@ -1,5 +1,5 @@
 // Data Memory Pipeline Stage
-module mem_stage 
+module mem_stage
 import rv32imc_types::*;
 (
   // Synchronous Signals
@@ -84,7 +84,7 @@ always_ff @(posedge clk) begin
     // Latch Data Signals
     mem_stage_reg.rd_addr  <= ex_stage_reg.rd_addr;
     mem_stage_reg.func_out <= ex_stage_reg.func_out;
-    
+
     // Latch Control Signals
     mem_stage_reg.mem_ctrl <= ex_stage_reg.mem_ctrl;
     mem_stage_reg.wb_ctrl  <= ex_stage_reg.wb_ctrl;

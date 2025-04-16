@@ -22,7 +22,8 @@ perimeter_pins = False
 load_scales = [0.5, 1, 4]
 slew_scales = [0.5, 1]
 
-output_name = "dcache_data_array"
+sram_output_edge = "rising"
+output_name = "l2cache_data_array"
 output_path = f"output/{output_name}"
 
 print_banner = False

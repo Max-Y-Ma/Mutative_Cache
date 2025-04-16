@@ -5,7 +5,7 @@ import rv32imc_types::*;
 ) (
   input logic clk, rst,
 
-  input  logic [31:0] a, 
+  input  logic [31:0] a,
   input  logic [31:0] b,
   input  logic        start,
   input  logic [2:0]  mul_op,
@@ -21,7 +21,7 @@ always_ff @ (posedge clk) begin
   /* Reset when the multiplier operation completes */
   if (rst || done[DEPTH+1]) begin
     mul_busy <= '0;
-  end 
+  end
   /* Stall until the multiplication operation completes */
   else if (start) begin
     mul_busy <= '1;

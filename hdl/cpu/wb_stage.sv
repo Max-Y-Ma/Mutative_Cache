@@ -34,12 +34,12 @@ logic dmem_busy;
 always_ff @(posedge clk) begin
   if (rst) begin
     dmem_busy <= 1'b0;
-  end 
+  end
   // We are busy if there is a current read from or write to data memory
   else if (|dmem_rmask || |dmem_wmask) begin
     dmem_busy <= 1'b1;
   end
-  // We are not busy if there is a data memory response without a read or 
+  // We are not busy if there is a data memory response without a read or
   // write to data memory in the current cycle
   else if (dmem_resp) begin
     dmem_busy <= 1'b0;
@@ -55,7 +55,7 @@ logic [31:0] dmem_rdata_buffer;
 always_ff @(posedge clk) begin
   if (rst) begin
     dmem_rdata_buffer <= '0;
-  end 
+  end
   // If we are stalled, buffer the newest data from memory
   else if (wb_stall && mem_stage_reg.mem_ctrl.mem_read && dmem_resp) begin
     dmem_rdata_buffer <= dmem_rdata;
@@ -86,7 +86,7 @@ end
 always_comb begin
   o_regf_we = mem_stage_reg.wb_ctrl.regf_we;
   o_rd_addr = mem_stage_reg.rd_addr;
-  
+
   if (mem_stage_reg.wb_ctrl.wb_mux == func_out)
     o_write_data = mem_stage_reg.func_out;
   else
@@ -118,5 +118,5 @@ always_ff @(posedge clk) begin
     wb_stage_reg.rvfi.mem_wdata <= mem_stage_reg.rvfi.mem_wdata;
   end
 end
-  
+
 endmodule : wb_stage

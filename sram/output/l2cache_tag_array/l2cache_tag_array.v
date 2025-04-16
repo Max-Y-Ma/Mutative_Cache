@@ -1,8 +1,8 @@
 // OpenRAM SRAM model
-// Words: 128
+// Words: 512
 // Word size: 20
 
-module mutative_tag_array(
+module l2cache_tag_array(
 `ifdef USE_POWER_PINS
     vdd,
     gnd,
@@ -12,7 +12,7 @@ module mutative_tag_array(
   );
 
   parameter DATA_WIDTH = 20 ;
-  parameter ADDR_WIDTH = 7 ;
+  parameter ADDR_WIDTH = 9 ;
   parameter RAM_DEPTH = 1 << ADDR_WIDTH;
   // FIXME: This delay is arbitrary.
   parameter DELAY = 3 ;

@@ -61,11 +61,11 @@ always_comb begin
   wb_ctrl.mem_funct3      = '0;
   wb_ctrl.regf_we         = '0;
 
-  // Assign Control Signals        
+  // Assign Control Signals
   unique case (opcode)
     /**
-    * The Load Upper Immediate (LUI) instruction, copies the 20-bit immediate 
-    * value to the upper 20 bits of the destination register (rd) and resets 
+    * The Load Upper Immediate (LUI) instruction, copies the 20-bit immediate
+    * value to the upper 20 bits of the destination register (rd) and resets
     * the lower 12 bits to zero.
     *
     * Syntax:
@@ -76,7 +76,7 @@ always_comb begin
       o_rs1_addr = '0;
       o_rd_addr  = rd_addr;
       o_imm      = u_imm;
-      
+
       // Execute
       ex_ctrl.alu2_mux = imm_out;
       ex_ctrl.func_op   = alu_add;
@@ -86,8 +86,8 @@ always_comb begin
       wb_ctrl.regf_we = 1'b1;
     end
     /**
-    * Add Upper Immediate to PC (AUIPC) adds the 20-bit immediate value to 
-    * the upper 20 bits of the program counter (pc) and stores the result 
+    * Add Upper Immediate to PC (AUIPC) adds the 20-bit immediate value to
+    * the upper 20 bits of the program counter (pc) and stores the result
     * in the destination register (rd).
     *
     * Syntax:
@@ -108,10 +108,10 @@ always_comb begin
       wb_ctrl.regf_we = 1'b1;
     end
     /**
-    * Jump and Link (JAL) is used to call a subroutine (i.e., function). 
-    * The return address (i.e., the PC, which is the address of the 
+    * Jump and Link (JAL) is used to call a subroutine (i.e., function).
+    * The return address (i.e., the PC, which is the address of the
     * instruction following the JAL) is saved in the destination register.
-    * 
+    *
     * Syntax:
     * - jal rd, offset
     */
@@ -132,8 +132,8 @@ always_comb begin
       wb_ctrl.regf_we = 1'b1;
     end
     /**
-    * Jump and Link Register (JALR) is used to invoke a subroutine call 
-    * (i.e., function/method/procedure). The return address (i.e., the PC, 
+    * Jump and Link Register (JALR) is used to invoke a subroutine call
+    * (i.e., function/method/procedure). The return address (i.e., the PC,
     * which is the address of the instruction following the JALR) is saved
     * in the destination register.
     *
@@ -149,7 +149,7 @@ always_comb begin
 
       // Execute
       ex_ctrl.func_op         = beq;      // Garuntee Branch
-      ex_ctrl.func_mux        = addr_out; 
+      ex_ctrl.func_mux        = addr_out;
       ex_ctrl.target_addr_mux = rs1_op;
       ex_ctrl.branch          = '1;
 
@@ -158,32 +158,32 @@ always_comb begin
       wb_ctrl.regf_we = 1'b1;
     end
     /**
-    * Branch If Equal (BEQ) the contents of source register rs1 is compared 
-    * with source register rs2, if found equal, the control is transferred 
+    * Branch If Equal (BEQ) the contents of source register rs1 is compared
+    * with source register rs2, if found equal, the control is transferred
     * to the specified label.
     *
-    * Branch If Not Equal (BNE) the contents of source register rs1, is 
+    * Branch If Not Equal (BNE) the contents of source register rs1, is
     * compared with source register rs2 if they are not equal control is
     * transferred to the label as mentioned.
     *
-    * Branch If Less Than (BLT) the contents of source register rs1, is 
-    * compared with contents of source register rs2. If (rs1) is less than 
+    * Branch If Less Than (BLT) the contents of source register rs1, is
+    * compared with contents of source register rs2. If (rs1) is less than
     * (rs2) control is transferred to the label as mentioned.
     *
-    * Branch If Less Than Unsigned (BLTU) the contents of source register 
-    * rs1, is compared with contents of source register rs2 if (rs1) is less 
+    * Branch If Less Than Unsigned (BLTU) the contents of source register
+    * rs1, is compared with contents of source register rs2 if (rs1) is less
     * than (rs2) control is transferred to the label as mentioned.
     *
-    * Branch If Greater Than or Equal, signed (BGE) the contents of source 
-    * register rs1, is compared with contents of source register rs2 if (rs1) 
+    * Branch If Greater Than or Equal, signed (BGE) the contents of source
+    * register rs1, is compared with contents of source register rs2 if (rs1)
     * is greater than (rs2) control is transferred to the label as mentioned.
     *
-    * Branch If Greater Than or Equal, Unsigned (BGEU) the contents of source 
-    * register rs1, is compared with contents of source register rs2. If rs1 
-    * is greater than or equal to rs2, control is transferred to the label 
+    * Branch If Greater Than or Equal, Unsigned (BGEU) the contents of source
+    * register rs1, is compared with contents of source register rs2. If rs1
+    * is greater than or equal to rs2, control is transferred to the label
     * as mentioned.
     *
-    * Syntax: 
+    * Syntax:
     * - beq rs1, rs2, label
     * - bne rs1, rs2, label
     * - blt rs1, rs2, label
@@ -200,20 +200,20 @@ always_comb begin
       ex_ctrl.branch = '1;
     end
     /**
-    * The Load Byte (LB) instruction, moves a byte from memory to register. 
+    * The Load Byte (LB) instruction, moves a byte from memory to register.
     * The instruction is used for signed integers.
     *
-    * The Load Byte, Unsigned (LBU) instruction, moves a byte from memory to 
+    * The Load Byte, Unsigned (LBU) instruction, moves a byte from memory to
     * register. The instruction is used for unsigned integers.
     *
-    * In RISC-V 16-bit numbers are known as half-words and the Load Half-Word 
-    * signed (LH) instruction, loads a half-word from memory to register. 
+    * In RISC-V 16-bit numbers are known as half-words and the Load Half-Word
+    * signed (LH) instruction, loads a half-word from memory to register.
     * The instruction is used for signed integers.
     *
-    * Load Half-Word Unsigned (LHU) instruction, loads a half-word from 
+    * Load Half-Word Unsigned (LHU) instruction, loads a half-word from
     * memory to register. The instruction is used for unsigned numbers.
     *
-    * The Load Word (LW) instruction, moves a word, 32-bit value, from memory 
+    * The Load Word (LW) instruction, moves a word, 32-bit value, from memory
     * to register. The instruction is used for signed values.
     *
     * Syntax:
@@ -245,9 +245,9 @@ always_comb begin
     end
     /**
     * Store Byte (SB), stores 8-bit values from a register to memory.
-    * 
+    *
     * Store Half-word (SH), stores 16-bit values from a register to memory
-    * 
+    *
     * Store Word (SW), stores 32-bit values from a register to memory
     *
     * Syntax:
@@ -271,36 +271,36 @@ always_comb begin
       mem_ctrl.mem_funct3 = funct3;
     end
     /**
-    * Add Immediate (ADDI) adds content of the source registers rs1, immediate 
+    * Add Immediate (ADDI) adds content of the source registers rs1, immediate
     * data (imm) and store the result in the destination register (rd).
     *
-    * Set Less than Immediate (SLTI) compares contents of register (rs1) and 
+    * Set Less than Immediate (SLTI) compares contents of register (rs1) and
     * Immediate data (imm) and sets value of comparison in (rd) register.
     *
-    * Set Less Than Immediate Unsigned (SLTIU) does comparison between register 
-    * contents (rs1) and Immediate data (imm) and sets value of comparison in 
+    * Set Less Than Immediate Unsigned (SLTIU) does comparison between register
+    * contents (rs1) and Immediate data (imm) and sets value of comparison in
     * (rd) register.
     *
-    * Exclusive-OR Immediate (XORI) performs bit-wise binary operation between 
-    * register contents (rs1) and Immediate data (imm) and stores in (rd) 
+    * Exclusive-OR Immediate (XORI) performs bit-wise binary operation between
+    * register contents (rs1) and Immediate data (imm) and stores in (rd)
     * register
     *
-    * OR Immediate (ORI) performs binary operation between register (rs1) and 
+    * OR Immediate (ORI) performs binary operation between register (rs1) and
     * Immediate data (imm) and stores in (rd) register
     *
-    * AND Immediate (ANDI) performs binary operation between contents of 
+    * AND Immediate (ANDI) performs binary operation between contents of
     * register (rs1) and immediate data (imm) and stores in (rd) register.
     *
-    * Shift Logically Left Immediate (SLLI) performs logical left on the value 
-    * in register (rs1) by the shift amount held in the register (imm) and 
+    * Shift Logically Left Immediate (SLLI) performs logical left on the value
+    * in register (rs1) by the shift amount held in the register (imm) and
     * stores in (rd) register.
     *
-    * Shift Logically Right Immediate (SRLI) performs logical Right on the 
-    * value in register (rs1) by the shift amount held in the register (imm) 
+    * Shift Logically Right Immediate (SRLI) performs logical Right on the
+    * value in register (rs1) by the shift amount held in the register (imm)
     * and stores in (rd) register.
     *
     * A Shift Right Logical Immediate (SRLI) of one position moves each bit to
-    * the Right by one. The most significant bit is replaced by a zero bit and 
+    * the Right by one. The most significant bit is replaced by a zero bit and
     * the least significant bit is discarded.
     *
     * Syntax:
@@ -319,7 +319,7 @@ always_comb begin
       o_rs1_addr       = rs1_addr;
       o_rd_addr        = rd_addr;
       o_imm            = i_imm;
-      
+
       // Execute
       ex_ctrl.alu2_mux = imm_out;
 
@@ -328,7 +328,7 @@ always_comb begin
       wb_ctrl.regf_we  = 1'b1;
 
       // Op-Specific Control Signals
-      unique case (funct3) 
+      unique case (funct3)
         addi : ex_ctrl.func_op = alu_add;
         slli : ex_ctrl.func_op = alu_sll;
         slti : begin
@@ -343,7 +343,7 @@ always_comb begin
         sri : begin
           if (funct7 == 7'h20) begin
             ex_ctrl.func_op = alu_sra;
-          end 
+          end
           else begin
             ex_ctrl.func_op = alu_srl;
           end
@@ -353,39 +353,39 @@ always_comb begin
       endcase
     end
     /**
-    * Addition (ADD) adds the contents of two registers and stores the 
+    * Addition (ADD) adds the contents of two registers and stores the
     * result in another register.
     *
-    * Subtraction (SUB) subtracts contents of one register from another and 
+    * Subtraction (SUB) subtracts contents of one register from another and
     * stores the result in another register.
     *
-    * Shift Logical Left (SLL) performs logical left on the value in register 
-    * (rs1) by the shift amount held in the register (rs2) and stores in 
+    * Shift Logical Left (SLL) performs logical left on the value in register
+    * (rs1) by the shift amount held in the register (rs2) and stores in
     * (rd) register.
     *
     * Set Less Than (SLT) perform the signed and unsigned comparison between
     * (rs1) and (rs2) and stores the result of the comparison in (rd).
     *
-    * Set Less Than Unsigned (SLTU) perform the signed and unsigned comparison 
+    * Set Less Than Unsigned (SLTU) perform the signed and unsigned comparison
     * between (rs1) and (rs2) and stores the result of the comparison in (rd).
     *
-    * XOR performs bit-wise binary Exclusive-OR operation on the source 
+    * XOR performs bit-wise binary Exclusive-OR operation on the source
     * register operands.
     *
-    * Shift Logically Right (SRL) performs logical Right on the value in 
-    * register (rs1) by the shift amount held in the register (rs2) and 
+    * Shift Logically Right (SRL) performs logical Right on the value in
+    * register (rs1) by the shift amount held in the register (rs2) and
     * stores in (rd) register.
     *
-    * Set Less Than Unsigned (SLTU) perform the signed and unsigned 
+    * Set Less Than Unsigned (SLTU) perform the signed and unsigned
     * comparison between (rs1) and (rs2) and stores the result in (rd).
     *
-    * OR directive performs bit-wise logical OR operation between contents of 
+    * OR directive performs bit-wise logical OR operation between contents of
     * register (rs1) and contents of register (rs2) and stores in (rd) register.
     *
-    * AND directive performs bit-wise logical AND operation between contents of 
+    * AND directive performs bit-wise logical AND operation between contents of
     * register (rs1) and contents of register (rs2) and stores in (rd) register.
     *
-    * MUL calculates the product of the multiplier in source register 1 (rs1) 
+    * MUL calculates the product of the multiplier in source register 1 (rs1)
     * and multiplicand in source register 2 (rs2), with the resulting product
     * being stored in destination register (rd).
     *
@@ -393,13 +393,13 @@ always_comb begin
     * signed values in source registers (rs1) and (rs2) and stores result in
     * the specified destination register (rd).
     *
-    * Multiply Unsigned and return upper bits (MULHU) calculates the product 
-    * of two unsigned values in source registers rs1 and rs2. The resulting 
+    * Multiply Unsigned and return upper bits (MULHU) calculates the product
+    * of two unsigned values in source registers rs1 and rs2. The resulting
     * value is placed in the specified destination register (rd).
     *
-    * Multiply Signed-Unsigned and return upper bits (MULHSU) calculates the 
-    * product of a signed value in source register rs1 with an unsigned value 
-    * in source register rs2 and the resulting product is stored in 
+    * Multiply Signed-Unsigned and return upper bits (MULHSU) calculates the
+    * product of a signed value in source register rs1 with an unsigned value
+    * in source register rs2 and the resulting product is stored in
     * destination register, rd.
     *
     *
@@ -424,7 +424,7 @@ always_comb begin
       o_rs1_addr       = rs1_addr;
       o_rs2_addr       = rs2_addr;
       o_rd_addr        = rd_addr;
-      
+
       // Write Back
       wb_ctrl.wb_mux   = func_out;
       wb_ctrl.regf_we  = 1'b1;
@@ -435,7 +435,7 @@ always_comb begin
           if (funct7 == 7'h01) begin
             ex_ctrl.func_op = ss_mul;
             ex_ctrl.func_mux = mul_out;
-          end 
+          end
           else begin
             ex_ctrl.func_op = (funct7 == 7'h20) ? alu_sub : alu_add;
           end
@@ -444,7 +444,7 @@ always_comb begin
           if (funct7 == 7'h01) begin
             ex_ctrl.func_op = ss_mul;
             ex_ctrl.func_mux = mul_out;
-          end 
+          end
           else begin
             ex_ctrl.func_op = alu_sll;
           end
@@ -453,7 +453,7 @@ always_comb begin
           if (funct7 == 7'h01) begin
             ex_ctrl.func_op = su_mul;
             ex_ctrl.func_mux = mul_out;
-          end 
+          end
           else begin
             ex_ctrl.func_op = blt;
             ex_ctrl.func_mux = cmp_out;
@@ -464,7 +464,7 @@ always_comb begin
           if (funct7 == 7'h01) begin
             ex_ctrl.func_op = uu_mul;
             ex_ctrl.func_mux = mul_out;
-          end 
+          end
           else begin
             ex_ctrl.func_op = bltu;
             ex_ctrl.func_mux = cmp_out;
@@ -474,7 +474,7 @@ always_comb begin
           if (funct7 == 7'h01) begin
             ex_ctrl.func_op = ss_div;
             ex_ctrl.func_mux = div_out;
-          end 
+          end
           else begin
             ex_ctrl.func_op = alu_xor;
           end
@@ -483,7 +483,7 @@ always_comb begin
           if (funct7 == 7'h01) begin
             ex_ctrl.func_op = uu_div;
             ex_ctrl.func_mux = div_out;
-          end 
+          end
           else begin
             ex_ctrl.func_op = (funct7 == 7'h20) ? alu_sra : alu_srl;
           end
@@ -492,7 +492,7 @@ always_comb begin
           if (funct7 == 7'h01) begin
             ex_ctrl.func_op = ss_rem;
             ex_ctrl.func_mux = div_out;
-          end 
+          end
           else begin
             ex_ctrl.func_op = alu_or;
           end
@@ -501,7 +501,7 @@ always_comb begin
           if (funct7 == 7'h01) begin
             ex_ctrl.func_op = uu_rem;
             ex_ctrl.func_mux = div_out;
-          end 
+          end
           else begin
             ex_ctrl.func_op = alu_and;
           end
