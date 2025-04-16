@@ -187,7 +187,7 @@ import cache_types::*;
     end
 
     generate for (genvar i = 0; i < WAYS; i++) begin : arrays
-        dcache_data_array #(.DELAY(0), .VERBOSE(0)) data_array (
+        dcache_data_array data_array (
             .clk0       (clk),
             .csb0       (data_array_csb0[i]),
             .web0       (data_array_web0[i]),
@@ -196,7 +196,7 @@ import cache_types::*;
             .din0       (data_array_din0[i]),
             .dout0      (data_array_dout0[i])
         );
-        dcache_tag_array #(.DELAY(0), .VERBOSE(0)) tag_array (
+        dcache_tag_array tag_array (
             .clk0       (clk),
             .csb0       (tag_array_csb0[i]),
             .web0       (tag_array_web0[i]),
