@@ -1,8 +1,8 @@
 // OpenRAM SRAM model
-// Words: 64
-// Word size: 22
+// Words: 16
+// Word size: 24
 
-module l2cache_tag_array(
+module icache_tag_array(
 `ifdef USE_POWER_PINS
     vdd,
     gnd,
@@ -11,8 +11,8 @@ module l2cache_tag_array(
     clk0,csb0,web0,addr0,din0,dout0
   );
 
-  parameter DATA_WIDTH = 22 ;
-  parameter ADDR_WIDTH = 6 ;
+  parameter DATA_WIDTH = 24 ;
+  parameter ADDR_WIDTH = 4 ;
   parameter RAM_DEPTH = 1 << ADDR_WIDTH;
 
 `ifdef USE_POWER_PINS
@@ -47,7 +47,7 @@ module l2cache_tag_array(
   always @ (posedge clk0)
   begin : MEM_WRITE0
     if ( !web0_reg ) begin
-        mem[addr0_reg][21:0] <= din0_reg[21:0];
+        mem[addr0_reg][23:0] <= din0_reg[23:0];
     end
   end
 

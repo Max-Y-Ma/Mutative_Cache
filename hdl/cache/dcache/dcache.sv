@@ -28,6 +28,26 @@ import cache_types::*;
     input   logic           dfp_resp
 );
 
+// From Snoop Bus
+// input   bus_msg_t                               bus_msg,
+
+// // To Snoop Bus
+// output  logic       [XLEN-1:0]                  bus_addr,
+// output  bus_tx_t                                bus_tx,
+
+// // To Arbiter
+// output  logic                                   arbiter_req,
+// output  logic                                   arbiter_busy,
+
+// // From Arbiter
+// input   logic                                   arbiter_gnt,
+
+// // To Xbar
+// output  xbar_msg_t                              xbar_out,
+
+// // From Xbar
+// input   xbar_msg_t                              xbar_in[NUM_CPUS]
+
     /* Cache Control Signals */
     logic             cache_read_request;
     logic             cache_write_request;

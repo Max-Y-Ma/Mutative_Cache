@@ -1,9 +1,9 @@
 // OpenRAM SRAM model
-// Words: 64
+// Words: 16
 // Word size: 256
 // Write size: 8
 
-module l2cache_data_array(
+module icache_data_array(
 `ifdef USE_POWER_PINS
     vdd,
     gnd,
@@ -14,7 +14,7 @@ module l2cache_data_array(
 
   parameter NUM_WMASKS = 32 ;
   parameter DATA_WIDTH = 256 ;
-  parameter ADDR_WIDTH = 6 ;
+  parameter ADDR_WIDTH = 4 ;
   parameter RAM_DEPTH = 1 << ADDR_WIDTH;
 
 `ifdef USE_POWER_PINS
