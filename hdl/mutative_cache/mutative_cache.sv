@@ -32,7 +32,7 @@ import mutative_types::*;
             ufp_rmask_ff <= '0;
             ufp_wmask_ff <= '0;
             ufp_wdata_ff <= '0;
-        end else if(|ufp_rmask || |ufp_wmask) begin
+        end else if(|ufp_rmask || |ufp_wmask || ufp_resp) begin
             ufp_addr_ff <= ufp_addr;
             ufp_rmask_ff <= ufp_rmask;
             ufp_wmask_ff <= ufp_wmask;
@@ -57,7 +57,7 @@ import mutative_types::*;
     assign cache_address = ufp_addr_ff;
     // i chose msb bit of tag array is dirty bit
     generate for (genvar i = 0; i < WAYS; i++) begin : arrays //TODO 
-        mutative_data_array data_array (
+        mutative_data_array #(.DELAY(0), .VERBOSE(0)) data_array (
             .clk0       (clk),
             .csb0       (1'b0), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal TODO: look at
@@ -66,7 +66,7 @@ import mutative_types::*;
             .din0       (cache_wdata),
             .dout0      (cache_output[i].data)
         );
-        mutative_tag_array tag_array (
+        mutative_tag_array #(.DELAY(0), .VERBOSE(0)) tag_array (
             .clk0       (clk),
             .csb0       (1'b0), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal
@@ -135,7 +135,7 @@ import mutative_types::*;
         cache_data_wmask = 32'h00000000;
         cache_wdata = 'x;
         if(mem_write_cache) begin //memory writing cache
-            way_we = evict_we;
+            way_we = (setup == 0) ? ( 1 << dm_way_index) : evict_we;
             cache_data_wmask = 32'hFFFFFFFF;
             cache_wdata = dfp_rdata;
         end

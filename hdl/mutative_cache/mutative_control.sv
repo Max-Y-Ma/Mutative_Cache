@@ -24,12 +24,23 @@ import mutative_types::*;
     always_ff @( posedge clk ) begin
         if (rst) begin
             control_state <= s_idle;
-            setup <= 2'b00; //defaulting to DM
-            switch_counter <= '0;
+            // setup <= 2'b00; //defaulting to DM
+            // switch_counter <= '0;
         end else begin
             control_state <= control_state_next;
-            setup <= setup_next;
+            // setup <= setup_next;
+            // switch_counter <= switch_counter_next;
+        end
+    end
+
+
+    always_ff @(negedge clk) begin
+        if(rst) begin
+            switch_counter <= '0;
+            setup <= 2'b00; //defaulting to DM
+        end else begin
             switch_counter <= switch_counter_next;
+            setup <= setup_next;
         end
     end
 
