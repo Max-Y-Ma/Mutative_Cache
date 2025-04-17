@@ -4,14 +4,14 @@ import types::*;
   input logic clk,
   input logic rst,
 
-  input  logic [NUM_CPUS-1:0] req,
-  output logic [NUM_CPUS-1:0] gnt,
+  input  logic [NUM_CACHE-1:0] req,
+  output logic [NUM_CACHE-1:0] gnt,
 
-  input logic [NUM_CPUS:0]    busy
+  input logic [NUM_CACHE:0]    busy
 );
 
-  logic [NUM_CPUS-1:0] priority_reg;
-  logic [NUM_CPUS-1:0] priority_next;
+  logic [NUM_CACHE-1:0] priority_reg;
+  logic [NUM_CACHE-1:0] priority_next;
   logic grant_valid;
   int idx;
   logic transient_stall; // Utilized to stall the bus arbitration during transient states
@@ -23,8 +23,8 @@ import types::*;
     gnt = '0;
     transient_stall = |busy;
 
-    for (int i = 0; i < NUM_CPUS; i++) begin
-      idx = (i + priority_reg) % NUM_CPUS;
+    for (int i = 0; i < NUM_CACHE; i++) begin
+      idx = (i + priority_reg) % NUM_CACHE;
       if (!grant_valid && req[idx] && !transient_stall) begin
         gnt[idx] = '1;
         grant_valid = '1;

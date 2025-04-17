@@ -8,24 +8,33 @@ import cache_types::*;
   localparam CACHELINE_BITS  = $clog2(CACHELINE_BYTES),
   localparam TAG_BITS        = 32 - SET_BITS - CACHELINE_BITS
 ) (
-    input   logic           clk,
-    input   logic           rst,
+  input   logic           clk,
+  input   logic           rst,
 
-    // cpu side signals, ufp -> upward facing port
-    input   logic   [31:0]  ufp_addr,
-    input   logic   [3:0]   ufp_rmask,
-    input   logic   [3:0]   ufp_wmask,
-    output  logic   [31:0]  ufp_rdata,
-    input   logic   [31:0]  ufp_wdata,
-    output  logic           ufp_resp,
+  // CPU Side Signals
+  input  logic   [31:0]   ufp_addr,
+  input  logic   [3:0]    ufp_rmask,
+  input  logic   [3:0]    ufp_wmask,
+  output logic   [31:0]   ufp_rdata,
+  input  logic   [31:0]   ufp_wdata,
+  output logic            ufp_resp,
 
-    // memory side signals, dfp -> downward facing port
-    output  logic   [31:0]  dfp_addr,
-    output  logic           dfp_read,
-    output  logic           dfp_write,
-    input   logic   [255:0] dfp_rdata,
-    output  logic   [255:0] dfp_wdata,
-    input   logic           dfp_resp
+  // Coherence Side Signals
+  input  req_msg_t        req_bus_msg,  // Active Request Bus Message
+  output req_msg_t        req_bus_tx,   // Arbiter Message
+  input  logic            req_bus_gnt,  // Arbiter Grant
+  output logic            req_bus_req,  // Arbiter Request
+  output logic            req_bus_busy, // Arbiter Stall
+
+  input  resp_msg_t       resp_bus_msg, // Active Response Bus Message
+  output resp_msg_t       resp_bus_tx,  // Arbiter Message
+  input  logic            resp_bus_gnt, // Arbiter Grant
+  output logic            resp_bus_req, // Arbiter Request
+  output logic            resp_bus_busy, // Arbiter Stall
+
+  // Inclusive Policy Signals
+  input  logic            invalidate,
+  input  logic [XLEN-1:0] invalidate_addr
 );
 
 // From Snoop Bus
@@ -46,7 +55,7 @@ import cache_types::*;
 // output  xbar_msg_t                              xbar_out,
 
 // // From Xbar
-// input   xbar_msg_t                              xbar_in[NUM_CPUS]
+// input   xbar_msg_t                              xbar_in[NUM_CACHE]
 
     /* Cache Control Signals */
     logic             cache_read_request;

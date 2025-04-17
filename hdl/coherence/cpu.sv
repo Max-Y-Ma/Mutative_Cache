@@ -6,30 +6,30 @@
 // );
 
 //   // Core to Cache
-//   logic                                   cpu_ready [NUM_CPUS];
-//   logic                                   cpu_resp  [NUM_CPUS];
-//   logic                                   cpu_req   [NUM_CPUS];
-//   logic                                   cpu_we    [NUM_CPUS];
-//   logic       [XLEN-1:0]                  cpu_addr  [NUM_CPUS];
-//   logic       [CACHELINE_SIZE-1:0]        cpu_wdata [NUM_CPUS];
-//   logic       [CACHELINE_SIZE-1:0]        cpu_rdata [NUM_CPUS];
+//   logic                                   cpu_ready [NUM_CACHE];
+//   logic                                   cpu_resp  [NUM_CACHE];
+//   logic                                   cpu_req   [NUM_CACHE];
+//   logic                                   cpu_we    [NUM_CACHE];
+//   logic       [XLEN-1:0]                  cpu_addr  [NUM_CACHE];
+//   logic       [CACHELINE_SIZE-1:0]        cpu_wdata [NUM_CACHE];
+//   logic       [CACHELINE_SIZE-1:0]        cpu_rdata [NUM_CACHE];
 
 //   // Arbiter
-//   logic       [NUM_CPUS-1:0]              done;
-//   logic       [NUM_CPUS-1:0]              arbiter_gnt;
-//   logic       [NUM_CPUS-1:0]              arbiter_req;
-//   logic       [NUM_CPUS:0]                arbiter_busy;
+//   logic       [NUM_CACHE-1:0]              done;
+//   logic       [NUM_CACHE-1:0]              arbiter_gnt;
+//   logic       [NUM_CACHE-1:0]              arbiter_req;
+//   logic       [NUM_CACHE:0]                arbiter_busy;
 
 //   // Snoop Bus
-//   logic       [XLEN-1:0]                  bus_addr [NUM_CPUS];
-//   bus_tx_t                                bus_tx   [NUM_CPUS];
+//   logic       [XLEN-1:0]                  bus_addr [NUM_CACHE];
+//   bus_tx_t                                bus_tx   [NUM_CACHE];
 //   bus_msg_t                               bus_msg;
 
 //   // Xbar
-//   xbar_msg_t                              xbar_in  [NUM_CPUS+1];
-//   xbar_msg_t                              xbar_out [NUM_CPUS+1][NUM_CPUS];
+//   xbar_msg_t                              xbar_in  [NUM_CACHE+1];
+//   xbar_msg_t                              xbar_out [NUM_CACHE+1][NUM_CACHE];
 
-//   for (genvar i = 0; i < NUM_CPUS; i++) begin : gen_core_inst
+//   for (genvar i = 0; i < NUM_CACHE; i++) begin : gen_core_inst
 //     core #(
 //       .ID(i)
 //     ) core_inst (
@@ -101,11 +101,11 @@
 //     .clk(clk),
 //     .rst(rst),
 
-//     .xbar_in(xbar_out[NUM_CPUS]),
-//     .xbar_out(xbar_in[NUM_CPUS]),
+//     .xbar_in(xbar_out[NUM_CACHE]),
+//     .xbar_out(xbar_in[NUM_CACHE]),
 
 //     .bus_msg(bus_msg),
-//     .arbiter_busy(arbiter_busy[NUM_CPUS])
+//     .arbiter_busy(arbiter_busy[NUM_CACHE])
 //   );
 
 //   always_ff @(posedge clk) begin
@@ -116,9 +116,9 @@
 //   end
 
 //   // If a cacheline in one core is in Exclusive state, all other cachelines are in invalid states
-//   for (genvar i = 0; i < NUM_CPUS; i++) begin : gen_exclusive_state_check_out
+//   for (genvar i = 0; i < NUM_CACHE; i++) begin : gen_exclusive_state_check_out
 //     for (genvar j = 0; j < NUM_SETS; j++) begin : gen_exclusive_state_check_mid
-//       for (genvar k = 0; k < NUM_CPUS - 1; k++) begin : gen_exclusive_state_check_in
+//       for (genvar k = 0; k < NUM_CACHE - 1; k++) begin : gen_exclusive_state_check_in
 //         if (k >= i) begin : gen_exclusive_state_if
 //           property p_cache_exclusive_state;
 //             @(posedge clk) disable iff (rst)
@@ -168,9 +168,9 @@
 //   end
 
 //   // If a cacheline in one core is in Modified state, all other cachelines are in invalid states
-//   for (genvar i = 0; i < NUM_CPUS; i++) begin : gen_modified_state_check_out
+//   for (genvar i = 0; i < NUM_CACHE; i++) begin : gen_modified_state_check_out
 //     for (genvar j = 0; j < NUM_SETS; j++) begin : gen_modified_state_check_mid
-//       for (genvar k = 0; k < NUM_CPUS - 1; k++) begin : gen_modified_state_check_in
+//       for (genvar k = 0; k < NUM_CACHE - 1; k++) begin : gen_modified_state_check_in
 //         if (k >= i) begin : gen_modified_state_if
 //           property p_cache_modified_state;
 //             @(posedge clk) disable iff (rst)

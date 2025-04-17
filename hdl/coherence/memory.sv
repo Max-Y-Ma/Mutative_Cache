@@ -4,7 +4,7 @@ import types::*;
   input   logic           clk,
   input   logic           rst,
 
-  input   xbar_msg_t      xbar_in [NUM_CPUS],
+  input   xbar_msg_t      xbar_in [NUM_CACHE],
   output  xbar_msg_t      xbar_out,
   input   bus_msg_t       bus_msg,
   output  logic           arbiter_busy
@@ -84,7 +84,7 @@ import types::*;
       endcase
     end
     else begin
-      for (int i = 0; i < NUM_CPUS; i++) begin
+      for (int i = 0; i < NUM_CACHE; i++) begin
         if (xbar_in[i].memory_flag) begin
           unique case (state[xbar_in[i].addr])
             MID : begin
@@ -202,7 +202,7 @@ import types::*;
           end
         endcase
       end else begin
-        for (int i = 0; i < NUM_CPUS; i++) begin
+        for (int i = 0; i < NUM_CACHE; i++) begin
           if (xbar_in[i].memory_flag) begin
             unique case (state[bus_msg.addr])
               MID : begin
@@ -256,7 +256,7 @@ import types::*;
   logic xbar_valid;
   always_comb begin
     xbar_valid = '0;
-    for (int i = 0; i < NUM_CPUS; i++) begin
+    for (int i = 0; i < NUM_CACHE; i++) begin
       xbar_valid |= xbar_in[i].valid;
     end
   end

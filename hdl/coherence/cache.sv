@@ -36,7 +36,7 @@ import types::*;
   output  xbar_msg_t                              xbar_out,
 
   // From Xbar
-  input   xbar_msg_t                              xbar_in[NUM_CPUS]
+  input   xbar_msg_t                              xbar_in[NUM_CACHE]
 );
 
   cacheline_t cacheline      [NUM_SETS];
@@ -59,7 +59,7 @@ import types::*;
   logic [INDEX_WIDTH-1:0]      bus_msg_index;
   logic [TAG_WIDTH-1:0]        bus_msg_tag;
   logic                        xbar_msg_valid;
-  logic [$clog2(NUM_CPUS)-1:0] xbar_idx;
+  logic [$clog2(NUM_CACHE)-1:0] xbar_idx;
 
   logic    [XLEN-1:0] bus_addr_reg;
   bus_tx_t            bus_tx_reg;
@@ -68,10 +68,10 @@ import types::*;
   always_comb begin
     xbar_msg_valid  = '0;
     xbar_idx        = '0;
-    for (int i = 0; i < NUM_CPUS; i++) begin
+    for (int i = 0; i < NUM_CACHE; i++) begin
       if (xbar_in[i].valid && xbar_in[i].destination == ID) begin
         xbar_msg_valid = '1;
-        xbar_idx       = ($clog2(NUM_CPUS))'(i);
+        xbar_idx       = ($clog2(NUM_CACHE))'(i);
       end
     end
   end
@@ -121,7 +121,7 @@ import types::*;
             if (bus_msg.bus_tx == PUTM && bus_msg.source == ID) begin
               xbar_out <= '{
                 valid: '0,
-                destination: NUM_CPUS,
+                destination: NUM_CACHE,
                 memory_flag: '1,
                 addr: bus_msg.addr,
                 data: cacheline[bus_msg_index].data,
@@ -156,7 +156,7 @@ import types::*;
             if (bus_msg.bus_tx == PUTM && bus_msg.source == ID) begin
               xbar_out <= '{
                 valid: '0,
-                destination: NUM_CPUS,
+                destination: NUM_CACHE,
                 memory_flag: '1,
                 addr: bus_msg.addr,
                 data: cacheline[bus_msg_index].data,
@@ -191,7 +191,7 @@ import types::*;
             if (bus_msg.bus_tx == PUTM && bus_msg.source == ID) begin
               xbar_out <= '{
                 valid: '0,
-                destination: NUM_CPUS,
+                destination: NUM_CACHE,
                 memory_flag: '1,
                 addr: bus_msg.addr,
                 data: cacheline[bus_msg_index].data,

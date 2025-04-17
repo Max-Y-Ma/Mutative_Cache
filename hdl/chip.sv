@@ -1,4 +1,6 @@
-module chip #(
+module chip
+import cache_types::*;
+#(
   // parameters
 ) (
   // Main Memory Port
@@ -16,25 +18,31 @@ module chip #(
   input  logic        bmem_rvalid
 );
 
-//   // Arbiter
-//   logic       [NUM_CPUS-1:0]              done;
-//   logic       [NUM_CPUS-1:0]              arbiter_gnt;
-//   logic       [NUM_CPUS-1:0]              arbiter_req;
-//   logic       [NUM_CPUS:0]                arbiter_busy;
+// Chip Signals
+req_bus_t  req_bus_msg;
+req_bus_t  req_bus_tx [NUM_CACHE];
+logic       [NUM_CACHE-1:0]              req_bus_gnt;
+logic       [NUM_CACHE-1:0]              req_bus_req;
+logic       [NUM_CACHE:0]                req_bus_busy;
+resp_bus_t resp_bus_tx [NUM_CACHE];
+resp_bus_t resp_bus_msg;
+logic       [NUM_CACHE-1:0]              resp_bus_gnt;
+logic       [NUM_CACHE-1:0]              resp_bus_req;
+logic       [NUM_CACHE:0]                resp_bus_busy;
 
-//   // Snoop Bus
-//   logic       [XLEN-1:0]                  bus_addr [NUM_CPUS];
-//   bus_tx_t                                bus_tx   [NUM_CPUS];
-//   bus_msg_t                               bus_msg;
+logic invalidate;
+logic [XLEN-1:0] invalidate_addr;
 
-//   // Xbar
-//   xbar_msg_t                              xbar_in  [NUM_CPUS+1];
-//   xbar_msg_t                              xbar_out [NUM_CPUS+1][NUM_CPUS];
+logic   [31:0]  l2cache_addr;
+logic           l2cache_read;
+logic           l2cache_write;
+logic  [255:0]  l2cache_rdata;
+logic  [255:0]  l2cache_wdata;
+logic           l2cache_resp;
 
 // Instantiate Cores
-
 // Instantiate Coherence Interconnect Modules
-//   for (genvar i = 0; i < NUM_CPUS; i++) begin : gen_core_inst
+//   for (genvar i = 0; i < NUM_CACHE; i++) begin : gen_core_inst
 //     core #(
 //       .ID(i)
 //     ) core_inst (
@@ -49,32 +57,6 @@ module chip #(
 //       .cpu_wdata(cpu_wdata[i]),
 //       .cpu_rdata(cpu_rdata[i]),
 //       .done(done[i])
-//     );
-
-//     cache #(
-//       .ID(i)
-//     ) cache_inst (
-//       .clk(clk),
-//       .rst(rst),
-
-//       .cpu_ready(cpu_ready[i]),
-//       .cpu_resp(cpu_resp[i]),
-//       .cpu_req(cpu_req[i]),
-//       .cpu_we(cpu_we[i]),
-//       .cpu_addr(cpu_addr[i]),
-//       .cpu_wdata(cpu_wdata[i]),
-//       .cpu_rdata(cpu_rdata[i]),
-
-//       .bus_addr(bus_addr[i]),
-//       .bus_tx(bus_tx[i]),
-//       .bus_msg(bus_msg),
-
-//       .arbiter_req(arbiter_req[i]),
-//       .arbiter_gnt(arbiter_gnt[i]),
-//       .arbiter_busy(arbiter_busy[i]),
-
-//       .xbar_in(xbar_out[i]),
-//       .xbar_out(xbar_in[i])
 //     );
 //   end
 
@@ -95,13 +77,56 @@ module chip #(
 //     .bus_msg(bus_msg)
 //   );
 
-//   xbar xbar_inst (
-//     .clk(clk),
-//     .rst(rst),
-//     .xbar_in(xbar_in),
-//     .xbar_out(xbar_out)
-//   );
+// Instantiate Cacheline Buffer
+cache_line cache_line0(
+  .clk(clk),
+  .rst(rst),
+  
+  .bmem_addr(bmem_addr),
+  .bmem_read(bmem_read),
+  .bmem_write(bmem_write),
+  .bmem_wdata(bmem_wdata),
+  .bmem_ready(bmem_ready),
+  .bmem_raddr(bmem_raddr),
+  .bmem_rdata(bmem_rdata),
+  .bmem_rvalid(bmem_rvalid),
+
+  .icache_addr(icache_addr),
+  .icache_read(icache_read),
+  .icache_write(icache_write),
+  .icache_rdata(icache_rdata),
+  .icache_wdata(icache_wdata),
+  .icache_resp(icache_resp),
+
+  .dcache_addr(dcache_addr),
+  .dcache_read(dcache_read),
+  .dcache_write(dcache_write),
+  .dcache_rdata(dcache_rdata),
+  .dcache_wdata(dcache_wdata),
+  .dcache_resp(dcache_resp)
+);
 
 // Instantiate L2 Unified Cache
+l2cache #(
+  .WAYS(L2CACHE_WAYS),
+  .SETS(L2CACHE_SETS)
+) l2cache0 (
+  .clk(),
+  .rst(),
+  .req_bus_msg(),
+  .resp_bus_msg(),
+  .resp_bus_tx(),
+  .resp_bus_gnt(),
+  .resp_bus_req(),
+  .resp_bus_busy(),
+  .invalidate(),
+  .invalidate_addr(),
+  .dfp_addr(),
+  .dfp_read(),
+  .dfp_write(),
+  .dfp_rdata(),
+  .dfp_wdata(),
+  .dfp_resp()
+);
 
 endmodule
