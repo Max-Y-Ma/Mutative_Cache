@@ -1,17 +1,18 @@
 module arbiter
 import types::*;
-(
-  input logic clk,
-  input logic rst,
+#(
+  parameter integer NUM_NODES = NUM_CACHE
+) (
+  input  logic                 clk,
+  input  logic                 rst,
 
-  input  logic [NUM_CACHE-1:0] req,
-  output logic [NUM_CACHE-1:0] gnt,
-
-  input logic [NUM_CACHE:0]    busy
+  output logic [NUM_NODES-1:0] gnt,
+  input  logic [NUM_NODES-1:0] req,
+  input  logic [NUM_NODES-1:0] busy
 );
 
-  logic [NUM_CACHE-1:0] priority_reg;
-  logic [NUM_CACHE-1:0] priority_next;
+  logic [NUM_NODES-1:0] priority_reg;
+  logic [NUM_NODES-1:0] priority_next;
   logic grant_valid;
   int idx;
   logic transient_stall; // Utilized to stall the bus arbitration during transient states
@@ -23,8 +24,8 @@ import types::*;
     gnt = '0;
     transient_stall = |busy;
 
-    for (int i = 0; i < NUM_CACHE; i++) begin
-      idx = (i + priority_reg) % NUM_CACHE;
+    for (int i = 0; i < NUM_NODES; i++) begin
+      idx = (i + priority_reg) % NUM_NODES;
       if (!grant_valid && req[idx] && !transient_stall) begin
         gnt[idx] = '1;
         grant_valid = '1;

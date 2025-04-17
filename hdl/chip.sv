@@ -19,69 +19,104 @@ import cache_types::*;
 );
 
 // Chip Signals
-req_bus_t  req_bus_msg;
-req_bus_t  req_bus_tx [NUM_CACHE];
-logic       [NUM_CACHE-1:0]              req_bus_gnt;
-logic       [NUM_CACHE-1:0]              req_bus_req;
-logic       [NUM_CACHE:0]                req_bus_busy;
-resp_bus_t resp_bus_tx [NUM_CACHE];
-resp_bus_t resp_bus_msg;
-logic       [NUM_CACHE-1:0]              resp_bus_gnt;
-logic       [NUM_CACHE-1:0]              resp_bus_req;
-logic       [NUM_CACHE:0]                resp_bus_busy;
+req_bus_t                  req_bus_msg;
+req_bus_t                  req_bus_tx [NUM_CACHE];
+logic      [NUM_CACHE-1:0] req_bus_gnt;
+logic      [NUM_CACHE-1:0] req_bus_req;
+logic      [NUM_CACHE-1:0] req_bus_busy;
 
-logic invalidate;
-logic [XLEN-1:0] invalidate_addr;
+resp_bus_t                 resp_bus_msg;
+resp_bus_t                 resp_bus_tx [NUM_CACHE + 1];
+logic      [NUM_CACHE:0]   resp_bus_gnt;
+logic      [NUM_CACHE:0]   resp_bus_req;
+logic      [NUM_CACHE:0]   resp_bus_busy;
 
-logic   [31:0]  l2cache_addr;
-logic           l2cache_read;
-logic           l2cache_write;
-logic  [255:0]  l2cache_rdata;
-logic  [255:0]  l2cache_wdata;
-logic           l2cache_resp;
+logic                      invalidate;
+logic      [XLEN-1:0]      invalidate_addr;
 
-// Instantiate Cores
-// Instantiate Coherence Interconnect Modules
-//   for (genvar i = 0; i < NUM_CACHE; i++) begin : gen_core_inst
-//     core #(
-//       .ID(i)
-//     ) core_inst (
-//       .clk(clk),
-//       .rst(rst),
+logic      [31:0]          l2cache_addr;
+logic                      l2cache_read;
+logic                      l2cache_write;
+logic      [255:0]         l2cache_rdata;
+logic      [255:0]         l2cache_wdata;
+logic                      l2cache_resp;
 
-//       .cpu_ready(cpu_ready[i]),
-//       .cpu_resp(cpu_resp[i]),
-//       .cpu_req(cpu_req[i]),
-//       .cpu_we(cpu_we[i]),
-//       .cpu_addr(cpu_addr[i]),
-//       .cpu_wdata(cpu_wdata[i]),
-//       .cpu_rdata(cpu_rdata[i]),
-//       .done(done[i])
-//     );
-//   end
+// Cores
+for (genvar i = 0; i < NUM_CORES; i++) begin : gen_core_inst
+  core #(
+    .ID(i)
+  ) core (
+    .clk(clk),
+    .rst(rst),
+    .req_bus_msg(req_bus_msg),
+    .resp_bus_msg(resp_bus_msg),
+    .icache_req_bus_tx(req_bus_tx[i]),
+    .icache_req_bus_gnt(req_bus_gnt[i]),
+    .icache_req_bus_req(req_bus_req[i]),
+    .icache_req_bus_busy(req_bus_busy[i]),
+    .icache_resp_bus_tx(resp_bus_tx[i]),
+    .icache_resp_bus_gnt(resp_bus_gnt[i]),
+    .icache_resp_bus_req(resp_bus_req[i]),
+    .icache_resp_bus_busy(resp_bus_busy[i]),
+    .dcache_req_bus_tx(req_bus_tx[i + 1]),
+    .dcache_req_bus_gnt(req_bus_gnt[i + 1]),
+    .dcache_req_bus_req(req_bus_req[i + 1]),
+    .dcache_req_bus_busy(req_bus_busy[i + 1]),
+    .dcache_resp_bus_tx(resp_bus_tx[i + 1]),
+    .dcache_resp_bus_gnt(resp_bus_gnt[i + 1]),
+    .dcache_resp_bus_req(resp_bus_req[i + 1]),
+    .dcache_resp_bus_busy(resp_bus_busy[i + 1]),
+    .invalidate(invalidate),
+    .invalidate_addr(invalidate_addr)
+  );
+end
 
-//   arbiter arbiter_inst (
-//     .clk(clk),
-//     .rst(rst),
+// Request Bus
+arbiter # (
+  .NUM_NODES(NUM_CACHE)
+) req_arbiter0 (
+  .clk(clk),
+  .rst(rst),
+  .req(req_bus_req),
+  .gnt(req_bus_gnt),
+  .busy(req_bus_busy)
+);
 
-//     .req(arbiter_req),
-//     .gnt(arbiter_gnt),
-//     .busy(arbiter_busy)
-//   );
+snoop_bus # (
+  .NUM_NODES(NUM_CACHE),
+  .DTYPE(req_bus_t)
+) req_snoop_bus0 (
+  .clk(clk),
+  .gnt(req_bus_gnt),
+  .bus_tx(req_bus_tx),
+  .bus_msg(req_bus_msg)
+);
 
-//   snoop_bus snoop_bus_inst (
-//     .clk(clk),
-//     .gnt(arbiter_gnt),
-//     .bus_addr(bus_addr),
-//     .bus_tx(bus_tx),
-//     .bus_msg(bus_msg)
-//   );
+// Response Bus
+arbiter # (
+  .NUM_NODES(NUM_CACHE + 1) // + L2 Cache Response
+) resp_arbiter0 (
+  .clk(clk),
+  .rst(rst),
+  .req(resp_bus_req),
+  .gnt(resp_bus_gnt),
+  .busy(resp_bus_busy)
+);
+
+snoop_bus # (
+  .NUM_NODES(NUM_CACHE + 1), // + L2 Cache Response
+  .DTYPE(resp_bus_t)
+) resp_snoop_bus0 (
+  .clk(clk),
+  .gnt(resp_bus_gnt),
+  .bus_tx(resp_bus_tx),
+  .bus_msg(resp_bus_msg)
+);
 
 // Instantiate Cacheline Buffer
 cache_line cache_line0(
   .clk(clk),
   .rst(rst),
-  
   .bmem_addr(bmem_addr),
   .bmem_read(bmem_read),
   .bmem_write(bmem_write),
@@ -90,20 +125,12 @@ cache_line cache_line0(
   .bmem_raddr(bmem_raddr),
   .bmem_rdata(bmem_rdata),
   .bmem_rvalid(bmem_rvalid),
-
-  .icache_addr(icache_addr),
-  .icache_read(icache_read),
-  .icache_write(icache_write),
-  .icache_rdata(icache_rdata),
-  .icache_wdata(icache_wdata),
-  .icache_resp(icache_resp),
-
-  .dcache_addr(dcache_addr),
-  .dcache_read(dcache_read),
-  .dcache_write(dcache_write),
-  .dcache_rdata(dcache_rdata),
-  .dcache_wdata(dcache_wdata),
-  .dcache_resp(dcache_resp)
+  .l2cache_addr(l2cache_addr),
+  .l2cache_read(l2cache_read),
+  .l2cache_write(l2cache_write),
+  .l2cache_rdata(l2cache_rdata),
+  .l2cache_wdata(l2cache_wdata),
+  .l2cache_resp(l2cache_resp),
 );
 
 // Instantiate L2 Unified Cache
@@ -111,22 +138,22 @@ l2cache #(
   .WAYS(L2CACHE_WAYS),
   .SETS(L2CACHE_SETS)
 ) l2cache0 (
-  .clk(),
-  .rst(),
-  .req_bus_msg(),
-  .resp_bus_msg(),
-  .resp_bus_tx(),
-  .resp_bus_gnt(),
-  .resp_bus_req(),
-  .resp_bus_busy(),
-  .invalidate(),
-  .invalidate_addr(),
-  .dfp_addr(),
-  .dfp_read(),
-  .dfp_write(),
-  .dfp_rdata(),
-  .dfp_wdata(),
-  .dfp_resp()
+  .clk(clk),
+  .rst(rst),
+  .req_bus_msg(req_bus_msg),
+  .resp_bus_msg(resp_bus_msg),
+  .resp_bus_tx(resp_bus_tx[NUM_CACHE]),
+  .resp_bus_gnt(resp_bus_gnt[NUM_CACHE]),
+  .resp_bus_req(resp_bus_req[NUM_CACHE]),
+  .resp_bus_busy(resp_bus_busy[NUM_CACHE]),
+  .invalidate(invalidate),
+  .invalidate_addr(invalidate_addr),
+  .dfp_addr(l2cache_addr),
+  .dfp_read(l2cache_read),
+  .dfp_write(l2cache_write),
+  .dfp_rdata(l2cache_rdata),
+  .dfp_wdata(l2cache_wdata),
+  .dfp_resp(l2cache_resp)
 );
 
 endmodule

@@ -45,7 +45,7 @@ monitor monitor(.itf(mon_itf));
 `endif
 
 // DUT Instantiation
-core dut(
+chip dut(
   .clk            (clk),
   .rst            (rst),
 
@@ -61,7 +61,7 @@ core dut(
 );
 
 // Monitor Interface DUT Wiring
-`include "../../hvl/vc/core/rvfi_reference.svh"
+`include "../../hvl/vc/chip/rvfi_reference.svh"
 
 // Waveform Dumpfiles and Reset
 initial begin

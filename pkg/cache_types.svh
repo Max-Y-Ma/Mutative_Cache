@@ -8,8 +8,8 @@ package cache_types;
   parameter integer L2CACHE_WAYS = 4;
   parameter integer L2CACHE_SETS = 64;
 
-  parameter integer NUM_CPUS = 4;
-  parameter integer NUM_CACHE = NUM_CPUS * 2;
+  parameter integer NUM_CORES = 4;
+  parameter integer NUM_CACHE = NUM_CORES * 2;
 
   parameter integer XLEN           = 32;
   parameter integer XLEN_BYTES     = XLEN / 8;
@@ -88,19 +88,19 @@ package cache_types;
   } cacheline_t;
 
   typedef struct packed {
-    logic                      valid;
+    logic                       valid;
     logic [$clog2(NUM_CACHE):0] source;
-    logic [XLEN-1:0]           addr;
-    bus_tx_t                   bus_tx;
+    logic [XLEN-1:0]            addr;
+    bus_tx_t                    bus_tx;
   } req_msg_t;
 
   typedef struct packed {
-    logic                      valid;
+    logic                       valid;
     logic [$clog2(NUM_CACHE):0] destination; // Requestor Destination
-    logic                      memory_flag; // Memory Destination Flag
-    logic [XLEN-1:0]           addr;
-    logic [CACHELINE_SIZE-1:0] data;
-    memory_msg_t               mmsg;
+    logic                       memory_flag; // Memory Destination Flag
+    logic [XLEN-1:0]            addr;
+    logic [CACHELINE_SIZE-1:0]  data;
+    memory_msg_t                mmsg;
   } resp_msg_t;
 
 endpackage : cache_types

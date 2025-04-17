@@ -1,39 +1,29 @@
-/* TODO: Will need modification */
-
 module cache_line
 import cache_types::*;
 (
   input logic clk, rst,
 
-  /* Request Interface */
+  // Request Interface
   output logic [31:0]  bmem_addr,
   output logic         bmem_read,
   output logic         bmem_write,
   output logic [63:0]  bmem_wdata,
 
-  /* Queue interface */
+  // Queue interface
   input logic          bmem_ready,
 
-  /* Response Interface */
+  // Response Interface
   input logic  [31:0]  bmem_raddr,
   input logic  [63:0]  bmem_rdata,
   input logic          bmem_rvalid,
 
-  /* ICache Interface */
-  input logic  [31:0]  icache_addr,
-  input logic          icache_read,
-  input logic          icache_write,
-  output logic [255:0] icache_rdata,
-  input logic  [255:0] icache_wdata,
-  output logic         icache_resp,
-
-  /* DCache Interface */
-  input logic [31:0]   dcache_addr,
-  input logic          dcache_read,
-  input logic          dcache_write,
-  output logic [255:0] dcache_rdata,
-  input logic  [255:0] dcache_wdata,
-  output logic         dcache_resp
+  // L2Cache Interface
+  input logic  [31:0]  l2cache_addr,
+  input logic          l2cache_read,
+  input logic          l2cache_write,
+  output logic [255:0] l2cache_rdata,
+  input logic  [255:0] l2cache_wdata,
+  output logic         l2cache_resp
 );
 
 /* Arbitrate round robin, (TODO: Change this actual dogwater) */

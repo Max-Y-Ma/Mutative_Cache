@@ -1,6 +1,8 @@
 module core
 import cache_types::*;
-(
+# (
+  parameter integer ID = 0
+) (
   input  logic            clk,
   input  logic            rst,
 
