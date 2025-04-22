@@ -3,7 +3,7 @@ import cache_types::*;
 # (
   parameter WAYS = 4
 ) (
-  input logic       clk, rst,
+  input logic  clk, rst,
 
   // Cache Datapath interface
   input logic  cache_hit,

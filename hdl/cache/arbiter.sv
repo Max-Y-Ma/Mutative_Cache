@@ -11,11 +11,14 @@ import types::*;
   input  logic [NUM_NODES-1:0] busy
 );
 
+  // Arbiter Signals
   logic [NUM_NODES-1:0] priority_reg;
   logic [NUM_NODES-1:0] priority_next;
-  logic grant_valid;
-  int idx;
-  logic transient_stall; // Utilized to stall the bus arbitration during transient states
+  logic                 grant_valid;
+  int                   idx;
+
+  // Utilize to stall the bus arbitration during transient states
+  logic transient_stall;
 
   always_comb begin
     grant_valid = '0;
@@ -43,12 +46,12 @@ import types::*;
   end
 
   // No bus grants are given when a core is busy
-  property p_bus_busy;
+  property p_bus_busy_no_grant;
     @(posedge clk) disable iff (rst)
-    |busy |-> (|gnt == 0);
+    busy |-> (gnt == 0);
   endproperty
 
-  assert property (p_bus_busy) else
+  assert property (p_bus_busy_no_grant) else
   $error("ERROR: Request granted on cache busy!");
 
 endmodule

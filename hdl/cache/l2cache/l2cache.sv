@@ -208,6 +208,16 @@ import cache_types::*;
     end endgenerate
 
     icache_control #(.WAYS(WAYS)) cache_control0(.*);
-    plru           #(.WAYS(WAYS)) plru0(.*);
+
+    plru #(
+      .WAYS(WAYS)
+    ) plru0 (
+      .clk(clk),
+      .rst(rst),
+      .evict_update(evict_update),
+      .set_addr(set_addr),
+      .cache_hit_vector(cache_hit_vector),
+      .evict_candidate(evict_candidate)
+    );
 
 endmodule

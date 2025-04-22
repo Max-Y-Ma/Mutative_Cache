@@ -188,7 +188,33 @@ import cache_types::*;
         );
     end endgenerate
 
-    icache_control #(.WAYS(WAYS)) cache_control0(.*);
-    plru           #(.WAYS(WAYS)) plru0(.*);
+    icache_control #(
+      .WAYS(WAYS)
+    ) cache_control0 (
+      .clk(clk),
+      .rst(rst),
+      .cache_hit(cache_hit),
+      .cache_read_request(cache_read_request),
+      .ufp_resp(ufp_resp),
+      .dfp_resp(dfp_resp),
+      .dfp_read(dfp_read),
+      .dfp_write(dfp_write),
+      .tag_array_csb0(tag_array_csb0),
+      .data_array_csb0(data_array_csb0),
+      .valid_array_csb0(valid_array_csb0),
+      .write_from_mem(write_from_mem),
+      .ready(ready)
+    );
+
+    plru #(
+      .WAYS(WAYS)
+    ) plru0 (
+      .clk(clk),
+      .rst(rst),
+      .evict_update(evict_update),
+      .set_addr(set_addr),
+      .cache_hit_vector(cache_hit_vector),
+      .evict_candidate(evict_candidate)
+    );
 
 endmodule

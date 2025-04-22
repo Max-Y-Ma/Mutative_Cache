@@ -1,8 +1,6 @@
 module chip
 import cache_types::*;
-#(
-  // parameters
-) (
+(
   // Main Memory Port
   input  logic        clk,
   input  logic        rst,
