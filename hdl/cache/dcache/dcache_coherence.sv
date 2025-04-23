@@ -70,17 +70,17 @@ import cache_types::*;
   logic [TAG_WIDTH-1:0]   resp_bus_tag;
 
   logic                   cpu_req;
-  logic                   load_miss [WAYS];
-  logic                   store_miss [WAYS];
-  logic                   load_hit [WAYS];
-  logic                   store_hit [WAYS];
+  logic                   load_miss   [WAYS];
+  logic                   store_miss  [WAYS];
+  logic                   load_hit    [WAYS];
+  logic                   store_hit   [WAYS];
   logic                   replacement [WAYS];
 
   // CPU Request Response Logic
   assign addr_index     = dfp_addr[INDEX_WIDTH-1:0];
   assign addr_tag       = dfp_addr[XLEN-1:INDEX_WIDTH];
-  assign resp_bus_index = xbar_in[xbar_idx].addr[INDEX_WIDTH-1:0];
-  assign resp_bus_tag   = xbar_in[xbar_idx].addr[XLEN-1:INDEX_WIDTH];
+  assign resp_bus_index = resp_bus_msg.addr[INDEX_WIDTH-1:0];
+  assign resp_bus_tag   = resp_bus_msg.addr[XLEN-1:INDEX_WIDTH];
   assign req_bus_index  = req_bus_msg.addr[INDEX_WIDTH-1:0];
   assign req_bus_tag    = req_bus_msg.addr[XLEN-1:INDEX_WIDTH];
 
@@ -93,197 +93,222 @@ import cache_types::*;
       store_miss[i]  = dfp_write & evict_candidate[i];
       load_hit[i]    = cache_read_request & cache_hit_vector[i];
       store_hit[i]   = cache_write_request & cache_hit_vector[i];
-      replacement[i] = load_miss[i] | store_hit[i];
+      replacement[i] = load_miss[i] | store_miss[i];
     end
   end
 
   // Cacheline State Update Logic
   always_comb begin
+    dfp_rdata = '0;
     state_array_next  = state_array;
-    arbiter_busy_next = arbiter_busy_reg;
+    req_bus_busy_next = req_bus_busy_reg;
 
-    // Update Cacheline State on Bus Message
-    if (bus_msg.valid) begin
-      unique case (state_array[req_bus_index].state)
-        CISAD: begin
-          // OwnGetS -> ISD, arbiter_busy_next = 1
-          if (bus_msg.bus_tx == GETS && bus_msg.source == ID) begin
-            state_array_next[req_bus_index].state = CISD;
-            arbiter_busy_next = '1;
+    // Update Cacheline State per Way
+    for (int i = 0; i < WAYS; i++) begin
+      // Update Cacheline State on Bus Message
+      if (req_bus_msg.valid) begin
+        unique case (state_array[i][req_bus_index])
+          CISAD: begin
+            // OwnGetS -> ISD, req_bus_busy_next = 1
+            if (req_bus_msg.bus_tx == GETS && req_bus_msg.source == ID && evict_candidate[i]) begin
+              state_array_next[i][req_bus_index] = CISD;
+              req_bus_busy_next = '1;
+            end
           end
-        end
-        CIMAD: begin
-          // OwnGetM -> IMD, arbiter_busy_next = 1
-          if (bus_msg.bus_tx == GETM && bus_msg.source == ID) begin
-            state_array_next[req_bus_index].state = CIMD;
-            arbiter_busy_next = '1;
+          CIMAD: begin
+            // OwnGetM -> IMD, req_bus_busy_next = 1
+            if (req_bus_msg.bus_tx == GETM && req_bus_msg.source == ID && evict_candidate[i]) begin
+              state_array_next[i][req_bus_index] = CIMD;
+              req_bus_busy_next = '1;
+            end
           end
-        end
-        CS: begin
-          // OtherGetM -> I
-          if (bus_msg.bus_tx == GETM && bus_msg.source != ID && bus_hit) begin
-            state_array_next[req_bus_index].state = CI;
+          CS: begin
+            // OtherGetM -> I
+            if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CI;
+            end
           end
-        end
-        CSMAD: begin
-          // OwnGetM -> SMD, arbiter_busy_next = 1
-          if (bus_msg.bus_tx == GETM && bus_msg.source == ID) begin
-            state_array_next[req_bus_index].state = CSMD;
-            arbiter_busy_next = '1;
+          CSMAD: begin
+            // OwnGetM -> SMD, req_bus_busy_next = 1
+            if (req_bus_msg.bus_tx == GETM && req_bus_msg.source == ID && cache_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CSMD;
+              req_bus_busy_next = '1;
+            end
+            // OtherGetM -> IMAD
+            else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CIMAD;
+            end
           end
-          // OtherGetM -> IMAD
-          else if (bus_msg.bus_tx == GETM && bus_msg.source != ID && bus_hit) begin
-            state_array_next[req_bus_index].state = CIMAD;
+          CE: begin
+            // OtherGetS -> S
+            if (req_bus_msg.bus_tx == GETS && req_bus_msg.source != ID && bus_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CS;
+            end
+            // OtherGetM -> I
+            else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CI;
+            end
           end
-        end
-        CE: begin
-          // OtherGetS -> S
-          if (bus_msg.bus_tx == GETS && bus_msg.source != ID && bus_hit) begin
-            state_array_next[req_bus_index].state = CS;
+          CM: begin
+            // OtherGetS -> S
+            if (req_bus_msg.bus_tx == GETS && req_bus_msg.source != ID && bus_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CS;
+            end
+            // OtherGetM -> I
+            else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CI;
+            end
           end
-          // OtherGetM -> I
-          else if (bus_msg.bus_tx == GETM && bus_msg.source != ID && bus_hit) begin
-            state_array_next[req_bus_index].state = CI;
+          CMIA: begin
+            // OwnPutM -> I
+            if (req_bus_msg.bus_tx == PUTM && req_bus_msg.source == ID && evict_candidate[i]) begin
+              state_array_next[i][req_bus_index] = CI;
+            end
+            // OtherGetS -> IIA
+            else if (req_bus_msg.bus_tx == GETS && req_bus_msg.source != ID && bus_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CIIA;
+            end
+            // OtherGetM -> IIA
+            else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CIIA;
+            end
           end
-        end
-        CM: begin
-          // OtherGetS -> S
-          if (bus_msg.bus_tx == GETS && bus_msg.source != ID && bus_hit) begin
-            state_array_next[req_bus_index].state = CS;
+          CEIA: begin
+            // OwnPutM -> I
+            if (req_bus_msg.bus_tx == PUTM && req_bus_msg.source == ID && evict_candidate[i]) begin
+              state_array_next[i][req_bus_index] = CI;
+            end
+            // OtherGetS -> IIA
+            else if (req_bus_msg.bus_tx == GETS && req_bus_msg.source != ID && bus_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CIIA;
+            end
+            // OtherGetM -> IIA
+            else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
+              state_array_next[i][req_bus_index] = CIIA;
+            end
           end
-          // OtherGetM -> I
-          else if (bus_msg.bus_tx == GETM && bus_msg.source != ID && bus_hit) begin
-            state_array_next[req_bus_index].state = CI;
+          CIIA: begin
+            // OwnPutM -> I
+            if (req_bus_msg.bus_tx == PUTM && req_bus_msg.source == ID && evict_candidate[i]) begin
+              state_array_next[i][req_bus_index] = CI;
+            end
           end
-        end
-        CMIA: begin
-          // OwnPutM -> I
-          if (bus_msg.bus_tx == PUTM && bus_msg.source == ID) begin
-            state_array_next[req_bus_index].state = CI;
+          // Ignore Bus Requests for CI, CISD, CIMD, CSMD
+          default: begin
           end
-          // OtherGetS -> IIA
-          else if (bus_msg.bus_tx == GETS && bus_msg.source != ID && bus_hit) begin
-            state_array_next[req_bus_index].state = CIIA;
+        endcase
+      end
+      // Update Cacheline State on Response Bus
+      else if (resp_bus_msg.valid) begin
+        unique case (state_array[i][resp_bus_index])
+          CISD: begin
+            // Own Data Response -> S, Update Cacheline, req_bus_busy_next = 0
+            if (resp_bus_msg.mmsg == DATA && resp_bus_msg.destination == ID && evict_candidate[i]) begin
+              state_array_next[i][resp_bus_index] = CS;
+              dfp_rdata = resp_bus_msg.data;
+              req_bus_busy_next = '0;
+            end
+            // Own Data Response -> E, Update Cacheline, req_bus_busy_next = 0
+            else if (resp_bus_msg.mmsg == EXCLUSIVE && resp_bus_msg.destination == ID && evict_candidate[i]) begin
+              state_array_next[i][resp_bus_index] = CE;
+              dfp_rdata = resp_bus_msg.data;
+              req_bus_busy_next = '0;
+            end
           end
-          // OtherGetM -> IIA
-          else if (bus_msg.bus_tx == GETM && bus_msg.source != ID && bus_hit) begin
-            state_array_next[req_bus_index].state = CIIA;
+          CIMD: begin
+            // Own Data Response -> M, Update Cacheline, req_bus_busy_next = 0
+            if (resp_bus_msg.mmsg == DATA && resp_bus_msg.destination == ID && evict_candidate[i]) begin
+              state_array_next[i][resp_bus_index] = CM;
+              dfp_rdata = resp_bus_msg.data;
+              req_bus_busy_next = '0;
+            end
           end
-        end
-        CEIA: begin
-          // OwnPutM -> I
-          if (bus_msg.bus_tx == PUTM && bus_msg.source == ID) begin
-            state_array_next[req_bus_index].state = CI;
+          CSMD: begin
+            // Own Data Response -> M, Update Cacheline, req_bus_busy_next = 0
+            if (resp_bus_msg.mmsg == DATA && resp_bus_msg.destination == ID && cache_hit_vector[i]) begin
+              state_array_next[i][resp_bus_index] = CM;
+              dfp_rdata = resp_bus_msg.data;
+              req_bus_busy_next = '0;
+            end
           end
-          // OtherGetS -> IIA
-          else if (bus_msg.bus_tx == GETS && bus_msg.source != ID && bus_hit) begin
-            state_array_next[req_bus_index].state = CIIA;
+          // Ignore Bus Requests for CI, CISAD, CIMAD, CS, CSMAD, CE, CM, CMIA, CEIA, CIIA
+          default: begin
           end
-          // OtherGetM -> IIA
-          else if (bus_msg.bus_tx == GETM && bus_msg.source != ID && bus_hit) begin
-            state_array_next[req_bus_index].state = CIIA;
+        endcase
+      end
+      // Update Cacheline State on CPU Request
+      else if (cpu_req) begin
+        unique case (state_array[i][addr_index])
+          CI: begin
+            // load -> ISAD
+            if (load_miss[i]) begin
+              state_array_next[i][addr_index] = CISAD;
+            end
+            // store -> IMAD
+            else if (store_miss[i]) begin
+              state_array_next[i][addr_index] = CIMAD;
+            end
           end
-        end
-        CIIA: begin
-          // OwnPutM -> I
-          if (bus_msg.bus_tx == PUTM && bus_msg.source == ID) begin
-            state_array_next[req_bus_index].state = CI;
+          CS: begin
+            // store -> SMAD
+            if (store_hit[i]) begin
+              state_array_next[i][addr_index] = CSMAD;
+            end
+            // replacement -> I
+            else if (replacement[i]) begin
+              state_array_next[i][addr_index] = CI;
+            end
           end
-        end
-        // Ignore Bus Requests for CI, CISD, CIMD, CSMD
-        default: begin
-        end
-      endcase
-    end
-    // Update Cacheline State on Xbar Response
-    else if (xbar_msg_valid) begin
-      unique case (state_array[resp_bus_index].state)
-        CISD: begin
-          // Own Data Response -> S, Update Cacheline, arbiter_busy_next = 0
-          if (xbar_in[xbar_idx].mmsg == DATA) begin
-            state_array_next[resp_bus_index].state = CS;
-            state_array_next[resp_bus_index].data = xbar_in[xbar_idx].data;
-            state_array_next[resp_bus_index].tag = resp_bus_tag;
-            arbiter_busy_next = '0;
+          CE: begin
+            // store -> M
+            if (store_hit[i]) begin
+              state_array_next[i][addr_index] = CM;
+            end
+            // replacement -> EIA
+            else if (replacement[i]) begin
+              state_array_next[i][addr_index] = CEIA;
+            end
           end
-          // Own Data Response -> E, Update Cacheline, arbiter_busy_next = 0
-          else if (xbar_in[xbar_idx].mmsg == EXCLUSIVE) begin
-            state_array_next[resp_bus_index].state = CE;
-            state_array_next[resp_bus_index].data = xbar_in[xbar_idx].data;
-            state_array_next[resp_bus_index].tag = resp_bus_tag;
-            arbiter_busy_next = '0;
+          CM: begin
+            // replacement -> MIA
+            if (replacement[i]) begin
+              state_array_next[i][addr_index] = CMIA;
+            end
           end
-        end
-        CIMD: begin
-          // Own Data Response -> M, Update Cacheline, arbiter_busy_next = 0
-          if (xbar_in[xbar_idx].mmsg == DATA) begin
-            state_array_next[resp_bus_index].state = CM;
-            state_array_next[resp_bus_index].data = xbar_in[xbar_idx].data;
-            state_array_next[resp_bus_index].tag = resp_bus_tag;
-            arbiter_busy_next = '0;
+          // Ignore Bus Requests for CISAD, CISD, CIMAD, CIMD, CSMAD, CSMD, CMIA, CEIA, CIIA
+          default: begin
           end
-        end
-        CSMD: begin
-          // Own Data Response -> M, Update Cacheline, arbiter_busy_next = 0
-          if (xbar_in[xbar_idx].mmsg == DATA) begin
-            state_array_next[resp_bus_index].state = CM;
-            state_array_next[resp_bus_index].data = xbar_in[xbar_idx].data;
-            state_array_next[resp_bus_index].tag = resp_bus_tag;
-            arbiter_busy_next = '0;
+        endcase
+      end
+
+      // CPU Request Update Logic
+      if (cpu_req) begin
+        unique case (cacheline[i][addr_index].state)
+          CS, CSMAD, CSMD, CEIA: begin
+            // load -> hit
+            if (load_hit[i]) begin
+              dfp_resp = '1;
+            end
           end
-        end
-        // Ignore Bus Requests for CI, CISAD, CIMAD, CS, CSMAD, CE, CM, CMIA, CEIA, CIIA
-        default: begin
-        end
-      endcase
-    end
-    // Update Cacheline State on CPU Request
-    else if (cpu_req) begin
-      unique case (state_array[addr_index].state)
-        CI: begin
-          // load -> ISAD
-          if (load) begin
-            state_array_next[addr_index].state = CISAD;
+          CE, CM, CMIA: begin
+            // load -> hit
+            if (load_hit[i]) begin
+              dfp_resp = '1;
+            end
+            // store -> hit
+            else if (store_hit[i]) begin
+              dfp_resp = '1;
+            end
           end
-          // store -> IMAD
-          else if (store) begin
-            state_array_next[addr_index].state = CIMAD;
+          // Ignore Bus Requests for CI, CISAD, CISD, CIMAD, CIMD, CIIA
+          default: begin
           end
-        end
-        CS: begin
-          // store -> SMAD
-          if (store && hit) begin
-            state_array_next[addr_index].state = CSMAD;
-          end
-          // replacement -> I
-          else if (replacement) begin
-            state_array_next[addr_index].state = CI;
-          end
-        end
-        CE: begin
-          // store -> M
-          if (store && hit) begin
-            state_array_next[addr_index].state = CM;
-          end
-          // replacement -> EIA
-          else if (replacement) begin
-            state_array_next[addr_index].state = CEIA;
-          end
-        end
-        CM: begin
-          // replacement -> MIA
-          if (replacement) begin
-            state_array_next[addr_index].state = CMIA;
-          end
-        end
-        // Ignore Bus Requests for CISAD, CISD, CIMAD, CIMD, CSMAD, CSMD, CMIA, CEIA, CIIA
-        default: begin
-        end
-      endcase
+        endcase
+      end
     end
   end
 
-  assign arbiter_busy = arbiter_busy_next | arbiter_busy_reg;
+  assign req_bus_busy = req_bus_busy_next | req_bus_busy_reg;
 
   // Request Bus Output Logic
   always_comb begin
@@ -293,7 +318,7 @@ import cache_types::*;
     arbiter_req_next = arbiter_req_reg;
 
     if (cpu_req) begin
-      unique case (state_array[addr_index].state)
+      unique case (state_array[i][addr_index])
         CI: begin
           // load -> Issue GetS, arbiter_req_next = 1
           if (load) begin
@@ -310,7 +335,7 @@ import cache_types::*;
         end
         CISAD: begin
           // OwnGetS -> arbiter_req_next = 0
-          if (bus_msg.valid && bus_msg.bus_tx == GETS && bus_msg.source == ID) begin
+          if (req_bus_msg.valid && req_bus_msg.bus_tx == GETS && req_bus_msg.source == ID) begin
             arbiter_req_next = '0;
             bus_addr = '0;
             bus_tx   = IDLE;
@@ -318,7 +343,7 @@ import cache_types::*;
         end
         CIMAD, CSMAD: begin
           // OwnGetM -> arbiter_req_next = 0
-          if (bus_msg.valid && bus_msg.bus_tx == GETM && bus_msg.source == ID) begin
+          if (req_bus_msg.valid && req_bus_msg.bus_tx == GETM && req_bus_msg.source == ID) begin
             arbiter_req_next = '0;
             bus_addr = '0;
             bus_tx   = IDLE;
@@ -326,7 +351,7 @@ import cache_types::*;
         end
         CMIA, CEIA, CIIA: begin
           // OwnPutM -> arbiter_req_next = 0
-          if (bus_msg.valid && bus_msg.bus_tx == PUTM && bus_msg.source == ID) begin
+          if (req_bus_msg.valid && req_bus_msg.bus_tx == PUTM && req_bus_msg.source == ID) begin
             arbiter_req_next = '0;
             bus_addr = '0;
             bus_tx   = IDLE;
@@ -343,7 +368,7 @@ import cache_types::*;
         CE, CM: begin
           // replacement -> Issue PutM, arbiter_req = 1
           if (replacement) begin
-            bus_addr = {state_array[addr_index].tag, addr_index};
+            bus_addr = {state_array[i][addr_index].tag, addr_index};
             bus_tx = PUTM;
             arbiter_req_next = '1;
           end
@@ -357,48 +382,48 @@ import cache_types::*;
 
   assign arbiter_req = arbiter_req_next;
 
-  // Resp Bus Output Logic
+  // Response Bus Output Logic
   always_ff @(posedge clk) begin
     if (rst) begin
       resp_bus_tx <= '0;
     end else begin
       resp_bus_tx <= '0;
 
-      if (bus_msg.valid) begin
-        unique case (state_array[req_bus_index].state)
+      if (req_bus_msg.valid) begin
+        unique case (state_array[i][req_bus_index])
           CE, CM: begin
             // OtherGetS -> Send Data to Bus Source & Memory
-            if (bus_msg.bus_tx == GETS && bus_msg.source != ID && bus_hit) begin
+            if (req_bus_msg.bus_tx == GETS && req_bus_msg.source != ID && bus_hit_vector[i]) begin
             end
             // OtherGetM -> Send Data to Bus Source
-            else if (bus_msg.bus_tx == GETM && bus_msg.source != ID && bus_hit) begin
+            else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
             end
           end
           CMIA: begin
             // OwnPutM -> Send Data to Memory
-            if (bus_msg.bus_tx == PUTM && bus_msg.source == ID) begin
+            if (req_bus_msg.bus_tx == PUTM && req_bus_msg.source == ID) begin
             end
             // OtherGetS -> Send Data to Bus Source & Memory
-            else if (bus_msg.bus_tx == GETS && bus_msg.source != ID && bus_hit) begin
+            else if (req_bus_msg.bus_tx == GETS && req_bus_msg.source != ID && bus_hit_vector[i]) begin
             end
             // OtherGetM -> Send Data to Bus Source
-            else if (bus_msg.bus_tx == GETM && bus_msg.source != ID && bus_hit) begin
+            else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
             end
           end
           CEIA: begin
             // OwnPutM -> Send NoDataE to Memory
-            if (bus_msg.bus_tx == PUTM && bus_msg.source == ID) begin
+            if (req_bus_msg.bus_tx == PUTM && req_bus_msg.source == ID) begin
             end
             // OtherGetS -> Send Data to Bus Source & Memory
-            else if (bus_msg.bus_tx == GETS && bus_msg.source != ID && bus_hit) begin
+            else if (req_bus_msg.bus_tx == GETS && req_bus_msg.source != ID && bus_hit_vector[i]) begin
             end
             // OtherGetM -> Send Data to Bus Source
-            else if (bus_msg.bus_tx == GETM && bus_msg.source != ID && bus_hit) begin
+            else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
             end
           end
           CIIA: begin
             // OwnPutM -> Send NoData to Memory
-            if (bus_msg.bus_tx == PUTM && bus_msg.source == ID) begin
+            if (req_bus_msg.bus_tx == PUTM && req_bus_msg.source == ID) begin
             end
           end
           // Ignore Bus Requests for CI, CISAD, CISD, CIMAD, CIMD, CS, CSMAD, CSMD
@@ -412,25 +437,22 @@ import cache_types::*;
   // Cache logic
   always_ff @(posedge clk) begin
     if (rst) begin
-      for (int i = 0; i < NUM_SETS; i++) begin
-        state_array[i] <= '{
-          state: CI,
-          data: 0,
-          tag: 0
-        };
+      for (int i = 0; i < WAYS; i++) begin
+        state_array[i] <= '{default: CI};
       end
-      arbiter_busy_reg <= '0;
+
+      req_bus_busy_reg <= '0;
       arbiter_req_reg  <= '0;
-      req_bus_addr_reg     <= '0;
+      req_bus_addr_reg <= '0;
       bus_tx_reg       <= '0;
     end else begin
-      for (int i = 0; i < NUM_SETS; i++) begin
+      for (int i = 0; i < WAYS; i++) begin
         state_array[i] <= state_array_next[i];
       end
 
-      arbiter_busy_reg <= arbiter_busy_next;
+      req_bus_busy_reg <= req_bus_busy_next;
       arbiter_req_reg  <= arbiter_req_next;
-      req_bus_addr_reg     <= bus_addr;
+      req_bus_addr_reg <= bus_addr;
       bus_tx_reg       <= bus_tx;
     end
   end

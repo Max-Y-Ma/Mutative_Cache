@@ -13,14 +13,14 @@ package cache_types;
 
   parameter integer XLEN           = 32;
   parameter integer XLEN_BYTES     = XLEN / 8;
-  parameter integer CACHELINE_SIZE = 8;
+  parameter integer CACHELINE_SIZE = 256;
   parameter integer COHERENCE_BITS = 3;
 
   parameter integer NUM_SETS = 4;
   parameter integer INDEX_WIDTH = $clog2(NUM_SETS);
   parameter integer TAG_WIDTH   = XLEN - INDEX_WIDTH;
 
-  typedef enum logic [2:0] {
+  typedef enum logic [COHERENCE_BITS-1:0] {
     IDLE,
     CHECK,
     WRITEBACK,

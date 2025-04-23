@@ -3,16 +3,16 @@ import cache_types::*;
 #(
   parameter integer WAYS = 4
 ) (
-  input logic  clk, rst,
+  input  logic clk, rst,
 
   // Cache Datapath interface
-  input logic  cache_hit,
+  input  logic cache_hit,
 
   // UFP Interface
   output logic ufp_resp,
 
   // DFP Interface
-  input logic  dfp_resp,
+  input  logic dfp_resp,
   output logic dfp_read,
   output logic dfp_write,
 
@@ -28,7 +28,7 @@ import cache_types::*;
   output logic idle,
 
   // Dirty Bit
-  input logic  dirty
+  input  logic  dirty
 );
 
 controller_state_t curr_state;
@@ -58,7 +58,7 @@ always_comb begin
   unique case (curr_state)
     IDLE: begin
       if (cache_request) begin
-        /* Assert Chip Select Signals */
+        // Assert Chip Select Signals
         for (int i = 0; i < WAYS; i++) begin
           tag_array_csb0[i]   = 1'b0;
           data_array_csb0[i]  = 1'b0;
@@ -70,16 +70,21 @@ always_comb begin
     end
     CHECK: begin
       if (cache_hit) begin
-        write_from_cpu = cache_write_request;
-        ufp_resp = 1'b1;
+        // Wait for coherence checks before proceeding (Store hit in S state)
+        if (dfp_resp) begin
+          ufp_resp = 1'b1;
+          write_from_cpu = cache_write_request;
+          next_state = IDLE;
+        end
+        else begin
+          next_state = CHECK;
 
-        next_state = IDLE;
-
-        /* Assert Chip Select Signals */
-        for (int i = 0; i < WAYS; i++) begin
-          tag_array_csb0[i]   = 1'b0;
-          data_array_csb0[i]  = 1'b0;
-          valid_array_csb0[i] = 1'b0;
+          // Assert Chip Select Signals
+          for (int i = 0; i < WAYS; i++) begin
+            tag_array_csb0[i]   = 1'b0;
+            data_array_csb0[i]  = 1'b0;
+            valid_array_csb0[i] = 1'b0;
+          end
         end
       end
       else if (dirty) begin
@@ -104,7 +109,7 @@ always_comb begin
         write_from_mem = 1'b1;
         next_state = FETCH_WAIT;
 
-        /* Assert Chip Select Signals */
+        // Assert Chip Select Signals
         for (int i = 0; i < WAYS; i++) begin
           tag_array_csb0[i]   = 1'b0;
           data_array_csb0[i]  = 1'b0;
@@ -116,7 +121,7 @@ always_comb begin
       end
     end
     FETCH_WAIT: begin
-      /* Assert Chip Select Signals */
+      // Assert Chip Select Signals
       for (int i = 0; i < WAYS; i++) begin
         tag_array_csb0[i]   = 1'b0;
         data_array_csb0[i]  = 1'b0;

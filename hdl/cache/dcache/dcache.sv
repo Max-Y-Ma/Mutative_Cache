@@ -71,7 +71,6 @@ import cache_types::*;
   logic              data_array_web0   [WAYS];
   logic [31:0]       data_array_wmask  [WAYS];
 
-  logic              dirty_array_web0  [WAYS];
   logic              dirty_array_din0  [WAYS];
 
   logic              valid_array_csb0  [WAYS];
@@ -164,11 +163,10 @@ import cache_types::*;
           data_array_din0[i]  = 256'b0 | (ufp_wdata_reg << ({block_offset, 3'b0}));
           data_array_wmask[i] = 32'b0 | ufp_wmask_reg << (block_offset);
 
-          // Mark Array as valid and dirty during a write from cpu
+          // Mark array as valid and dirty during a write from cpu
           valid_array_din0[i] = 1'b1;
           valid_array_web0[i] = 1'b0;
           dirty_array_din0[i] = 1'b1;
-          dirty_array_web0[i] = 1'b0;
         end
       end
 
@@ -191,7 +189,6 @@ import cache_types::*;
         valid_array_din0[i] = 1'b1;
         valid_array_web0[i] = 1'b0;
         dirty_array_din0[i] = 1'b0;
-        dirty_array_web0[i] = 1'b0;
       end
 
       // Dirty bit write back logic
