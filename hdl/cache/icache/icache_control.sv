@@ -1,7 +1,7 @@
 module icache_control
 import cache_types::*;
 # (
-  parameter WAYS = 4
+  parameter integer WAYS = 4
 ) (
   input logic  clk, rst,
 
@@ -18,9 +18,9 @@ import cache_types::*;
   output logic dfp_write,
 
   // Chip Select Signals
-  output logic tag_array_csb0   [WAYS-1:0],
-  output logic data_array_csb0  [WAYS-1:0],
-  output logic valid_array_csb0 [WAYS-1:0],
+  output logic tag_array_csb0   [WAYS],
+  output logic data_array_csb0  [WAYS],
+  output logic valid_array_csb0 [WAYS],
 
   // SRAM Controls
   output logic write_from_mem,
@@ -110,7 +110,7 @@ always_comb begin
         data_array_csb0[i]  = 1'b0;
         valid_array_csb0[i] = 1'b0;
       end
-      
+
       next_state = CHECK;
     end
     default: begin end

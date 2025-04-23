@@ -1,0 +1,4 @@
+> Change dfp_read to bus GETS request
+> Change dfp_resp to L2 data response 
+> Change dfp_write to bus GETM request
+> Coherence array for each way

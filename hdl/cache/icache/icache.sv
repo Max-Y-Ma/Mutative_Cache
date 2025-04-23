@@ -1,12 +1,12 @@
 module icache
 import cache_types::*;
 #(
-  parameter  WAYS            = 4,
-  parameter  SETS            = 16,
-  localparam SET_BITS        = $clog2(SETS),
-  parameter  CACHELINE_BYTES = 32,
-  localparam CACHELINE_BITS  = $clog2(CACHELINE_BYTES),
-  localparam TAG_BITS        = 32 - SET_BITS - CACHELINE_BITS
+  parameter integer WAYS            = 4,
+  parameter integer SETS            = 16,
+  parameter integer SET_BITS        = $clog2(SETS),
+  parameter integer CACHELINE_BYTES = 32,
+  parameter integer CACHELINE_BITS  = $clog2(CACHELINE_BYTES),
+  parameter integer TAG_BITS        = 32 - SET_BITS - CACHELINE_BITS
 ) (
   input  logic            clk,
   input  logic            rst,
@@ -50,23 +50,23 @@ import cache_types::*;
     logic [WAYS-1:0]  evict_candidate;
 
     // Cache Arrays 23 tag bits, NUM_SETS set, 5 cache line
-    logic              tag_array_csb0    [WAYS-1:0];
-    logic [TAG_BITS:0] tag_array_dout0   [WAYS-1:0];
-    logic              tag_array_web0    [WAYS-1:0];
+    logic              tag_array_csb0    [WAYS];
+    logic [TAG_BITS:0] tag_array_dout0   [WAYS];
+    logic              tag_array_web0    [WAYS];
 
-    logic              data_array_csb0   [WAYS-1:0];
-    logic [255:0]      data_array_dout0  [WAYS-1:0];
-    logic [255:0]      data_array_din0   [WAYS-1:0];
-    logic              data_array_web0   [WAYS-1:0];
-    logic [31:0]       data_array_wmask  [WAYS-1:0];
+    logic              data_array_csb0   [WAYS];
+    logic [255:0]      data_array_dout0  [WAYS];
+    logic [255:0]      data_array_din0   [WAYS];
+    logic              data_array_web0   [WAYS];
+    logic [31:0]       data_array_wmask  [WAYS];
 
-    logic              dirty_array_web0  [WAYS-1:0];
-    logic              dirty_array_din0  [WAYS-1:0];
+    logic              dirty_array_web0  [WAYS];
+    logic              dirty_array_din0  [WAYS];
 
-    logic              valid_array_csb0  [WAYS-1:0];
-    logic              valid_array_din0  [WAYS-1:0];
-    logic              valid_array_dout0 [WAYS-1:0];
-    logic              valid_array_web0  [WAYS-1:0];
+    logic              valid_array_csb0  [WAYS];
+    logic              valid_array_din0  [WAYS];
+    logic              valid_array_dout0 [WAYS];
+    logic              valid_array_web0  [WAYS];
 
 
     /* UFP Address partition and register */
@@ -97,7 +97,7 @@ import cache_types::*;
       for (int i = 0; i < WAYS; i++) begin
         if (evict_candidate[i]) begin
           dfp_wdata = data_array_dout0[i];
-        end 
+        end
       end
 
       // By default use address from CPU
@@ -159,7 +159,7 @@ import cache_types::*;
       evict_update = ~ufp_resp;
     end
 
-    generate for (genvar i = 0; i < WAYS; i++) begin : arrays
+    generate for (genvar i = 0; i < WAYS; i++) begin : gen_sram_arrays
         icache_data_array data_array (
             .clk0       (clk),
             .csb0       (data_array_csb0[i]),
