@@ -76,6 +76,7 @@ end
 int timeout_cycles = 10000000;
 always @(posedge clk) begin
   if (mon_itf.halt) begin
+    $display("hit rate: %0f", real'(dut.mutative_cache0.setup_control.hit_counter)/real'(dut.mutative_cache0.setup_control.request_counter));
     $finish;
   end
   if (timeout_cycles == 0) begin
