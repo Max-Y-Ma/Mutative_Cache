@@ -9,7 +9,9 @@ module dcache_data_array(
     gnd,
 `endif
 // Port 0: RW
-    clk0,csb0,web0,wmask0,addr0,din0,dout0
+    clk0,csb0,web0,wmask0,addr0,din0,dout0,
+// Port 1: R
+    clk1,csb1,addr1,dout1
   );
 
   parameter NUM_WMASKS = 32 ;
@@ -28,6 +30,10 @@ module dcache_data_array(
   input [NUM_WMASKS-1:0]   wmask0; // write mask
   input [DATA_WIDTH-1:0]  din0;
   output [DATA_WIDTH-1:0] dout0;
+  input  clk1; // clock
+  input   csb1; // active low chip select
+  input [ADDR_WIDTH-1:0]  addr1;
+  output [DATA_WIDTH-1:0] dout1;
 
   reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
 
@@ -45,6 +51,16 @@ module dcache_data_array(
       wmask0_reg <= wmask0;
       addr0_reg <= addr0;
       din0_reg <= din0;
+    end
+  end
+
+  reg [ADDR_WIDTH-1:0]  addr1_reg;
+  reg [DATA_WIDTH-1:0]  dout1;
+
+  always @(posedge clk1)
+  begin
+    if( !csb1 ) begin
+      addr1_reg <= addr1;
     end
   end
 
@@ -122,6 +138,11 @@ module dcache_data_array(
   always @ (*)
   begin : MEM_READ0
     dout0 = mem[addr0_reg];
+  end
+
+  always @ (*)
+  begin : MEM_READ1
+    dout1 = mem[addr1_reg];
   end
 
 endmodule

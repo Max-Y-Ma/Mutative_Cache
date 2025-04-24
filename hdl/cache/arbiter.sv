@@ -1,5 +1,5 @@
 module arbiter
-import types::*;
+import cache_types::*;
 #(
   parameter integer NUM_NODES = NUM_CACHE
 ) (

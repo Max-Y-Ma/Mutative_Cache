@@ -1,4 +1,4 @@
-module cache_line
+module line_buffer
 import cache_types::*;
 (
   input logic clk, rst,
@@ -31,8 +31,8 @@ logic [1:0] serdes_count;
 logic [1:0] next_serdes_count;
 
 // Cache States
-cacheline_state_t curr_state;
-cacheline_state_t next_state;
+line_buffer_state_t curr_state;
+line_buffer_state_t next_state;
 
 // Cacheline Read Buffer
 logic [255:0] line_buffer;

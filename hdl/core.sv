@@ -65,6 +65,7 @@ cpu cpu0(
 );
 
 icache #(
+  .ID(ID),
   .WAYS(ICACHE_WAYS),
   .SETS(ICACHE_SETS)
 ) icache0 (
@@ -85,10 +86,11 @@ icache #(
   .resp_bus_req(icache_resp_bus_req),
   .resp_bus_busy(icache_resp_bus_busy),
   .invalidate(invalidate),
-  .invalidate_addr(invalidate_addr),
+  .invalidate_addr(invalidate_addr)
 );
 
 dcache #(
+  .ID(ID + 1),
   .WAYS(DCACHE_WAYS),
   .SETS(DCACHE_SETS)
 ) dcache0 (
@@ -111,7 +113,7 @@ dcache #(
   .resp_bus_req(dcache_resp_bus_req),
   .resp_bus_busy(dcache_resp_bus_busy),
   .invalidate(invalidate),
-  .invalidate_addr(invalidate_addr),
+  .invalidate_addr(invalidate_addr)
 );
 
 endmodule : core

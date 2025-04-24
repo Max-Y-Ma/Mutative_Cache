@@ -3,24 +3,29 @@ import cache_types::*;
 # (
   parameter integer WAYS = 4
 ) (
-  input logic  clk, rst,
+  input  logic clk, rst,
 
   // Cache Datapath interface
-  input logic  cache_hit,
-  input logic  cache_read_request,
+  input  logic cache_hit,
+  input  logic cache_read_request,
 
   // UFP Interface
   output logic ufp_resp,
 
   // DFP Interface
-  input logic  dfp_resp,
+  input  logic dfp_resp,
   output logic dfp_read,
-  output logic dfp_write,
+
+  // Request Bus Interface
+  input  logic bus_request,
 
   // Chip Select Signals
   output logic tag_array_csb0   [WAYS],
   output logic data_array_csb0  [WAYS],
   output logic valid_array_csb0 [WAYS],
+  output logic tag_array_csb1   [WAYS],
+  output logic data_array_csb1  [WAYS],
+  output logic valid_array_csb1 [WAYS],
 
   // SRAM Controls
   output logic write_from_mem,
@@ -37,7 +42,6 @@ always_comb begin
   // Defaults
   next_state     = curr_state;
   write_from_mem = 1'b0;
-  dfp_write      = 1'b0;
   dfp_read       = 1'b0;
   ufp_resp       = 1'b0;
   cache_request  = cache_read_request;
@@ -48,6 +52,12 @@ always_comb begin
     tag_array_csb0[i]   = 1'b1;
     data_array_csb0[i]  = 1'b1;
     valid_array_csb0[i] = 1'b1;
+  end
+
+  for (int i = 0; i < WAYS; i++) begin
+    tag_array_csb1[i]   = !bus_request;
+    data_array_csb1[i]  = !bus_request;
+    valid_array_csb1[i] = !bus_request;
   end
 
   unique case (curr_state)

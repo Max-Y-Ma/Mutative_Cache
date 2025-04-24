@@ -8,13 +8,20 @@ module ff_array #(
   input  logic               web0,
   input  logic [S_INDEX-1:0] addr0,
   input  logic [WIDTH-1:0]   din0,
-  output logic [WIDTH-1:0]   dout0
+  output logic [WIDTH-1:0]   dout0,
+
+  input  logic               clk1,
+  input  logic               rst1,
+  input  logic               csb1,
+  input  logic [S_INDEX-1:0] addr1,
+  output logic [WIDTH-1:0]   dout1
 );
 
 localparam NUM_SETS = 2**S_INDEX;
 
 logic               web0_reg;
 logic [S_INDEX-1:0] addr0_reg;
+logic [S_INDEX-1:0] addr1_reg;
 logic [WIDTH-1:0]   din0_reg;
 logic [WIDTH-1:0]   internal_array [NUM_SETS];
 
@@ -28,6 +35,16 @@ always_ff @(posedge clk0) begin
       web0_reg  <= web0;
       addr0_reg <= addr0;
       din0_reg  <= din0;
+    end
+  end
+end
+
+always_ff @(posedge clk1) begin
+  if (rst1) begin
+    addr1_reg <= 'x;
+  end else begin
+    if (!csb1) begin
+      addr1_reg <= addr1;
     end
   end
 end
@@ -46,6 +63,10 @@ end
 
 always_comb begin
   dout0 = internal_array[addr0_reg];
+end
+
+always_comb begin
+  dout1 = internal_array[addr1_reg];
 end
 
 endmodule : ff_array

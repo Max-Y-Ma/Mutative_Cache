@@ -1,6 +1,7 @@
 module dcache
 import cache_types::*;
 #(
+  parameter integer ID              = 0,
   parameter integer WAYS            = 4,
   parameter integer SETS            = 16,
   parameter integer SET_BITS        = $clog2(SETS),
@@ -57,16 +58,22 @@ import cache_types::*;
   logic [WAYS-1:0] cache_hit_vector;
   logic [WAYS-1:0] bus_hit_vector;
 
+  logic            bus_request;
+
   logic            evict_update;
   logic [WAYS-1:0] evict_candidate;
 
   // Cache Arrays
   logic              tag_array_csb0    [WAYS];
+  logic              tag_array_csb1    [WAYS];
   logic [TAG_BITS:0] tag_array_dout0   [WAYS];
+  logic [TAG_BITS:0] tag_array_dout1   [WAYS];
   logic              tag_array_web0    [WAYS];
 
   logic              data_array_csb0   [WAYS];
+  logic              data_array_csb1   [WAYS];
   logic [255:0]      data_array_dout0  [WAYS];
+  logic [255:0]      data_array_dout1  [WAYS];
   logic [255:0]      data_array_din0   [WAYS];
   logic              data_array_web0   [WAYS];
   logic [31:0]       data_array_wmask  [WAYS];
@@ -74,8 +81,10 @@ import cache_types::*;
   logic              dirty_array_din0  [WAYS];
 
   logic              valid_array_csb0  [WAYS];
+  logic              valid_array_csb1  [WAYS];
   logic              valid_array_din0  [WAYS];
   logic              valid_array_dout0 [WAYS];
+  logic              valid_array_dout1 [WAYS];
   logic              valid_array_web0  [WAYS];
 
   // UFP Address partition and register
@@ -83,17 +92,21 @@ import cache_types::*;
   logic [3:0]                ufp_rmask_reg;
   logic [3:0]                ufp_wmask_reg;
   logic [31:0]               ufp_wdata_reg;
-  logic [TAG_BITS-1:0]       tag_val;
-  logic [TAG_BITS-1:0]       bus_tag_val;
-  logic [SET_BITS-1:0]       set_addr;
   logic [CACHELINE_BITS-1:0] block_offset;
+  logic [TAG_BITS-1:0]       tag_val;
+  logic [SET_BITS-1:0]       set_addr;
+  logic [TAG_BITS-1:0]       bus_tag_val;
+  logic [SET_BITS-1:0]       bus_set_addr;
+  logic [255:0]              bus_rdata;
 
-  assign tag_val      = ufp_addr_reg[31:SET_BITS+CACHELINE_BITS];
-  assign bus_tag_val  = req_bus_msg.addr[31:SET_BITS+CACHELINE_BITS];
   assign block_offset = ufp_addr_reg[CACHELINE_BITS-1:0];
 
+  assign tag_val      = ufp_addr_reg[31:SET_BITS+CACHELINE_BITS];
   assign set_addr     = idle ? ufp_addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS]
                              : ufp_addr_reg[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
+
+  assign bus_tag_val  = req_bus_msg.addr[31:SET_BITS+CACHELINE_BITS];
+  assign bus_set_addr = req_bus_msg.addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
 
   // Register signals because we're not pipelined yet
   always_ff @ (posedge clk) begin
@@ -171,14 +184,18 @@ import cache_types::*;
       end
 
       // Checks bus tag hits
-      bus_hit_vector[i]   = 1'b0;
-      if (tag_array_dout0[i][TAG_BITS-1:0] == bus_tag_val) begin
-        cache_hit_vector[i] = valid_array_dout0[i];
+      bus_rdata = 'x;
+      bus_hit_vector[i] = 1'b0;
+      if (tag_array_dout1[i][TAG_BITS-1:0] == bus_tag_val) begin
+        bus_rdata = data_array_dout1[i];
+        bus_hit_vector[i] = valid_array_dout1[i];
       end
+
+      bus_request = req_bus_msg.valid;
 
       // Write to cache after writeback completes
       // Only overwrite the eviction candidate
-      if (write_from_mem && evict_candidate[i] == 1'b1) begin
+      if (write_from_mem && evict_candidate[i]) begin
         cache_hit_vector[i] = 1'b1;
         tag_array_web0[i]  = 1'b0;
         data_array_web0[i] = 1'b0;
@@ -216,7 +233,11 @@ import cache_types::*;
       .wmask0     (data_array_wmask[i]),
       .addr0      (set_addr),
       .din0       (data_array_din0[i]),
-      .dout0      (data_array_dout0[i])
+      .dout0      (data_array_dout0[i]),
+      .clk1       (clk),
+      .csb1       (data_array_csb1[i]),
+      .addr1      (bus_set_addr),
+      .dout1      (data_array_dout1[i])
     );
     dcache_tag_array tag_array (
       .clk0       (clk),
@@ -224,7 +245,11 @@ import cache_types::*;
       .web0       (tag_array_web0[i]),
       .addr0      (set_addr),
       .din0       ({dirty_array_din0[i], tag_val}),
-      .dout0      (tag_array_dout0[i])
+      .dout0      (tag_array_dout0[i]),
+      .clk1       (clk),
+      .csb1       (tag_array_csb1[i]),
+      .addr1      (bus_set_addr),
+      .dout1      (tag_array_dout1[i])
     );
     ff_array #(.WIDTH(1)) valid_array (
       .clk0       (clk),
@@ -233,11 +258,17 @@ import cache_types::*;
       .web0       (valid_array_web0[i]),
       .addr0      (set_addr),
       .din0       (valid_array_din0[i]),
-      .dout0      (valid_array_dout0[i])
+      .dout0      (valid_array_dout0[i]),
+      .clk1       (clk),
+      .rst1       (rst),
+      .csb1       (valid_array_csb1[i]),
+      .addr1      (bus_set_addr),
+      .dout1      (valid_array_dout1[i])
     );
   end endgenerate
 
   dcache_coherence #(
+    .ID(ID),
     .WAYS(WAYS),
     .SETS(SETS)
   ) dcache_coherence0 (
@@ -249,6 +280,12 @@ import cache_types::*;
     .dfp_wdata(dfp_wdata),
     .dfp_rdata(dfp_rdata),
     .dfp_resp(dfp_resp),
+    .bus_rdata(bus_rdata),
+    .cache_read_request(cache_read_request),
+    .cache_write_request(cache_write_request),
+    .cache_hit_vector(cache_hit_vector),
+    .bus_hit_vector(bus_hit_vector),
+    .evict_candidate(evict_candidate),
     .req_bus_msg(req_bus_msg),
     .req_bus_tx(req_bus_tx),
     .req_bus_gnt(req_bus_gnt),
@@ -265,7 +302,7 @@ import cache_types::*;
 
   dcache_control #(
     .WAYS(WAYS)
-  ) cache_control0 (
+  ) dcache_control0 (
     .clk(clk),
     .rst(rst),
     .cache_hit(cache_hit),
@@ -278,6 +315,9 @@ import cache_types::*;
     .tag_array_csb0(tag_array_csb0),
     .data_array_csb0(data_array_csb0),
     .valid_array_csb0(valid_array_csb0),
+    .tag_array_csb1(tag_array_csb1),
+    .data_array_csb1(data_array_csb1),
+    .valid_array_csb1(valid_array_csb1),
     .write_from_mem(write_from_mem),
     .write_from_cpu(write_from_cpu),
     .idle(idle),

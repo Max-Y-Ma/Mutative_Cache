@@ -1,6 +1,7 @@
 module icache
 import cache_types::*;
 #(
+  parameter integer ID              = 0,
   parameter integer WAYS            = 4,
   parameter integer SETS            = 16,
   parameter integer SET_BITS        = $clog2(SETS),
@@ -36,48 +37,66 @@ import cache_types::*;
 );
 
     /* Cache Control Signals */
-    logic             cache_read_request;
-    logic             write_from_mem;
+    logic [31:0]     dfp_addr;
+    logic            dfp_read;
+    logic [255:0]    dfp_rdata;
+    logic            dfp_resp;
 
-    logic             ready;
-    logic             dirty;
+    logic            cache_read_request;
+    logic            write_from_mem;
 
-    logic             cache_hit;
-    logic [WAYS-1:0]  cache_hit_vector;
+    logic            ready;
 
+    logic            cache_hit;
+    logic [WAYS-1:0] cache_hit_vector;
+    logic [WAYS-1:0] bus_hit_vector;
 
-    logic             evict_update;
-    logic [WAYS-1:0]  evict_candidate;
+    logic            bus_request;
+
+    logic            evict_update;
+    logic [WAYS-1:0] evict_candidate;
 
     // Cache Arrays 23 tag bits, NUM_SETS set, 5 cache line
     logic              tag_array_csb0    [WAYS];
+    logic              tag_array_csb1    [WAYS];
     logic [TAG_BITS:0] tag_array_dout0   [WAYS];
+    logic [TAG_BITS:0] tag_array_dout1   [WAYS];
     logic              tag_array_web0    [WAYS];
 
     logic              data_array_csb0   [WAYS];
+    logic              data_array_csb1   [WAYS];
     logic [255:0]      data_array_dout0  [WAYS];
+    logic [255:0]      data_array_dout1  [WAYS];
     logic [255:0]      data_array_din0   [WAYS];
     logic              data_array_web0   [WAYS];
     logic [31:0]       data_array_wmask  [WAYS];
 
-    logic              dirty_array_web0  [WAYS];
     logic              dirty_array_din0  [WAYS];
 
     logic              valid_array_csb0  [WAYS];
+    logic              valid_array_csb1  [WAYS];
     logic              valid_array_din0  [WAYS];
     logic              valid_array_dout0 [WAYS];
+    logic              valid_array_dout1 [WAYS];
     logic              valid_array_web0  [WAYS];
 
 
     /* UFP Address partition and register */
     logic [31:0]               ufp_addr_reg;
     logic [3:0]                ufp_rmask_reg;
+    logic [CACHELINE_BITS-1:0] block_offset;
     logic [TAG_BITS-1:0]       tag_val;
     logic [SET_BITS-1:0]       set_addr;
-    logic [CACHELINE_BITS-1:0] block_offset;
+    logic [TAG_BITS-1:0]       bus_tag_val;
+    logic [SET_BITS-1:0]       bus_set_addr;
+    logic [255:0]              bus_rdata;
+
+    assign block_offset = ufp_addr_reg[CACHELINE_BITS-1:0];
 
     assign tag_val      = ufp_addr_reg[31:SET_BITS+CACHELINE_BITS];
-    assign block_offset = ufp_addr_reg[CACHELINE_BITS-1:0];
+
+    assign bus_tag_val  = req_bus_msg.addr[31:SET_BITS+CACHELINE_BITS];
+    assign bus_set_addr = req_bus_msg.addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
 
     /* Register request during idle or finished */
     always_ff @ (posedge clk) begin
@@ -92,14 +111,6 @@ import cache_types::*;
     end
 
     always_comb begin
-      // DRAM signals
-      dfp_wdata = 'x;
-      for (int i = 0; i < WAYS; i++) begin
-        if (evict_candidate[i]) begin
-          dfp_wdata = data_array_dout0[i];
-        end
-      end
-
       // By default use address from CPU
       dfp_addr = {ufp_addr_reg[31:CACHELINE_BITS], 5'b0};
 
@@ -112,9 +123,6 @@ import cache_types::*;
         cache_read_request  = |ufp_rmask_reg;
         set_addr            = ufp_addr_reg[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
       end
-
-      // Writeback logic
-      dirty = 1'b0;
 
       // Calculate hit vector and data output
       ufp_rdata       = 32'b0;
@@ -135,6 +143,17 @@ import cache_types::*;
           cache_hit_vector[i] = valid_array_dout0[i];
           ufp_rdata = data_array_dout0[i][({block_offset, 3'b0})+:32];
         end
+
+        // Checks bus tag hits
+        bus_rdata = 'x;
+        bus_hit_vector[i] = 1'b0;
+        if (tag_array_dout1[i][TAG_BITS-1:0] == bus_tag_val) begin
+          bus_rdata = data_array_dout1[i];
+          bus_hit_vector[i] = valid_array_dout1[i];
+        end
+
+        bus_request = req_bus_msg.valid;
+
         // Write to cache after writeback completes
         // Only overwrite the eviction candidate
         if (write_from_mem && evict_candidate[i] == 1'b1) begin
@@ -148,7 +167,6 @@ import cache_types::*;
           valid_array_din0[i] = 1'b1;
           valid_array_web0[i] = 1'b0;
           dirty_array_din0[i] = 1'b0;
-          dirty_array_web0[i] = 1'b0;
         end
       end
 
@@ -167,7 +185,11 @@ import cache_types::*;
             .wmask0     (data_array_wmask[i]),
             .addr0      (set_addr),
             .din0       (data_array_din0[i]),
-            .dout0      (data_array_dout0[i])
+            .dout0      (data_array_dout0[i]),
+            .clk1       (clk),
+            .csb1       (data_array_csb1[i]),
+            .addr1      (bus_set_addr),
+            .dout1      (data_array_dout1[i])
         );
         icache_tag_array tag_array (
             .clk0       (clk),
@@ -175,7 +197,11 @@ import cache_types::*;
             .web0       (tag_array_web0[i]),
             .addr0      (set_addr),
             .din0       ({dirty_array_din0[i], tag_val}),
-            .dout0      (tag_array_dout0[i])
+            .dout0      (tag_array_dout0[i]),
+            .clk1       (clk),
+            .csb1       (tag_array_csb1[i]),
+            .addr1      (bus_set_addr),
+            .dout1      (tag_array_dout1[i])
         );
         ff_array #(.WIDTH(1)) valid_array (
             .clk0       (clk),
@@ -184,13 +210,48 @@ import cache_types::*;
             .web0       (valid_array_web0[i]),
             .addr0      (set_addr),
             .din0       (valid_array_din0[i]),
-            .dout0      (valid_array_dout0[i])
+            .dout0      (valid_array_dout0[i]),
+            .clk1       (clk),
+            .rst1       (rst),
+            .csb1       (valid_array_csb1[i]),
+            .addr1      (bus_set_addr),
+            .dout1      (valid_array_dout1[i])
         );
     end endgenerate
 
+    icache_coherence #(
+      .ID(ID),
+      .WAYS(WAYS),
+      .SETS(SETS)
+    ) icache_coherence0 (
+      .clk(clk),
+      .rst(rst),
+      .dfp_addr(dfp_addr),
+      .dfp_read(dfp_read),
+      .dfp_rdata(dfp_rdata),
+      .dfp_resp(dfp_resp),
+      .bus_rdata(bus_rdata),
+      .cache_read_request(cache_read_request),
+      .cache_hit_vector(cache_hit_vector),
+      .bus_hit_vector(bus_hit_vector),
+      .evict_candidate(evict_candidate),
+      .req_bus_msg(req_bus_msg),
+      .req_bus_tx(req_bus_tx),
+      .req_bus_gnt(req_bus_gnt),
+      .req_bus_req(req_bus_req),
+      .req_bus_busy(req_bus_busy),
+      .resp_bus_msg(resp_bus_msg),
+      .resp_bus_tx(resp_bus_tx),
+      .resp_bus_gnt(resp_bus_gnt),
+      .resp_bus_req(resp_bus_req),
+      .resp_bus_busy(resp_bus_busy),
+      .invalidate(invalidate),
+      .invalidate_addr(invalidate_addr)
+    );
+
     icache_control #(
       .WAYS(WAYS)
-    ) cache_control0 (
+    ) icache_control0 (
       .clk(clk),
       .rst(rst),
       .cache_hit(cache_hit),
@@ -198,10 +259,13 @@ import cache_types::*;
       .ufp_resp(ufp_resp),
       .dfp_resp(dfp_resp),
       .dfp_read(dfp_read),
-      .dfp_write(dfp_write),
+      .bus_request(bus_request),
       .tag_array_csb0(tag_array_csb0),
       .data_array_csb0(data_array_csb0),
       .valid_array_csb0(valid_array_csb0),
+      .tag_array_csb1(tag_array_csb1),
+      .data_array_csb1(data_array_csb1),
+      .valid_array_csb1(valid_array_csb1),
       .write_from_mem(write_from_mem),
       .ready(ready)
     );

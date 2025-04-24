@@ -7,6 +7,8 @@ import cache_types::*;
 
   // Cache Datapath interface
   input  logic cache_hit,
+  input  logic cache_read_request,
+  input  logic cache_write_request,
 
   // UFP Interface
   output logic ufp_resp,
@@ -16,10 +18,16 @@ import cache_types::*;
   output logic dfp_read,
   output logic dfp_write,
 
+  // Request Bus Interface
+  input  logic bus_request,
+
   // Chip Select Signals
   output logic tag_array_csb0   [WAYS],
   output logic data_array_csb0  [WAYS],
   output logic valid_array_csb0 [WAYS],
+  output logic tag_array_csb1   [WAYS],
+  output logic data_array_csb1  [WAYS],
+  output logic valid_array_csb1 [WAYS],
 
   // SRAM Controls
   output logic write_from_mem,
@@ -55,6 +63,12 @@ always_comb begin
     valid_array_csb0[i] = 1'b1;
   end
 
+  for (int i = 0; i < WAYS; i++) begin
+    tag_array_csb1[i]   = !bus_request;
+    data_array_csb1[i]  = !bus_request;
+    valid_array_csb1[i] = !bus_request;
+  end
+
   unique case (curr_state)
     IDLE: begin
       if (cache_request) begin
@@ -70,7 +84,6 @@ always_comb begin
     end
     CHECK: begin
       if (cache_hit) begin
-        // Wait for coherence checks before proceeding (Store hit in S state)
         if (dfp_resp) begin
           ufp_resp = 1'b1;
           write_from_cpu = cache_write_request;

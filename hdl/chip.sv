@@ -17,14 +17,14 @@ import cache_types::*;
 );
 
 // Chip Signals
-req_bus_t                  req_bus_msg;
-req_bus_t                  req_bus_tx [NUM_CACHE];
+req_msg_t                  req_bus_msg;
+req_msg_t                  req_bus_tx [NUM_CACHE];
 logic      [NUM_CACHE-1:0] req_bus_gnt;
 logic      [NUM_CACHE-1:0] req_bus_req;
 logic      [NUM_CACHE-1:0] req_bus_busy;
 
-resp_bus_t                 resp_bus_msg;
-resp_bus_t                 resp_bus_tx [NUM_CACHE + 1];
+resp_msg_t                 resp_bus_msg;
+resp_msg_t                 resp_bus_tx [NUM_CACHE + 1];
 logic      [NUM_CACHE:0]   resp_bus_gnt;
 logic      [NUM_CACHE:0]   resp_bus_req;
 logic      [NUM_CACHE:0]   resp_bus_busy;
@@ -82,7 +82,7 @@ arbiter # (
 
 snoop_bus # (
   .NUM_NODES(NUM_CACHE),
-  .DTYPE(req_bus_t)
+  .DTYPE(req_msg_t)
 ) req_snoop_bus0 (
   .clk(clk),
   .gnt(req_bus_gnt),
@@ -103,7 +103,7 @@ arbiter # (
 
 snoop_bus # (
   .NUM_NODES(NUM_CACHE + 1), // + L2 Cache Response
-  .DTYPE(resp_bus_t)
+  .DTYPE(resp_msg_t)
 ) resp_snoop_bus0 (
   .clk(clk),
   .gnt(resp_bus_gnt),
@@ -112,7 +112,7 @@ snoop_bus # (
 );
 
 // Instantiate Cacheline Buffer
-cache_line cache_line0(
+line_buffer line_buffer0(
   .clk(clk),
   .rst(rst),
   .bmem_addr(bmem_addr),
@@ -128,11 +128,12 @@ cache_line cache_line0(
   .l2cache_write(l2cache_write),
   .l2cache_rdata(l2cache_rdata),
   .l2cache_wdata(l2cache_wdata),
-  .l2cache_resp(l2cache_resp),
+  .l2cache_resp(l2cache_resp)
 );
 
 // Instantiate L2 Unified Cache
 l2cache #(
+  .ID(NUM_CACHE),
   .WAYS(L2CACHE_WAYS),
   .SETS(L2CACHE_SETS)
 ) l2cache0 (

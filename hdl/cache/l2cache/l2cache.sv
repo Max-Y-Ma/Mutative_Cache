@@ -1,12 +1,13 @@
 module l2cache
 import cache_types::*;
 #(
-  parameter  WAYS            = 4,
-  parameter  SETS            = 16,
-  localparam SET_BITS        = $clog2(SETS),
-  parameter  CACHELINE_BYTES = 32,
-  localparam CACHELINE_BITS  = $clog2(CACHELINE_BYTES),
-  localparam TAG_BITS        = 32 - SET_BITS - CACHELINE_BITS
+  parameter  integer ID              = 0,
+  parameter  integer WAYS            = 4,
+  parameter  integer SETS            = 16,
+  localparam integer SET_BITS        = $clog2(SETS),
+  parameter  integer CACHELINE_BYTES = 32,
+  localparam integer CACHELINE_BITS  = $clog2(CACHELINE_BYTES),
+  localparam integer TAG_BITS        = 32 - SET_BITS - CACHELINE_BITS
 ) (
   input   logic           clk,
   input   logic           rst,

@@ -1,4 +1,4 @@
-module dcache_coherence
+module icache_coherence
 import cache_types::*;
 #(
   parameter integer ID   = 0,
@@ -11,14 +11,11 @@ import cache_types::*;
   // Cache Request and Response Signals
   input  logic [31:0]     dfp_addr,
   input  logic            dfp_read,
-  input  logic            dfp_write,
-  input  logic [255:0]    dfp_wdata,
   output logic [255:0]    dfp_rdata,
   output logic            dfp_resp,
   input  logic [255:0]    bus_rdata,
 
   input  logic            cache_read_request,
-  input  logic            cache_write_request,
   input  logic [WAYS-1:0] cache_hit_vector,
   input  logic [WAYS-1:0] bus_hit_vector,
   input  logic [WAYS-1:0] evict_candidate,
@@ -80,13 +77,13 @@ import cache_types::*;
 
   // CPU Request Logic
   always_comb begin
-    cpu_req = cache_read_request | cache_write_request;
+    cpu_req = cache_read_request;
 
     for (int i = 0; i < WAYS; i++) begin
       load_miss[i]   = dfp_read & evict_candidate[i];
-      store_miss[i]  = dfp_write & evict_candidate[i];
+      store_miss[i]  = '0;
       load_hit[i]    = cache_read_request & cache_hit_vector[i];
-      store_hit[i]   = cache_write_request & cache_hit_vector[i];
+      store_hit[i]   = '0;
       replacement[i] = load_miss[i] | store_miss[i];
     end
   end

@@ -1,20 +1,18 @@
 // OpenRAM SRAM model
-// Words: 64
-// Word size: 22
+// Words: 128
+// Word size: 20
 
-module l2cache_tag_array(
+module mutative_tag_array(
 `ifdef USE_POWER_PINS
     vdd,
     gnd,
 `endif
 // Port 0: RW
-    clk0,csb0,web0,addr0,din0,dout0,
-// Port 1: R
-    clk1,csb1,addr1,dout1
+    clk0,csb0,web0,addr0,din0,dout0
   );
 
-  parameter DATA_WIDTH = 22 ;
-  parameter ADDR_WIDTH = 6 ;
+  parameter DATA_WIDTH = 20 ;
+  parameter ADDR_WIDTH = 7 ;
   parameter RAM_DEPTH = 1 << ADDR_WIDTH;
 
 `ifdef USE_POWER_PINS
@@ -27,10 +25,6 @@ module l2cache_tag_array(
   input [ADDR_WIDTH-1:0]  addr0;
   input [DATA_WIDTH-1:0]  din0;
   output [DATA_WIDTH-1:0] dout0;
-  input  clk1; // clock
-  input   csb1; // active low chip select
-  input [ADDR_WIDTH-1:0]  addr1;
-  output [DATA_WIDTH-1:0] dout1;
 
   reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
 
@@ -49,32 +43,17 @@ module l2cache_tag_array(
     end
   end
 
-  reg [ADDR_WIDTH-1:0]  addr1_reg;
-  reg [DATA_WIDTH-1:0]  dout1;
-
-  always @(posedge clk1)
-  begin
-    if( !csb1 ) begin
-      addr1_reg <= addr1;
-    end
-  end
-
 
   always @ (posedge clk0)
   begin : MEM_WRITE0
     if ( !web0_reg ) begin
-        mem[addr0_reg][21:0] <= din0_reg[21:0];
+        mem[addr0_reg][19:0] <= din0_reg[19:0];
     end
   end
 
   always @ (*)
   begin : MEM_READ0
     dout0 = mem[addr0_reg];
-  end
-
-  always @ (*)
-  begin : MEM_READ1
-    dout1 = mem[addr1_reg];
   end
 
 endmodule
