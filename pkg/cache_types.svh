@@ -16,10 +16,6 @@ package cache_types;
   parameter integer CACHELINE_SIZE = 256;
   parameter integer COHERENCE_BITS = 3;
 
-  parameter integer NUM_SETS = 4;
-  parameter integer INDEX_WIDTH = $clog2(NUM_SETS);
-  parameter integer TAG_WIDTH   = XLEN - INDEX_WIDTH;
-
   typedef enum logic [COHERENCE_BITS-1:0] {
     IDLE,
     CHECK,
@@ -69,13 +65,15 @@ package cache_types;
   } cacheline_state_t;
 
   typedef enum logic [COHERENCE_BITS-1:0] {
-    MI,    // Invalid
-    MS,    // Shared
-    MEORM, // Exclusive or Modified
-    MID,   // Invalid Delay
-    MSD,   // Shared Delay
-    MEORMD // Exclusive or Modified Delay
-  } memory_state_t;
+    MI,      // Invalid
+    MS,      // Shared
+    MSRD,    // Shared Wait State
+    MEORM,   // Exclusive or Modified
+    MEORMRD, // Exclusive or Modified Wait State
+    MID,     // Invalid Delay
+    MSD,     // Shared Delay
+    MEORMD   // Exclusive or Modified Delay
+  } llc_memory_state_t;
 
   typedef enum logic [1:0] {
     EXCLUSIVE, // Message Contains Exclusive Data

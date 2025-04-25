@@ -38,13 +38,13 @@ import cache_types::*;
   input  logic [XLEN-1:0] invalidate_addr
 );
 
-  parameter integer SET_BITS        = $clog2(SETS);
+  parameter integer INDEX_WIDTH     = $clog2(SETS);
   parameter integer CACHELINE_BYTES = 32;
   parameter integer CACHELINE_BITS  = $clog2(CACHELINE_BYTES);
-  parameter integer TAG_BITS        = 32 - SET_BITS - CACHELINE_BITS;
+  parameter integer TAG_BITS        = 32 - INDEX_WIDTH - CACHELINE_BITS;
 
-  cacheline_state_t [NUM_SETS-1:0] state_array      [WAYS];
-  cacheline_state_t [NUM_SETS-1:0] state_array_next [WAYS];
+  cacheline_state_t [SETS-1:0] state_array      [WAYS];
+  cacheline_state_t [SETS-1:0] state_array_next [WAYS];
 
   // Coherence Logic Signals
   logic                   req_bus_busy_next;

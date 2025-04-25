@@ -41,13 +41,13 @@ import cache_types::*;
   input  logic [XLEN-1:0] invalidate_addr
 );
 
-  parameter integer SET_BITS        = $clog2(SETS);
+  parameter integer INDEX_WIDTH     = $clog2(SETS);
   parameter integer CACHELINE_BYTES = 32;
   parameter integer CACHELINE_BITS  = $clog2(CACHELINE_BYTES);
-  parameter integer TAG_BITS        = 32 - SET_BITS - CACHELINE_BITS;
+  parameter integer TAG_BITS        = 32 - INDEX_WIDTH - CACHELINE_BITS;
 
-  cacheline_state_t [NUM_SETS-1:0] state_array      [WAYS];
-  cacheline_state_t [NUM_SETS-1:0] state_array_next [WAYS];
+  cacheline_state_t [SETS-1:0] state_array      [WAYS];
+  cacheline_state_t [SETS-1:0] state_array_next [WAYS];
 
   // Coherence Logic Signals
   logic                   req_bus_busy_next;
@@ -400,7 +400,7 @@ import cache_types::*;
             end
           end
           CS: begin
-            // store -> issue GetM, arbiter_req = 1
+            // store -> issue GetM, req_bus_req_next = 1
             if (store_hit[i]) begin
               req_bus_req_next = '1;
               req_bus_tx_next = '{
@@ -412,7 +412,7 @@ import cache_types::*;
             end
           end
           CE, CM: begin
-            // replacement -> Issue PutM, arbiter_req = 1
+            // replacement -> Issue PutM, req_bus_req_next = 1
             if (replacement[i]) begin
               req_bus_req_next = '1;
               req_bus_tx_next = '{
@@ -443,7 +443,7 @@ import cache_types::*;
       if (req_bus_msg.valid) begin
         unique case (state_array[i][req_bus_index])
           CE, CM: begin
-            // OtherGetS -> Send Data to Bus Source & Memory, arbiter_req = 1
+            // OtherGetS -> Send Data to Bus Source & Memory, req_bus_req_next = 1
             if (req_bus_msg.bus_tx == GETS && req_bus_msg.source != ID && bus_hit_vector[i]) begin
               resp_bus_req_next = '1;
               resp_bus_tx_next = '{
@@ -457,7 +457,7 @@ import cache_types::*;
                 mmsg: DATA
               };
             end
-            // OtherGetM -> Send Data to Bus Source, arbiter_req = 1
+            // OtherGetM -> Send Data to Bus Source, req_bus_req_next = 1
             else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
               resp_bus_req_next = '1;
               resp_bus_tx_next = '{
@@ -473,7 +473,7 @@ import cache_types::*;
             end
           end
           CMIA: begin
-            // OwnPutM -> Send Data to Memory, arbiter_req = 1
+            // OwnPutM -> Send Data to Memory, req_bus_req_next = 1
             if (req_bus_msg.bus_tx == PUTM && req_bus_msg.source == ID) begin
               resp_bus_req_next = '1;
               resp_bus_tx_next = '{
@@ -487,7 +487,7 @@ import cache_types::*;
                 mmsg: DATA
               };
             end
-            // OtherGetS -> Send Data to Bus Source & Memory, arbiter_req = 1
+            // OtherGetS -> Send Data to Bus Source & Memory, req_bus_req_next = 1
             else if (req_bus_msg.bus_tx == GETS && req_bus_msg.source != ID && bus_hit_vector[i]) begin
               resp_bus_req_next = '1;
               resp_bus_tx_next = '{
@@ -501,7 +501,7 @@ import cache_types::*;
                 mmsg: DATA
               };
             end
-            // OtherGetM -> Send Data to Bus Source, arbiter_req = 1
+            // OtherGetM -> Send Data to Bus Source, req_bus_req_next = 1
             else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
               resp_bus_req_next = '1;
               resp_bus_tx_next = '{
@@ -517,7 +517,7 @@ import cache_types::*;
             end
           end
           CEIA: begin
-            // OwnPutM -> Send NoDataE to Memory, arbiter_req = 1
+            // OwnPutM -> Send NoDataE to Memory, req_bus_req_next = 1
             if (req_bus_msg.bus_tx == PUTM && req_bus_msg.source == ID) begin
               resp_bus_req_next = '1;
               resp_bus_tx_next = '{
@@ -531,7 +531,7 @@ import cache_types::*;
                 mmsg: NODATAE
               };
             end
-            // OtherGetS -> Send Data to Bus Source & Memory, arbiter_req = 1
+            // OtherGetS -> Send Data to Bus Source & Memory, req_bus_req_next = 1
             else if (req_bus_msg.bus_tx == GETS && req_bus_msg.source != ID && bus_hit_vector[i]) begin
               resp_bus_req_next = '1;
               resp_bus_tx_next = '{
@@ -545,7 +545,7 @@ import cache_types::*;
                 mmsg: DATA
               };
             end
-            // OtherGetM -> Send Data to Bus Source, arbiter_req = 1
+            // OtherGetM -> Send Data to Bus Source, req_bus_req_next = 1
             else if (req_bus_msg.bus_tx == GETM && req_bus_msg.source != ID && bus_hit_vector[i]) begin
               resp_bus_req_next = '1;
               resp_bus_tx_next = '{
@@ -561,7 +561,7 @@ import cache_types::*;
             end
           end
           CIIA: begin
-            // OwnPutM -> Send NoData to Memory, arbiter_req = 1
+            // OwnPutM -> Send NoData to Memory, req_bus_req_next = 1
             if (req_bus_msg.bus_tx == PUTM && req_bus_msg.source == ID) begin
               resp_bus_req_next = '1;
               resp_bus_tx_next = '{

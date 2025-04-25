@@ -21,7 +21,7 @@ req_msg_t                  req_bus_msg;
 req_msg_t                  req_bus_tx [NUM_CACHE];
 logic      [NUM_CACHE-1:0] req_bus_gnt;
 logic      [NUM_CACHE-1:0] req_bus_req;
-logic      [NUM_CACHE-1:0] req_bus_busy;
+logic      [NUM_CACHE:0]   req_bus_busy;
 
 resp_msg_t                 resp_bus_msg;
 resp_msg_t                 resp_bus_tx [NUM_CACHE + 1];
@@ -140,6 +140,7 @@ l2cache #(
   .clk(clk),
   .rst(rst),
   .req_bus_msg(req_bus_msg),
+  .req_bus_busy(req_bus_busy[NUM_CACHE]),
   .resp_bus_msg(resp_bus_msg),
   .resp_bus_tx(resp_bus_tx[NUM_CACHE]),
   .resp_bus_gnt(resp_bus_gnt[NUM_CACHE]),

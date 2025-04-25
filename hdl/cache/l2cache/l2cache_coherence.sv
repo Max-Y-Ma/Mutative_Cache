@@ -1,0 +1,312 @@
+module l2cache_coherence
+import cache_types::*;
+#(
+  parameter integer ID   = 0,
+  parameter integer WAYS = 4,
+  parameter integer SETS = 16
+) (
+  input   logic           clk,
+  input   logic           rst,
+
+  // Cache Request and Response Signals
+  output logic            ufp_resp,
+  input  logic [255:0]    ufp_rdata,
+
+  input  logic            dfp_resp,
+  output logic            resp_dfp_write,
+  output logic [255:0]    resp_dfp_wdata,
+
+  input  logic            cache_read_request,
+  input  logic            cache_write_request,
+  input  logic [WAYS-1:0] cache_hit_vector,
+  input  logic [WAYS-1:0] resp_bus_hit_vector,
+
+  // Coherence Side Signals
+  input  req_msg_t        req_bus_msg,  // Active Request Bus Message
+
+  input  resp_msg_t       resp_bus_msg, // Active Response Bus Message
+  output resp_msg_t       resp_bus_tx,  // Arbiter Message
+  input  logic            resp_bus_gnt, // Arbiter Grant
+  output logic            resp_bus_req, // Arbiter Request
+  output logic            resp_bus_busy // Arbiter Stall
+);
+
+  parameter integer INDEX_WIDTH     = $clog2(SETS);
+  parameter integer CACHELINE_BYTES = 32;
+  parameter integer CACHELINE_BITS  = $clog2(CACHELINE_BYTES);
+  parameter integer TAG_BITS        = 32 - INDEX_WIDTH - CACHELINE_BITS;
+
+  llc_memory_state_t [SETS-1:0] state      [WAYS];
+  llc_memory_state_t [SETS-1:0] next_state [WAYS];
+
+  // Coherence Logic Signals
+  logic                   resp_bus_req_next;
+  logic                   resp_bus_req_reg;
+  resp_msg_t              resp_bus_tx_next;
+  resp_msg_t              resp_bus_tx_reg;
+
+  logic [INDEX_WIDTH-1:0] req_bus_index;
+  logic [INDEX_WIDTH-1:0] resp_bus_index;
+
+  // Bus Update Logic
+  assign req_bus_index = req_bus_msg.addr[INDEX_WIDTH-1:0];
+  assign resp_bus_index = resp_bus_msg.addr[INDEX_WIDTH-1:0];
+
+  always_comb begin
+    next_state = state;
+
+    for (int i = 0; i < WAYS; i++) begin
+      if (bus_msg.valid) begin
+        unique case (state[i][req_bus_index])
+          MI : begin
+            // GetS -> EORMRD
+            if (req_bus_msg.bus_tx == GETS && cache_hit_vector[i]) begin
+              next_state[i][req_bus_index] = MEORMRD;
+            end
+            // GetM -> EORMRD
+            else if (req_bus_msg.bus_tx == GETM && cache_hit_vector[i]) begin
+              next_state[i][req_bus_index] = MEORMRD;
+            end
+            // PutM -> ID
+            else if (req_bus_msg.bus_tx == PUTM && cache_hit_vector[i]) begin
+              next_state[i][req_bus_index] = MID;
+            end
+          end
+          MS : begin
+            // GetS -> SRD
+            if (req_bus_msg.bus_tx == GETS && cache_hit_vector[i]) begin
+              next_state[i][req_bus_index] = MSRD;
+            end
+            // GetM -> EORMRD
+            else if (req_bus_msg.bus_tx == GETM && cache_hit_vector[i]) begin
+              next_state[i][req_bus_index] = MEORMRD;
+            end
+            // PutM -> SD
+            else if (req_bus_msg.bus_tx == PUTM && cache_hit_vector[i]) begin
+              next_state[i][req_bus_index] = MSD;
+            end
+          end
+          MEORM : begin
+            // GetS -> SD
+            if (req_bus_msg.bus_tx == GETS && cache_hit_vector[i]) begin
+              next_state[i][req_bus_index] = MSD;
+            end
+            // GetM -> EORM
+            else if (req_bus_msg.bus_tx == GETM && cache_hit_vector[i]) begin
+              next_state[i][req_bus_index] = MEORM;
+            end
+            // PutM -> EORMD
+            else if (req_bus_msg.bus_tx == PUTM && cache_hit_vector[i]) begin
+              next_state[i][req_bus_index] = MEORMD;
+            end
+          end
+          // Atomic Transactions -> ID, SD, EORMD
+          default: begin
+          end
+        endcase
+      end
+      else if (resp_bus_msg.valid) begin
+        unique case (state[i][resp_bus_index])
+          MID : begin
+            // DATA -> I
+            if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == DATA && resp_bus_hit_vector[i]) begin
+              next_state[i][resp_bus_index] = MI;
+            end
+            // NODATA -> I
+            else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATA && resp_bus_hit_vector[i]) begin
+              next_state[i][resp_bus_index] = MI;
+            end
+            // NODATAE -> I
+            else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATAE && resp_bus_hit_vector[i]) begin
+              next_state[i][resp_bus_index] = MI;
+            end
+          end
+          MSD : begin
+            // DATA -> S
+            if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == DATA && resp_bus_hit_vector[i]) begin
+              next_state[i][resp_bus_index] = MS;
+            end
+            // NODATA -> S
+            else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATA && resp_bus_hit_vector[i]) begin
+              next_state[i][resp_bus_index] = MS;
+            end
+            // NODATAE -> S
+            else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATAE && resp_bus_hit_vector[i]) begin
+              next_state[i][resp_bus_index] = MS;
+          MSRD: begin
+            end
+          end
+            if (resp_bus_msg.source == ID && resp_bus_msg.way == i) begin
+              next_state[i][resp_bus_index] = MS;
+          MEORMRD: begin
+            end
+          end
+            if (resp_bus_msg.source == ID && resp_bus_msg.way == i) begin
+              next_state[i][resp_bus_index] = MEORM;
+            end
+          end
+          MEORMD : begin
+            // DATA -> I
+            if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == DATA && resp_bus_hit_vector[i]) begin
+              next_state[i][resp_bus_index] = MI;
+            end
+            // NODATA -> EORM
+            else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATA && resp_bus_hit_vector[i]) begin
+              next_state[i][resp_bus_index] = MEORM;
+            end
+            // NODATAE -> I
+            else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATAE && resp_bus_hit_vector[i]) begin
+              next_state[i][resp_bus_index] = MI;
+            end
+          end
+          // Ignore Transactions -> I, S, EORM
+          default: begin
+          end
+        endcase
+      end
+    end
+  end
+
+  // Bus Request Update Logic
+  always_comb begin
+    resp_dfp_write    = '0;
+    resp_dfp_wdata    = 'x;
+    ufp_resp          = resp_bus_gnt;
+    resp_bus_req_next = resp_bus_req_reg;
+    resp_bus_tx_next  = resp_bus_tx_reg;
+
+    for (int i = 0; i < WAYS; i++) begin
+      if (req_bus_msg.valid) begin
+        unique case (state[i][req_bus_index])
+          MI : begin
+            // GetS -> Send Data to Requestor (Exclusive), resp_bus_req_next = 1
+            if (req_bus_msg.bus_tx == GETS && cache_hit_vector[i]) begin
+              resp_bus_req_next = '1;
+              resp_bus_tx_next = '{
+                valid: '1,
+                source: ID,
+                way: i,
+                destination: req_bus_msg.source,
+                memory_flag: '0,
+                addr: req_bus_msg.addr,
+                data: ufp_rdata,
+                mmsg: EXCLUSIVE
+              };
+            end
+            // GetS -> Send Data to Requestor
+            else if (req_bus_msg.bus_tx == GETM && cache_hit_vector[i]) begin
+              resp_bus_req_next = '1;
+              resp_bus_tx_next = '{
+                valid: '1,
+                source: ID,
+                way: i,
+                destination: req_bus_msg.source,
+                memory_flag: '0,
+                addr: req_bus_msg.addr,
+                data: ufp_rdata,
+                mmsg: DATA
+              };
+            end
+          end
+          MS : begin
+            // GetS -> Send Data to Requestor (Exclusive), resp_bus_req_next = 1
+            if (req_bus_msg.bus_tx == GETS && cache_hit_vector[i]) begin
+              resp_bus_req_next = '1;
+              resp_bus_tx_next = '{
+                valid: '1,
+                source: ID,
+                way: i,
+                destination: req_bus_msg.source,
+                memory_flag: '0,
+                addr: req_bus_msg.addr,
+                data: ufp_rdata,
+                mmsg: DATA
+              };
+            end
+            // GetS -> Send Data to Requestor
+            else if (req_bus_msg.bus_tx == GETM && cache_hit_vector[i]) begin
+              resp_bus_req_next = '1;
+              resp_bus_tx_next = '{
+                valid: '1,
+                source: ID,
+                way: i,
+                destination: req_bus_msg.source,
+                memory_flag: '0,
+                addr: req_bus_msg.addr,
+                data: ufp_rdata,
+                mmsg: DATA
+              };
+            end
+          end
+          // Ignore Transactions -> EORM, ID, SD, EORMD
+          default: begin
+          end
+        endcase
+      end
+      else if (resp_bus_msg.valid) begin
+        unique case (state[i][resp_bus_index])
+          MSRD : begin
+            if (resp_bus_msg.source == ID && resp_bus_msg.way == i) begin
+              state_next[i][resp_bus_index] = MS;
+              resp_bus_req_next = '0;
+            end
+          end
+          MSEORMRD : begin
+            if (resp_bus_msg.source == ID && resp_bus_msg.way == i) begin
+              state_next[i][resp_bus_index] = MSEORM;
+              resp_bus_req_next = '0;
+            end
+          end
+          MID : begin
+            // DATA -> Write Data to Memory
+            if (resp_bus_msg.memory_flag && resp_bus_msg.mssg == DATA && resp_bus_hit_vector[i]) begin
+              resp_dfp_write = '1;
+              resp_dfp_wdata = resp_bus_msg.data;
+            end
+          end
+          MSD : begin
+            // DATA -> Write Data to Memory
+            if (resp_bus_msg.memory_flag && resp_bus_msg.mssg == DATA && resp_bus_hit_vector[i]) begin
+              resp_dfp_write = '1;
+              resp_dfp_wdata = resp_bus_msg.data;
+            end
+          end
+          MEORMD : begin
+            // DATA -> Write Data to Memory
+            if (resp_bus_msg.memory_flag && resp_bus_msg.mssg == DATA && resp_bus_hit_vector[i]) begin
+              resp_dfp_write = '1;
+              resp_dfp_wdata = resp_bus_msg.data;
+            end
+          end
+          // Ignore Transactions -> I, S, EORM
+          default: begin
+          end
+        endcase
+      end
+    end
+  end
+
+  assign resp_bus_req  = resp_bus_req_next;
+  assign resp_bus_tx   = resp_bus_tx_next;
+
+  // State Logic
+  always_ff @(posedge clk) begin
+    if (rst) begin
+      for (int i = 0; i < WAYS; i++) begin
+        state[i] <= '{default: MI};
+      end
+
+      resp_bus_req_reg <= '0;
+      resp_bus_tx_reg  <= '0;
+    end
+    else begin
+      for (int i = 0; i < WAYS; i++) begin
+        state[i] <= state_next[i];
+      end
+
+      resp_bus_req_reg <= resp_bus_req_next;
+      resp_bus_tx_reg  <= resp_bus_tx_next;
+    end
+  end
+
+endmodule

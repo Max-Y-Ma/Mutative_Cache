@@ -2,16 +2,21 @@ module plru
 import cache_types::*;
 #(
   parameter  WAYS = 4,
-  localparam PLRU_HEIGHT = $clog2(WAYS)-1,
-  localparam PLRU_SIZE   = WAYS-1,
+  parameter  SETS = 16,
+  localparam ADDR_WIDTH  = $clog2(SETS),
+  localparam PLRU_HEIGHT = $clog2(WAYS) - 1,
+  localparam PLRU_SIZE   = WAYS - 1,
   localparam PLRU_IDX    = $clog2(PLRU_SIZE),
   localparam LEAF_START  = ((unsigned'(WAYS) >> 1'b1) - 1'b1),
   localparam WAYS_IDX    = $clog2(WAYS)
 ) (
-  input  logic clk, rst, evict_update,
-  input  logic [3:0] set_addr,
-  input  logic [WAYS-1:0] cache_hit_vector,
-  output logic [WAYS-1:0] evict_candidate
+  input  logic                  clk,
+  input  logic                  rst,
+
+  input  logic                  evict_update,
+  input  logic [ADDR_WIDTH-1:0] set_addr,
+  input  logic [WAYS-1:0]       cache_hit_vector,
+  output logic [WAYS-1:0]       evict_candidate
 );
 
 generate
@@ -122,9 +127,9 @@ generate
   end
 endgenerate
 
-ff_array #(
-  .S_INDEX(4),
-  .WIDTH(WAYS-1)
+ff_array_rw #(
+  .S_INDEX(ADDR_WIDTH),
+  .WIDTH(PLRU_SIZE)
 ) plru_array (
   .clk0       (clk),
   .rst0       (rst),

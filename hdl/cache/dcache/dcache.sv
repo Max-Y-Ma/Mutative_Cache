@@ -152,7 +152,6 @@ import cache_types::*;
     // Calculate hit vector and data output
     ufp_rdata = 32'b0;
     for (int i = 0; i < WAYS; i++) begin
-
       // Don't write unless memory or cpu writing
       tag_array_web0[i]     = 1'b1;
       data_array_web0[i]    = 1'b1;
@@ -251,7 +250,7 @@ import cache_types::*;
       .addr1      (bus_set_addr),
       .dout1      (tag_array_dout1[i])
     );
-    ff_array #(.WIDTH(1)) valid_array (
+    ff_array_rwr #(.WIDTH(1)) valid_array (
       .clk0       (clk),
       .rst0       (rst),
       .csb0       (valid_array_csb0[i]),
@@ -312,6 +311,7 @@ import cache_types::*;
     .dfp_resp(dfp_resp),
     .dfp_read(dfp_read),
     .dfp_write(dfp_write),
+    .bus_request(bus_request),
     .tag_array_csb0(tag_array_csb0),
     .data_array_csb0(data_array_csb0),
     .valid_array_csb0(valid_array_csb0),
@@ -325,7 +325,8 @@ import cache_types::*;
   );
 
   plru #(
-    .WAYS(WAYS)
+    .WAYS(WAYS),
+    .SETS(SETS)
   ) plru0 (
     .clk(clk),
     .rst(rst),

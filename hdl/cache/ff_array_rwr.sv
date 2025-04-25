@@ -1,4 +1,4 @@
-module ff_array #(
+module ff_array_rwr #(
   parameter S_INDEX = 4,
   parameter WIDTH   = 1
 )(
@@ -69,4 +69,4 @@ always_comb begin
   dout1 = internal_array[addr1_reg];
 end
 
-endmodule : ff_array
+endmodule : ff_array_rwr

@@ -73,7 +73,7 @@ sim/top_tb: $(SRCS)
 	mkdir -p sim
 	python3 ../bin/rvfi_reference.py
 	python3 set_dw_ip.py
-	cd sim && vcs $(UVM_FLAGS) $(DEFINE_FLAGS) $(SRCS) $(VCS_FLAGS) $(VC_INC) $(IP_INC) \
+	cd sim && vcs  $(DEFINE_FLAGS) $(SRCS) $(UVM_FLAGS) $(VCS_FLAGS) $(VC_INC) $(IP_INC) \
 	+define+ACADIA_SIM +define+ACADIA_ASSERTIONS +define+ACADIA_NOSPEC_STDCELL +notimingcheck \
 	+define+ACADIA_NOSPEC_STDCELL \
 	-msg_config=../vcs_warn.config -l compile.log -top $(TOP) -o top_tb

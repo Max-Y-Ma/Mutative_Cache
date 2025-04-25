@@ -14,6 +14,7 @@ import cache_types::*;
 
   // Coherence Side Signals
   input  req_msg_t        req_bus_msg,  // Active Request Bus Message
+  output logic            req_bus_busy, // Arbiter Stall
 
   // Snoop Bus
   input  resp_msg_t       resp_bus_msg, // Active Response Bus Message
@@ -35,190 +36,301 @@ import cache_types::*;
   input  logic            dfp_resp
 );
 
-// From Snoop Bus
-// input   bus_msg_t                               bus_msg,
+  // Cache Control Signals
+  logic            ufp_resp;
+  logic [255:0]    ufp_rdata;
 
-// // To Snoop Bus
-// output  logic       [XLEN-1:0]                  bus_addr,
-// output  bus_tx_t                                bus_tx,
+  logic            cache_dfp_write;
+  logic            resp_dfp_write;
+  logic [255:0]    resp_dfp_wdata;
 
-// // To Arbiter
-// output  logic                                   arbiter_req,
-// output  logic                                   arbiter_busy,
+  logic            cache_read_request;
+  logic            cache_write_request;
+  logic            write_from_cpu;
+  logic            write_from_mem;
 
-// // From Arbiter
-// input   logic                                   arbiter_gnt,
+  logic            idle;
+  logic            dirty;
 
-// // To Xbar
-// output  xbar_msg_t                              xbar_out,
+  logic            cache_hit;
+  logic [WAYS-1:0] cache_hit_vector;
+  logic [WAYS-1:0] resp_bus_hit_vector;
 
-// // From Xbar
-// input   xbar_msg_t                              xbar_in[NUM_CACHE]
+  logic            req_bus_request;
+  logic            resp_bus_request;
 
-    /* Cache Control Signals */
-    logic             cache_read_request;
-    logic             write_from_mem;
+  logic            evict_update;
+  logic [WAYS-1:0] evict_candidate;
 
-    logic             ready;
-    logic             dirty;
+  // Cache Arrays
+  logic              tag_array_csb0    [WAYS];
+  logic              tag_array_csb1    [WAYS];
+  logic [TAG_BITS:0] tag_array_dout0   [WAYS];
+  logic [TAG_BITS:0] tag_array_dout1   [WAYS];
+  logic              tag_array_web0    [WAYS];
 
-    logic             cache_hit;
-    logic [WAYS-1:0]  cache_hit_vector;
+  logic              data_array_csb0   [WAYS];
+  logic              data_array_csb1   [WAYS];
+  logic [255:0]      data_array_dout0  [WAYS];
+  logic [255:0]      data_array_dout1  [WAYS];
+  logic [255:0]      data_array_din0   [WAYS];
+  logic              data_array_web0   [WAYS];
+  logic [31:0]       data_array_wmask  [WAYS];
 
+  logic              dirty_array_din0  [WAYS];
 
-    logic             evict_update;
-    logic [WAYS-1:0]  evict_candidate;
+  logic              valid_array_csb0  [WAYS];
+  logic              valid_array_csb1  [WAYS];
+  logic              valid_array_din0  [WAYS];
+  logic              valid_array_dout0 [WAYS];
+  logic              valid_array_dout1 [WAYS];
+  logic              valid_array_web0  [WAYS];
 
-    // Cache Arrays 23 tag bits, NUM_SETS set, 5 cache line
-    logic              tag_array_csb0    [WAYS-1:0];
-    logic [TAG_BITS:0] tag_array_dout0   [WAYS-1:0];
-    logic              tag_array_web0    [WAYS-1:0];
+  // UFP Address partition and register
+  req_msg_t                  req_bus_msg_reg;
+  resp_msg_t                 resp_bus_msg_reg;
+  logic [CACHELINE_BITS-1:0] block_offset;
+  logic [TAG_BITS-1:0]       req_bus_tag_val;
+  logic [SET_BITS-1:0]       req_bus_set_addr;
+  logic [TAG_BITS-1:0]       resp_bus_tag_val;
+  logic [SET_BITS-1:0]       resp_bus_set_addr;
+  logic [255:0]              resp_bus_rdata;
 
-    logic              data_array_csb0   [WAYS-1:0];
-    logic [255:0]      data_array_dout0  [WAYS-1:0];
-    logic [255:0]      data_array_din0   [WAYS-1:0];
-    logic              data_array_web0   [WAYS-1:0];
-    logic [31:0]       data_array_wmask  [WAYS-1:0];
+  assign block_offset = req_bus_msg_reg.addr[CACHELINE_BITS-1:0];
 
-    logic              dirty_array_web0  [WAYS-1:0];
-    logic              dirty_array_din0  [WAYS-1:0];
+  assign req_bus_tag_val  = req_bus_msg_reg.addr[31:SET_BITS+CACHELINE_BITS];
+  assign req_bus_set_addr = idle ? req_bus_msg.addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS]
+                         : req_bus_msg_reg.addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
 
-    logic              valid_array_csb0  [WAYS-1:0];
-    logic              valid_array_din0  [WAYS-1:0];
-    logic              valid_array_dout0 [WAYS-1:0];
-    logic              valid_array_web0  [WAYS-1:0];
+  assign resp_bus_tag_val = resp_bus_msg[31:SET_BITS+CACHELINE_BITS];
+  assign resp_bus_set_addr = resp_bus_msg[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
 
+  assign req_bus_request = idle ? req_bus_msg.valid : req_bus_msg_reg.valid;
+  assign resp_bus_request = resp_bus_msg.valid;
 
-    /* UFP Address partition and register */
-    logic [31:0]               ufp_addr_reg;
-    logic [3:0]                ufp_rmask_reg;
-    logic [TAG_BITS-1:0]       tag_val;
-    logic [SET_BITS-1:0]       set_addr;
-    logic [CACHELINE_BITS-1:0] block_offset;
+  // Stall Request Bus While Serving Current Request
+  assign req_bus_busy = (cache_read_request | cache_write_request) & ~ufp_resp ;
 
-    assign tag_val      = ufp_addr_reg[31:SET_BITS+CACHELINE_BITS];
-    assign block_offset = ufp_addr_reg[CACHELINE_BITS-1:0];
-
-    /* Register request during idle or finished */
-    always_ff @ (posedge clk) begin
-      if (rst) begin
-        ufp_addr_reg  <= '0;
-        ufp_rmask_reg <= '0;
-      end
-      else if (ready) begin
-        ufp_addr_reg  <= ufp_addr;
-        ufp_rmask_reg <= ufp_rmask;
-      end
+  // Register signals because we're not pipelined yet
+  always_ff @ (posedge clk) begin
+    if (rst) begin
+      req_bus_msg_reg <= '0;
+      resp_bus_msg_reg <= '0;
     end
+    else if (idle) begin
+      req_bus_msg_reg <= req_bus_msg;
+      resp_bus_msg_reg <= resp_bus_msg;
+    end
+  end
 
-    always_comb begin
-      // DRAM signals
-      dfp_wdata = 'x;
+  always_comb begin
+    // DRAM signals
+    dfp_write = cache_dfp_write | resp_dfp_write;
+
+    dfp_wdata = 'x;
+    if (resp_bus_request && resp_dfp_write) begin
+      dfp_wdata = resp_dfp_wdata;
+    end
+    else if (cache_dfp_write) begin
       for (int i = 0; i < WAYS; i++) begin
         if (evict_candidate[i]) begin
           dfp_wdata = data_array_dout0[i];
-        end 
-      end
-
-      // By default use address from CPU
-      dfp_addr = {ufp_addr_reg[31:CACHELINE_BITS], 5'b0};
-
-      // Cache Request Register Logic
-      if (ready) begin
-        cache_read_request  = |ufp_rmask;
-        set_addr            = ufp_addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
-      end
-      else begin
-        cache_read_request  = |ufp_rmask_reg;
-        set_addr            = ufp_addr_reg[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
-      end
-
-      // Writeback logic
-      dirty = 1'b0;
-
-      // Calculate hit vector and data output
-      ufp_rdata       = 32'b0;
-      for (int i = 0; i < WAYS; i++) begin
-        // Don't write unless memory or cpu writing
-        tag_array_web0[i]     = 1'b1;
-        data_array_web0[i]    = 1'b1;
-        data_array_wmask[i]   = 32'b0;
-        data_array_din0[i]    = 256'b0;
-        valid_array_din0[i]   = 1'b0;
-        valid_array_web0[i]   = 1'b1;
-        dirty_array_din0[i]   = 1'b0;
-
-        // Checks tag hits
-        cache_hit_vector[i] = 1'b0;
-        if (tag_array_dout0[i][TAG_BITS-1:0] == tag_val) begin
-          // Mark as hit and set the cpu rdata correctly
-          cache_hit_vector[i] = valid_array_dout0[i];
-          ufp_rdata = data_array_dout0[i][({block_offset, 3'b0})+:32];
-        end
-        // Write to cache after writeback completes
-        // Only overwrite the eviction candidate
-        if (write_from_mem && evict_candidate[i] == 1'b1) begin
-          cache_hit_vector[i] = 1'b1;
-          tag_array_web0[i]  = 1'b0;
-          data_array_web0[i] = 1'b0;
-          data_array_wmask[i] = ~32'b0;
-          data_array_din0[i] = dfp_rdata;
-
-          // Mark data from memory as clean and valid
-          valid_array_din0[i] = 1'b1;
-          valid_array_web0[i] = 1'b0;
-          dirty_array_din0[i] = 1'b0;
-          dirty_array_web0[i] = 1'b0;
         end
       end
-
-      // Cache Hit/WB and Data Logic and
-      cache_hit       = |cache_hit_vector;
-
-      // Update eviction logic when cache is replying
-      evict_update = ~ufp_resp;
     end
 
-    generate for (genvar i = 0; i < WAYS; i++) begin : arrays
-        icache_data_array data_array (
-            .clk0       (clk),
-            .csb0       (data_array_csb0[i]),
-            .web0       (data_array_web0[i]),
-            .wmask0     (data_array_wmask[i]),
-            .addr0      (set_addr),
-            .din0       (data_array_din0[i]),
-            .dout0      (data_array_dout0[i])
-        );
-        icache_tag_array tag_array (
-            .clk0       (clk),
-            .csb0       (tag_array_csb0[i]),
-            .web0       (tag_array_web0[i]),
-            .addr0      (set_addr),
-            .din0       ({dirty_array_din0[i], tag_val}),
-            .dout0      (tag_array_dout0[i])
-        );
-        ff_array #(.WIDTH(1)) valid_array (
-            .clk0       (clk),
-            .rst0       (rst),
-            .csb0       (valid_array_csb0[i]),
-            .web0       (valid_array_web0[i]),
-            .addr0      (set_addr),
-            .din0       (valid_array_din0[i]),
-            .dout0      (valid_array_dout0[i])
-        );
-    end endgenerate
+    // By default use address from Bus request
+    dfp_addr = {req_bus_msg_reg.addr[31:CACHELINE_BITS], 5'b0};
 
-    icache_control #(.WAYS(WAYS)) cache_control0(.*);
+    // Cache Request Logic
+    if (idle) begin
+      cache_read_request  = req_bus_request & (req_bus_msg.bus_tx == GETS | req_bus_msg.bus_tx == GETM);
+      cache_write_request = req_bus_request & (req_bus_msg.bus_tx == PUTM);
+    end
+    else begin
+      cache_read_request  = req_bus_request & (req_bus_msg_reg.bus_tx == GETS | req_bus_msg_reg.bus_tx == GETM);
+      cache_write_request = req_bus_request & (req_bus_msg_reg.bus_tx == PUTM);
+    end
 
-    plru #(
-      .WAYS(WAYS)
-    ) plru0 (
-      .clk(clk),
-      .rst(rst),
-      .evict_update(evict_update),
-      .set_addr(set_addr),
-      .cache_hit_vector(cache_hit_vector),
-      .evict_candidate(evict_candidate)
+    // Writeback logic
+    dirty = 1'b0;
+
+    // Calculate hit vector and data output
+    ufp_rdata = 'x;
+    for (int i = 0; i < WAYS; i++) begin
+      // Don't write unless memory or cpu writing
+      tag_array_web0[i]     = 1'b1;
+      data_array_web0[i]    = 1'b1;
+      data_array_wmask[i]   = 32'b0;
+      data_array_din0[i]    = 256'b0;
+      valid_array_din0[i]   = 1'b0;
+      valid_array_web0[i]   = 1'b1;
+      dirty_array_din0[i]   = 1'b0;
+
+      // Checks cache tag hits
+      cache_hit_vector[i] = 1'b0;
+      if (tag_array_dout0[i][TAG_BITS-1:0] == req_bus_tag_val) begin
+        // Mark as hit and set the cpu rdata correctly
+        cache_hit_vector[i] = valid_array_dout0[i];
+        ufp_rdata = data_array_dout0[i][({bus_block_offset, 3'b0})+:32];
+
+        // Write to cache if doing a store and there is a hit
+        if (write_from_cpu) begin
+          tag_array_web0[i]   = 1'b0;
+          data_array_web0[i]  = 1'b0;
+          data_array_din0[i]  = req_bus_msg_reg.data;
+          data_array_wmask[i] = '1;
+
+          // Mark array as valid and dirty during a write from cpu
+          valid_array_din0[i] = 1'b1;
+          valid_array_web0[i] = 1'b0;
+          dirty_array_din0[i] = 1'b1;
+        end
+      end
+
+      // Checks bus tag hits
+      resp_bus_rdata = 'x;
+      resp_bus_hit_vector[i] = 1'b0;
+      if (tag_array_dout1[i][TAG_BITS-1:0] == bus_tag_val) begin
+        resp_bus_rdata = data_array_dout1[i];
+        resp_bus_hit_vector[i] = valid_array_dout1[i];
+      end
+
+      // Write to cache after writeback completes
+      // Only overwrite the eviction candidate
+      if (write_from_mem && evict_candidate[i]) begin
+        cache_hit_vector[i] = 1'b1;
+        tag_array_web0[i]  = 1'b0;
+        data_array_web0[i] = 1'b0;
+        data_array_wmask[i] = '1;
+        data_array_din0[i] = dfp_rdata;
+
+        // Mark data from memory as clean and valid
+        valid_array_din0[i] = 1'b1;
+        valid_array_web0[i] = 1'b0;
+        dirty_array_din0[i] = 1'b0;
+      end
+
+      // Dirty bit write back logic
+      // Set the dfp_addr correctly for writeback
+      if (evict_candidate[i] && valid_array_dout0[i] && tag_array_dout0[i][TAG_BITS]) begin
+        dirty = 1'b1;
+        if (dfp_write) begin
+          dfp_addr = {tag_array_dout0[i][TAG_BITS-1:0], req_bus_set_addr, 5'b0};
+        end
+      end
+
+      // TODO: Add invalidate logic
+      // invalidate
+      // invalidate_addr
+    end
+
+    // Cache Hit/WB and Data Logic and
+    cache_hit = |cache_hit_vector;
+
+    // Update eviction logic when cache is replying
+    evict_update = ~ufp_resp;
+  end
+
+  generate for (genvar i = 0; i < WAYS; i++) begin : gen_sram_arrays
+    l2cache_data_array data_array (
+      .clk0       (clk),
+      .csb0       (data_array_csb0[i]),
+      .web0       (data_array_web0[i]),
+      .wmask0     (data_array_wmask[i]),
+      .addr0      (req_bus_set_addr),
+      .din0       (data_array_din0[i]),
+      .dout0      (data_array_dout0[i]),
+      .clk1       (clk),
+      .csb1       (data_array_csb1[i]),
+      .addr1      (bus_set_addr),
+      .dout1      (data_array_dout1[i])
     );
+    l2cache_tag_array tag_array (
+      .clk0       (clk),
+      .csb0       (tag_array_csb0[i]),
+      .web0       (tag_array_web0[i]),
+      .addr0      (req_bus_set_addr),
+      .din0       ({dirty_array_din0[i], req_bus_tag_val}),
+      .dout0      (tag_array_dout0[i]),
+      .clk1       (clk),
+      .csb1       (tag_array_csb1[i]),
+      .addr1      (bus_set_addr),
+      .dout1      (tag_array_dout1[i])
+    );
+    ff_array_rwr #(.WIDTH(1)) valid_array (
+      .clk0       (clk),
+      .rst0       (rst),
+      .csb0       (valid_array_csb0[i]),
+      .web0       (valid_array_web0[i]),
+      .addr0      (req_bus_set_addr),
+      .din0       (valid_array_din0[i]),
+      .dout0      (valid_array_dout0[i]),
+      .clk1       (clk),
+      .rst1       (rst),
+      .csb1       (valid_array_csb1[i]),
+      .addr1      (bus_set_addr),
+      .dout1      (valid_array_dout1[i])
+    );
+  end endgenerate
+
+  l2cache_coherence #(
+    .ID(ID),
+    .WAYS(WAYS),
+    .SETS(SETS)
+  ) l2cache_coherence0 (
+    .clk(clk),
+    .rst(rst),
+    .ufp_resp(ufp_resp),
+    .ufp_rdata(ufp_rdata),
+    .dfp_resp(dfp_resp),
+    .resp_dfp_write(resp_dfp_write),
+    .resp_dfp_wdata(resp_dfp_wdata),
+    .cache_read_request(cache_read_request),
+    .cache_write_request(cache_write_request),
+    .cache_hit_vector(cache_hit_vector),
+    .resp_bus_hit_vector(resp_bus_hit_vector),
+    .resp_bus_msg(resp_bus_msg),
+    .resp_bus_tx(resp_bus_tx),
+    .resp_bus_gnt(resp_bus_gnt),
+    .resp_bus_req(resp_bus_req),
+    .resp_bus_busy(resp_bus_busy)
+  );
+
+  l2cache_control #(
+    .WAYS(WAYS)
+  ) l2cache_control0 (
+    .clk(clk),
+    .rst(rst),
+    .cache_hit(cache_hit),
+    .cache_read_request(cache_read_request),
+    .cache_write_request(cache_write_request),
+    .dfp_resp(dfp_resp),
+    .dfp_read(dfp_read),
+    .cache_dfp_write(cache_dfp_write),
+    .req_bus_request(req_bus_request),
+    .tag_array_csb0(tag_array_csb0),
+    .data_array_csb0(data_array_csb0),
+    .valid_array_csb0(valid_array_csb0),
+    .tag_array_csb1(tag_array_csb1),
+    .data_array_csb1(data_array_csb1),
+    .valid_array_csb1(valid_array_csb1),
+    .write_from_mem(write_from_mem),
+    .write_from_cpu(write_from_cpu),
+    .idle(idle),
+    .dirty(dirty)
+  );
+
+  plru #(
+    .WAYS(WAYS),
+    .SETS(SETS)
+  ) plru0 (
+    .clk(clk),
+    .rst(rst),
+    .evict_update(evict_update),
+    .req_bus_set_addr(req_bus_set_addr),
+    .cache_hit_vector(cache_hit_vector),
+    .evict_candidate(evict_candidate)
+  );
 
 endmodule
