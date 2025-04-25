@@ -20,15 +20,23 @@ import cache_types::*;
   input  logic            cache_write_request,
   input  logic [WAYS-1:0] cache_hit_vector,
   input  logic [WAYS-1:0] resp_bus_hit_vector,
+  input  logic [WAYS-1:0] evict_candidate,
 
   // Coherence Side Signals
-  input  req_msg_t        req_bus_msg,  // Active Request Bus Message
+  input  req_msg_t        req_bus_msg,   // Active Request Bus Message
 
-  input  resp_msg_t       resp_bus_msg, // Active Response Bus Message
-  output resp_msg_t       resp_bus_tx,  // Arbiter Message
-  input  logic            resp_bus_gnt, // Arbiter Grant
-  output logic            resp_bus_req, // Arbiter Request
-  output logic            resp_bus_busy // Arbiter Stall
+  input  resp_msg_t       resp_bus_msg,  // Active Response Bus Message
+  output resp_msg_t       resp_bus_tx,   // Arbiter Message
+  input  logic            resp_bus_gnt,  // Arbiter Grant
+  output logic            resp_bus_req,  // Arbiter Request
+  output logic            resp_bus_busy, // Arbiter Stall
+
+  // Inclusive Policy Signals
+  input  logic            invalidate,
+  output logic            invalidate_req,
+  input  logic            invalidate_resp,
+  input  logic [XLEN-1:0] invalidate_addr,
+  output logic            invalidate_done
 );
 
   parameter integer INDEX_WIDTH     = $clog2(SETS);
@@ -47,10 +55,17 @@ import cache_types::*;
 
   logic [INDEX_WIDTH-1:0] req_bus_index;
   logic [INDEX_WIDTH-1:0] resp_bus_index;
+  logic [INDEX_WIDTH-1:0] invalidate_index;
+
+  logic                   invalidate_req_next;
+  logic                   invalidate_req_reg;
+  logic                   invalidate_done_next;
+  logic                   invalidate_done_reg;
 
   // Bus Update Logic
-  assign req_bus_index = req_bus_msg.addr[INDEX_WIDTH-1:0];
-  assign resp_bus_index = resp_bus_msg.addr[INDEX_WIDTH-1:0];
+  assign req_bus_index    = req_bus_msg.addr[INDEX_WIDTH-1:0];
+  assign resp_bus_index   = resp_bus_msg.addr[INDEX_WIDTH-1:0];
+  assign invalidate_index = invalidate_addr[INDEX_WIDTH-1:0];
 
   always_comb begin
     next_state = state;
@@ -289,6 +304,44 @@ import cache_types::*;
   assign resp_bus_req  = resp_bus_req_next;
   assign resp_bus_tx   = resp_bus_tx_next;
 
+  // Invalidate Logic
+  always_comb begin
+    invalidate_req_next  = invalidate_req_reg;
+    invalidate_done_next = invalidate_done_reg;
+
+    if (invalidate) begin
+      for (int i = 0; i < WAYS; i++) begin
+        unique case (state[i][invalidate_index])
+          MI: begin
+            if (evict_candidate[i]) begin
+              invalidate_req_next = '0;
+              invalidate_done_next = '1;
+            end
+          end
+          MS: begin
+            if (evict_candidate[i]) begin
+              invalidate_req_next = '1;
+              invalidate_done_next = invalidate_resp;
+            end
+          end
+          MEORM: begin
+            if (evict_candidate[i]) begin
+              invalidate_req_next = '1;
+              invalidate_done_next = invalidate_resp && dfp_resp;
+            end
+          end
+        endcase
+      end
+    end
+    else begin
+      invalidate_req_next = '0;
+      invalidate_done_next = '0;
+    end
+  end
+
+  assign invalidate_req  = invalidate_req_next;
+  assign invalidate_done = invalidate_done_next;
+
   // State Logic
   always_ff @(posedge clk) begin
     if (rst) begin
@@ -296,16 +349,20 @@ import cache_types::*;
         state[i] <= '{default: MI};
       end
 
-      resp_bus_req_reg <= '0;
-      resp_bus_tx_reg  <= '0;
+      resp_bus_req_reg    <= '0;
+      resp_bus_tx_reg     <= '0;
+      invalidate_done_reg <= '0;
+      invalidate_req_reg  <= '0;
     end
     else begin
       for (int i = 0; i < WAYS; i++) begin
         state[i] <= state_next[i];
       end
 
-      resp_bus_req_reg <= resp_bus_req_next;
-      resp_bus_tx_reg  <= resp_bus_tx_next;
+      resp_bus_req_reg    <= resp_bus_req_next;
+      resp_bus_tx_reg     <= resp_bus_tx_next;
+      invalidate_done_reg <= invalidate_done_next;
+      invalidate_req_reg  <= invalidate_req_next;
     end
   end
 

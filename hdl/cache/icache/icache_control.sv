@@ -62,7 +62,7 @@ always_comb begin
 
   unique case (curr_state)
     IDLE: begin
-      ready      = 1'b1;
+      ready = 1'b1;
       if (cache_request) begin
         /* Assert Chip Select Signals */
         for (int i = 0; i < WAYS; i++) begin
@@ -78,6 +78,7 @@ always_comb begin
       if (cache_hit) begin
         ready    = 1'b1;
         ufp_resp = 1'b1;
+
         if (cache_request) begin
           next_state = CHECK;
 

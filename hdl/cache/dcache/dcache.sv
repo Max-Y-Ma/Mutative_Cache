@@ -34,8 +34,10 @@ import cache_types::*;
   output logic            resp_bus_busy, // Arbiter Stall
 
   // Inclusive Policy Signals
-  input  logic            invalidate,
-  input  logic [XLEN-1:0] invalidate_addr
+  input  logic            invalidate_req,
+  output logic            invalidate_resp,
+  input  logic [XLEN-1:0] invalidate_addr,
+  output logic [255:0]    invalidate_wdata
 );
 
   // Cache Control Signals
@@ -102,8 +104,9 @@ import cache_types::*;
   assign block_offset = ufp_addr_reg[CACHELINE_BITS-1:0];
 
   assign tag_val      = ufp_addr_reg[31:SET_BITS+CACHELINE_BITS];
-  assign set_addr     = idle ? ufp_addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS]
-                             : ufp_addr_reg[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
+  assign set_addr     = bus_request ? invalidate_addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS] :
+                               idle ? ufp_addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS]
+                                    : ufp_addr_reg[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
 
   assign bus_tag_val  = req_bus_msg.addr[31:SET_BITS+CACHELINE_BITS];
   assign bus_set_addr = req_bus_msg.addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
@@ -138,12 +141,12 @@ import cache_types::*;
 
     // Cache Request Logic
     if (idle) begin
-      cache_read_request  = |ufp_rmask;
-      cache_write_request = |ufp_wmask;
+      cache_read_request  = invalidate_req ? 1'b0 : |ufp_rmask;
+      cache_write_request = invalidate_req ? 1'b0 : |ufp_wmask;
     end
     else begin
-      cache_read_request  = |ufp_rmask_reg;
-      cache_write_request = |ufp_wmask_reg;
+      cache_read_request  = invalidate_req ? 1'b0 : |ufp_rmask_reg;
+      cache_write_request = invalidate_req ? 1'b0 : |ufp_wmask_reg;
     end
 
     // Writeback logic
@@ -222,6 +225,9 @@ import cache_types::*;
 
     // Update eviction logic when cache is replying
     evict_update = ~ufp_resp;
+
+    // Invalidate Logic
+    invalidate_wdata = ufp_rdata;
   end
 
   generate for (genvar i = 0; i < WAYS; i++) begin : gen_sram_arrays
@@ -295,8 +301,8 @@ import cache_types::*;
     .resp_bus_gnt(resp_bus_gnt),
     .resp_bus_req(resp_bus_req),
     .resp_bus_busy(resp_bus_busy),
-    .invalidate(invalidate),
-    .invalidate_addr(invalidate_addr)
+    .invalidate_req(invalidate_req),
+    .invalidate_resp(invalidate_resp)
   );
 
   dcache_control #(

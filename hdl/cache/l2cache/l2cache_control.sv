@@ -22,6 +22,9 @@ import cache_types::*;
   output logic tag_array_csb0   [WAYS],
   output logic data_array_csb0  [WAYS],
   output logic valid_array_csb0 [WAYS],
+  output logic tag_array_csb1   [WAYS],
+  output logic data_array_csb1  [WAYS],
+  output logic valid_array_csb1 [WAYS],
 
   // SRAM Controls
   output logic write_from_mem,
@@ -30,7 +33,11 @@ import cache_types::*;
   output logic idle,
 
   // Dirty Bit
-  input  logic  dirty
+  input  logic  dirty,
+
+  // Invalidate Policy
+  output logic  invalidate,
+  input  logic  invalidate_done
 );
 
 controller_state_t curr_state;
@@ -48,6 +55,7 @@ always_comb begin
   cache_dfp_write = 1'b0;
   dfp_read        = 1'b0;
   cache_request   = cache_read_request | cache_write_request;
+  invalidate      = 1'b0;
 
   // Default Chip Select Signals
   for (int i = 0; i < WAYS; i++) begin
@@ -80,11 +88,19 @@ always_comb begin
         write_from_cpu = cache_write_request;
         next_state = IDLE;
       end
-      else if (dirty) begin
-        next_state = WRITEBACK;
-      end
       else begin
-        next_state = FETCH;
+        invalidate = 1'b1;
+        if (invalidate_done) begin
+          if (dirty) begin
+            next_state = WRITEBACK;
+          end
+          else begin
+            next_state = FETCH;
+          end
+        end
+        else begin
+          next_state = CHECK;
+        end
       end
     end
     WRITEBACK: begin

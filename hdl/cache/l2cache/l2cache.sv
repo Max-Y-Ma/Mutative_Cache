@@ -24,8 +24,10 @@ import cache_types::*;
   output logic            resp_bus_busy, // Arbiter Stall
 
   // Inclusive Policy Signals
-  output logic            invalidate,
+  output logic            invalidate_req,
+  input  logic            invalidate_resp,
   output logic [XLEN-1:0] invalidate_addr,
+  input  logic [255:0]    invalidate_wdata,
 
   // Memory Side Signals
   output logic [31:0]     dfp_addr,
@@ -61,6 +63,8 @@ import cache_types::*;
 
   logic            evict_update;
   logic [WAYS-1:0] evict_candidate;
+
+  logic            invalidate_done;
 
   // Cache Arrays
   logic              tag_array_csb0    [WAYS];
@@ -125,7 +129,7 @@ import cache_types::*;
 
   always_comb begin
     // DRAM signals
-    dfp_write = cache_dfp_write | resp_dfp_write;
+    dfp_write = cache_dfp_write | resp_dfp_write | invalidate_resp;
 
     dfp_wdata = 'x;
     if (resp_bus_request && resp_dfp_write) begin
@@ -137,6 +141,9 @@ import cache_types::*;
           dfp_wdata = data_array_dout0[i];
         end
       end
+    end
+    else if (invalidate_resp) begin
+      dfp_wdata = invalidate_wdata;
     end
 
     // By default use address from Bus request
@@ -220,9 +227,11 @@ import cache_types::*;
         end
       end
 
-      // TODO: Add invalidate logic
-      // invalidate
-      // invalidate_addr
+      // Invalidate logic
+      invalidate_addr = '0;
+      if (evict_candidate[i] && valid_array_dout0[i]) begin
+        invalidate_addr = {tag_array_dout0[i][TAG_BITS-1:0], req_bus_set_addr, 5'b0};
+      end
     end
 
     // Cache Hit/WB and Data Logic and
@@ -290,11 +299,18 @@ import cache_types::*;
     .cache_write_request(cache_write_request),
     .cache_hit_vector(cache_hit_vector),
     .resp_bus_hit_vector(resp_bus_hit_vector),
+    .evict_candidate(evict_candidate),
+    .req_bus_msg(req_bus_msg),
     .resp_bus_msg(resp_bus_msg),
     .resp_bus_tx(resp_bus_tx),
     .resp_bus_gnt(resp_bus_gnt),
     .resp_bus_req(resp_bus_req),
-    .resp_bus_busy(resp_bus_busy)
+    .resp_bus_busy(resp_bus_busy),
+    .invalidate(invalidate),
+    .invalidate_req(invalidate_req),
+    .invalidate_resp(invalidate_resp),
+    .invalidate_addr(invalidate_addr),
+    .invalidate_done(invalidate_done)
   );
 
   l2cache_control #(
@@ -318,7 +334,9 @@ import cache_types::*;
     .write_from_mem(write_from_mem),
     .write_from_cpu(write_from_cpu),
     .idle(idle),
-    .dirty(dirty)
+    .dirty(dirty),
+    .invalidate(invalidate),
+    .invalidate_done(invalidate_done)
   );
 
   plru #(

@@ -20,6 +20,12 @@ import cache_types::*;
   output logic            icache_resp_bus_req,
   output logic            icache_resp_bus_busy,
 
+  // Inclusive Policy Signals
+  input  logic            icache_invalidate_req,
+  output logic            icache_invalidate_resp,
+  input  logic [XLEN-1:0] icache_invalidate_addr,
+  output logic [255:0]    icache_invalidate_wdata,
+
   // Dcache Coherence Port
   output req_msg_t        dcache_req_bus_tx,
   input  logic            dcache_req_bus_gnt,
@@ -31,8 +37,10 @@ import cache_types::*;
   output logic            dcache_resp_bus_busy,
 
   // Inclusive Policy Signals
-  input  logic            invalidate,
-  input  logic [XLEN-1:0] invalidate_addr
+  input  logic            dcache_invalidate_req,
+  output logic            dcache_invalidate_resp,
+  input  logic [XLEN-1:0] dcache_invalidate_addr,
+  output logic [255:0]    dcache_invalidate_wdata
 );
 
 // Cache Signals
@@ -85,8 +93,10 @@ icache #(
   .resp_bus_gnt(icache_resp_bus_gnt),
   .resp_bus_req(icache_resp_bus_req),
   .resp_bus_busy(icache_resp_bus_busy),
-  .invalidate(invalidate),
-  .invalidate_addr(invalidate_addr)
+  .invalidate_req(invalidate_req),
+  .invalidate_resp(invalidate_resp),
+  .invalidate_addr(invalidate_addr),
+  .invalidate_wdata(invalidate_wdata)
 );
 
 dcache #(
@@ -112,8 +122,10 @@ dcache #(
   .resp_bus_gnt(dcache_resp_bus_gnt),
   .resp_bus_req(dcache_resp_bus_req),
   .resp_bus_busy(dcache_resp_bus_busy),
-  .invalidate(invalidate),
-  .invalidate_addr(invalidate_addr)
+  .invalidate_req(invalidate_req),
+  .invalidate_resp(invalidate_resp),
+  .invalidate_addr(invalidate_addr),
+  .invalidate_wdata(invalidate_wdata)
 );
 
 endmodule : core

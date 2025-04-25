@@ -39,6 +39,27 @@ logic      [255:0]         l2cache_rdata;
 logic      [255:0]         l2cache_wdata;
 logic                      l2cache_resp;
 
+logic                      invalidate_req;
+logic                      invalidate_resp [NUM_CACHE];
+logic [XLEN-1:0]           invalidate_addr;
+logic [255:0]              invalidate_wdata [NUM_CACHE];
+
+logic                      l2cache_invalidate_resp;
+logic [255:0]              l2cache_invalidate_wdata;
+
+// Invalidation Selection Logic
+logic [$clog2(NUM_CACHE)-1:0] resp_idx;
+always_comb begin
+  for (int i = 0; i < NUM_CACHE; i++) begin
+    if (invalidate_resp[i]) begin
+      resp_idx = i;
+    end
+  end
+end
+
+assign l2cache_invalidate_resp = invalidate_resp[resp_idx];
+assign l2cache_invalidate_wdata = invalidate_wdata[resp_idx];
+
 // Cores
 for (genvar i = 0; i < NUM_CORES; i++) begin : gen_core_inst
   core #(
@@ -56,6 +77,10 @@ for (genvar i = 0; i < NUM_CORES; i++) begin : gen_core_inst
     .icache_resp_bus_gnt(resp_bus_gnt[i]),
     .icache_resp_bus_req(resp_bus_req[i]),
     .icache_resp_bus_busy(resp_bus_busy[i]),
+    .icache_invalidate_req(invalidate_req),
+    .icache_invalidate_resp(invalidate_resp[i]),
+    .icache_invalidate_addr(invalidate_addr),
+    .icache_invalidate_wdata(invalidate_wdata[i]),
     .dcache_req_bus_tx(req_bus_tx[i + 1]),
     .dcache_req_bus_gnt(req_bus_gnt[i + 1]),
     .dcache_req_bus_req(req_bus_req[i + 1]),
@@ -64,8 +89,10 @@ for (genvar i = 0; i < NUM_CORES; i++) begin : gen_core_inst
     .dcache_resp_bus_gnt(resp_bus_gnt[i + 1]),
     .dcache_resp_bus_req(resp_bus_req[i + 1]),
     .dcache_resp_bus_busy(resp_bus_busy[i + 1]),
-    .invalidate(invalidate),
-    .invalidate_addr(invalidate_addr)
+    .dcache_invalidate_req(invalidate_req),
+    .dcache_invalidate_resp(invalidate_resp[i + 1]),
+    .dcache_invalidate_addr(invalidate_addr),
+    .dcache_invalidate_wdata(invalidate_wdata[i + 1])
   );
 end
 
@@ -146,8 +173,10 @@ l2cache #(
   .resp_bus_gnt(resp_bus_gnt[NUM_CACHE]),
   .resp_bus_req(resp_bus_req[NUM_CACHE]),
   .resp_bus_busy(resp_bus_busy[NUM_CACHE]),
-  .invalidate(invalidate),
+  .invalidate_req(invalidate_req),
+  .invalidate_resp(l2cache_invalidate_resp),
   .invalidate_addr(invalidate_addr),
+  .invalidate_wdata(l2cache_invalidate_wdata),
   .dfp_addr(l2cache_addr),
   .dfp_read(l2cache_read),
   .dfp_write(l2cache_write),

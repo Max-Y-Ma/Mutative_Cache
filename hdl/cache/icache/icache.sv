@@ -32,8 +32,10 @@ import cache_types::*;
   output logic            resp_bus_busy, // Arbiter Stall
 
   // Inclusive Policy Signals
-  input  logic            invalidate,
-  input  logic [XLEN-1:0] invalidate_addr
+  input  logic            invalidate_req,
+  output logic            invalidate_resp,
+  input  logic [XLEN-1:0] invalidate_addr,
+  output logic [255:0]    invalidate_wdata
 );
 
     /* Cache Control Signals */
@@ -116,12 +118,14 @@ import cache_types::*;
 
       // Cache Request Register Logic
       if (ready) begin
-        cache_read_request  = |ufp_rmask;
-        set_addr            = ufp_addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
+        cache_read_request  = invalidate_req ? 1'b0 : |ufp_rmask;
+        set_addr            = invalidate_req ? invalidate_addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS]
+                                             : ufp_addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
       end
       else begin
-        cache_read_request  = |ufp_rmask_reg;
-        set_addr            = ufp_addr_reg[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
+        cache_read_request  = invalidate_req ? 1'b0 : |ufp_rmask_reg;
+        set_addr            = invalidate_req ? invalidate_addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS]
+                                             : ufp_addr_reg[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
       end
 
       // Calculate hit vector and data output
@@ -171,10 +175,13 @@ import cache_types::*;
       end
 
       // Cache Hit/WB and Data Logic and
-      cache_hit       = |cache_hit_vector;
+      cache_hit = |cache_hit_vector;
 
       // Update eviction logic when cache is replying
       evict_update = ~ufp_resp;
+
+      // Invalidate Logic
+      invalidate_wdata = ufp_rdata;
     end
 
     generate for (genvar i = 0; i < WAYS; i++) begin : gen_sram_arrays
@@ -245,8 +252,8 @@ import cache_types::*;
       .resp_bus_gnt(resp_bus_gnt),
       .resp_bus_req(resp_bus_req),
       .resp_bus_busy(resp_bus_busy),
-      .invalidate(invalidate),
-      .invalidate_addr(invalidate_addr)
+      .invalidate_req(invalidate_req),
+      .invalidate_resp(invalidate_resp)
     );
 
     icache_control #(
