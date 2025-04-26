@@ -1,91 +1,147 @@
-module mutative_fsm (
-    input   logic           clk,
-    input   logic           rst,
+module mutative_fsm
+import cache_types::*;
+#(
+  parameter WAYS = 8
+) (
+  input logic       clk, rst,
 
-    input   logic           cpu_req, //read/write request
-    input   logic           cache_hit, // comparator output
-    input   logic           cache_dirty, // dirty bit (msb bit of tag)
-    input   logic           cpu_write_cache, //write signal (0: read, 1: write cpu request)
-    input   logic           mem_resp, //main memory response
+  // Cache Datapath interface
+  input logic  cache_hit,
+  input logic  cache_read_request,
+  input logic  cache_write_request,
 
-    output  logic           cache_wen, //write to cache
-    output  logic           set_dirty, //set dirty bit
-    output  logic           mem_read,
-    output  logic           mem_write_cache,
-    output  logic           cache_write_mem,
-    output  logic           cache_ready
+  // UFP Interface
+  output logic ufp_resp,
+
+  // DFP Interface
+  input logic  dfp_resp,
+  output logic dfp_read,
+  output logic dfp_write,
+
+  // Chip Select Signals
+  output logic tag_array_csb0   [WAYS-1:0],
+  output logic data_array_csb0  [WAYS-1:0],
+  output logic valid_array_csb0 [WAYS-1:0],
+
+  // SRAM Controls
+  output logic write_from_mem,
+  output logic write_from_cpu,
+
+  output logic idle,
+
+  // Dirty Bit
+  input logic  dirty
 );
-    //if never written to from mem (valid == 0) or not a match (hit == 0) go to allocate in both states? 
-    //when memory is ready do you write to cache in allocate or in compare tag state and how do u set dirty
-    enum logic [2:0] {
-        s_idle, s_compare_tag, 
-        s_allocate, s_alllocate_idle, s_write_back
-    } cache_state, cache_state_next;
-    //TODO: think about routing to idle from allocate
 
-    always_ff @( posedge clk ) begin
-        if (rst) begin
-            cache_state <= s_idle;
-        end else begin
-            cache_state <= cache_state_next;
+controller_state_t curr_state;
+controller_state_t next_state;
+
+logic cache_request;
+
+always_comb begin
+  // Defaults
+  next_state     = curr_state;
+  write_from_mem = 1'b0;
+  write_from_cpu = 1'b0;
+  dfp_write      = 1'b0;
+  dfp_read       = 1'b0;
+  ufp_resp       = 1'b0;
+  cache_request  = cache_read_request | cache_write_request;
+  idle           = (curr_state == IDLE);
+
+  // Default Chip Select Signals
+  for (int i = 0; i < WAYS; i++) begin
+    tag_array_csb0[i]   = 1'b1;
+    data_array_csb0[i]  = 1'b1;
+    valid_array_csb0[i] = 1'b1;
+  end
+
+  unique case (curr_state)
+    IDLE: begin
+      if (cache_request) begin
+        /* Assert Chip Select Signals */
+        for (int i = 0; i < WAYS; i++) begin
+          tag_array_csb0[i]   = 1'b0;
+          data_array_csb0[i]  = 1'b0;
+          valid_array_csb0[i] = 1'b0;
         end
-    end
 
-    always_comb begin
-        cache_state_next = cache_state;
-        cache_wen = 1'b0;
-        set_dirty = 1'b0;
-        mem_read = 1'b0;
-        mem_write_cache = 1'b0;
-        cache_write_mem = 1'b0;
-        cache_ready = 1'b0;
-
-        unique case (cache_state)
-            s_idle: begin 
-                if(cpu_req) begin
-                    cache_state_next = s_compare_tag;
-                end
-            end
-            s_compare_tag: begin
-                if(cache_hit) begin 
-                    cache_state_next = s_idle;
-                    set_dirty = cpu_write_cache;
-                    cache_ready = 1'b1;
-                    cache_wen = cpu_write_cache;
-                end
-                else if(cache_dirty) begin
-                    cache_state_next = s_write_back;
-                end
-                else begin
-                    cache_state_next = s_allocate;
-                end
-            end
-            s_allocate: begin
-                mem_read = 1'b1;
-                if(mem_resp) begin
-                    cache_wen = 1'b1;
-                    cache_state_next = s_alllocate_idle;
-                    mem_write_cache = 1'b1;
-                end 
-            end
-            s_alllocate_idle: begin
-                cache_state_next = s_compare_tag;
-            end
-            s_write_back: begin
-                cache_write_mem = 1'b1;
-                if(mem_resp) begin
-                    cache_state_next = s_allocate;
-                end
-            end
-            default: begin
-                cache_state_next = cache_state;
-                cache_wen = 1'b0;
-                set_dirty = 1'b0;
-                mem_read = 1'b0;
-                mem_write_cache = 1'b0;
-                cache_write_mem = 1'b0;
-                cache_ready = 1'b0;
-            end
-        endcase
+        next_state = CHECK;
+      end
     end
+    CHECK: begin
+      if (cache_hit) begin
+        write_from_cpu = cache_write_request;
+        ufp_resp = 1'b1;
+        // if (cache_request) begin
+        //   next_state = CHECK;
+        // end
+        // else begin
+          next_state = IDLE;
+        // end
+
+        /* Assert Chip Select Signals */
+        for (int i = 0; i < WAYS; i++) begin
+          tag_array_csb0[i]   = 1'b0;
+          data_array_csb0[i]  = 1'b0;
+          valid_array_csb0[i] = 1'b0;
+        end
+      end
+      else if (dirty) begin
+        next_state = WRITEBACK;
+      end
+      else begin
+        next_state = FETCH;
+      end
+    end
+    WRITEBACK: begin
+      dfp_write = 1'b1;
+      if (dfp_resp) begin
+        next_state = FETCH;
+      end
+      else begin
+        next_state = WRITEBACK;
+      end
+    end
+    FETCH: begin
+      dfp_read = 1'b1;
+      if (dfp_resp) begin
+        write_from_mem = 1'b1;
+        next_state = FETCH_WAIT;
+
+        /* Assert Chip Select Signals */
+        for (int i = 0; i < WAYS; i++) begin
+          tag_array_csb0[i]   = 1'b0;
+          data_array_csb0[i]  = 1'b0;
+          valid_array_csb0[i] = 1'b0;
+        end
+      end
+      else begin
+        next_state = FETCH;
+      end
+    end
+    FETCH_WAIT: begin
+      /* Assert Chip Select Signals */
+      for (int i = 0; i < WAYS; i++) begin
+        tag_array_csb0[i]   = 1'b0;
+        data_array_csb0[i]  = 1'b0;
+        valid_array_csb0[i] = 1'b0;
+      end
+
+      next_state = CHECK;
+    end
+    default: begin end
+  endcase
+end
+
+// Next state flipflop
+always_ff @ (posedge clk) begin
+  if (rst) begin
+    curr_state <= IDLE;
+  end
+  else begin
+    curr_state <= next_state;
+  end
+end
+
 endmodule

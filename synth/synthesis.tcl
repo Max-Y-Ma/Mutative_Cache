@@ -107,6 +107,11 @@ set design_reset_pin rst
 
 analyze -library WORK -format sverilog [getenv PKG_SRCS]
 
+set srams [split [getenv SRAM_SRCS] " "]
+foreach sram $srams {
+   analyze -library WORK -format verilog "${sram}"
+}
+
 set modules [split [getenv RTL_SRCS] " "]
 foreach module $modules {
    analyze -library WORK -format sverilog "${module}"

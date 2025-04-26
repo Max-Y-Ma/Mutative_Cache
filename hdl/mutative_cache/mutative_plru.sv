@@ -50,6 +50,8 @@ import mutative_types::*;
  
 
     always_comb begin : replacement_1 //TODO: MAKE 4 and FIX
+        virtual_evict_way = '0;
+        virtual_evict_we = '0;
         case (setup)
             2'b01: begin
                 case (~PLRU_bits[cache_address.set_index]) 

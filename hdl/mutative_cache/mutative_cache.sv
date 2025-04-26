@@ -25,6 +25,7 @@ import mutative_types::*;
     logic   [3:0]   ufp_rmask_ff;
     logic   [3:0]   ufp_wmask_ff;
     logic   [31:0]  ufp_wdata_ff;
+    logic           idle;
 
     always_ff @(posedge clk) begin
         if(rst) begin
@@ -32,7 +33,7 @@ import mutative_types::*;
             ufp_rmask_ff <= '0;
             ufp_wmask_ff <= '0;
             ufp_wdata_ff <= '0;
-        end else if(|ufp_rmask || |ufp_wmask || ufp_resp) begin
+        end else if(idle) begin
             ufp_addr_ff <= ufp_addr;
             ufp_rmask_ff <= ufp_rmask;
             ufp_wmask_ff <= ufp_wmask;
@@ -40,8 +41,13 @@ import mutative_types::*;
         end
     end
 
+    logic   tag_array_csb0    [WAYS-1:0];
+    logic   data_array_csb0   [WAYS-1:0];
+    logic   valid_array_csb0  [WAYS-1:0];
+
     //cache addr = 32 bits = 23 bits for tag, 4 bits for set (16 sets), 5 bits for blk offset
     logic cpu_request, hit, wb_en;
+    logic write_from_cpu;
     logic [1:0] setup; //0: DM, 1: 2-WAY, 2: 4-WAY, 3: 8-WAY
     logic cache_wen, dirty_en;
     cache_output_t cache_output[WAYS];
@@ -53,13 +59,13 @@ import mutative_types::*;
     logic [WAYS-1:0] evict_we;
     logic [WAY_IDX_BITS-1:0] evict_way;
     logic [WAYS-1:0] way_we;
-    assign cpu_request = (|ufp_rmask_ff || |ufp_wmask_ff);
-    assign cache_address = ufp_addr_ff;
+    assign cpu_request = idle ? (|ufp_rmask || |ufp_wmask) : (|ufp_rmask_ff || |ufp_wmask_ff);
+    assign cache_address = idle ? ufp_addr : ufp_addr_ff;
     // i chose msb bit of tag array is dirty bit
     generate for (genvar i = 0; i < WAYS; i++) begin : arrays //TODO 
         mutative_data_array data_array (
             .clk0       (clk),
-            .csb0       (1'b0), //active low  r/w  en
+            .csb0       (data_array_csb0[i]), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal TODO: look at
             .wmask0     (cache_data_wmask), 
             .addr0      (cache_address.set_index),
@@ -68,7 +74,7 @@ import mutative_types::*;
         );
         mutative_tag_array tag_array (
             .clk0       (clk),
-            .csb0       (1'b0), //active low  r/w  en
+            .csb0       (tag_array_csb0[i]), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal
             .addr0      (cache_address.set_index),
             .din0       ({dirty_en, cache_address.tag}),
@@ -77,7 +83,7 @@ import mutative_types::*;
         ff_array #(.S_INDEX(SET_BITS), .WIDTH(1)) valid_array (
             .clk0       (clk),
             .rst0       (rst),
-            .csb0       (1'b0), //active low  r/w  en
+            .csb0       (valid_array_csb0[i]), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal
             .addr0      (cache_address.set_index),
             .din0       (1'b1), 
@@ -134,20 +140,24 @@ import mutative_types::*;
     always_comb begin :cache_write_data_logic
         cache_data_wmask = 32'h00000000;
         cache_wdata = 'x;
+        dirty_en = 1'b0;
         if(mem_write_cache) begin //memory writing cache
             way_we = evict_we;
             cache_data_wmask = 32'hFFFFFFFF;
             cache_wdata = dfp_rdata;
+            dirty_en = 1'b0;
         end
-        else if(|ufp_wmask_ff) begin //cpu writing cache
+        else if(write_from_cpu) begin //cpu writing cache
             cache_data_wmask[4*cache_address.block_offset[4:2] +: 4] = ufp_wmask_ff; // 00100
             cache_wdata[cache_address.block_offset[4:2]*32 +: 32] = ufp_wdata_ff;
             way_we = 1 << hit_way;
+            dirty_en = 1'b1;
         end
         else begin
             way_we = {WAYS{1'b0}};
             cache_data_wmask = 32'h00000000;
             cache_wdata = 'x;
+            dirty_en = 1'b0;
         end
     end
 
@@ -155,21 +165,25 @@ import mutative_types::*;
     assign dfp_write = wb_en;
     assign dfp_addr = wb_en ? {cache_output[evict_way].tag, cache_address.set_index, {OFFSET_BITS{1'b0}}} : {cache_address[31:OFFSET_BITS], {OFFSET_BITS{1'b0}}};
 
+    assign cache_wen = mem_write_cache || write_from_cpu;
 
-    mutative_fsm control (
-        .clk(clk),
+    mutative_fsm #(.WAYS(8)) fsm (
+        .clk(clk), 
         .rst(rst),
-        .cpu_req(cpu_request), 
-        .cache_hit(hit), 
-        .cache_dirty(cache_output[evict_way].dirty), 
-        .cpu_write_cache(|ufp_wmask_ff), 
-        .mem_resp(dfp_resp), 
-        .cache_wen(cache_wen),
-        .set_dirty(dirty_en),
-        .mem_read(dfp_read),
-        .mem_write_cache(mem_write_cache),
-        .cache_write_mem(wb_en),
-        .cache_ready(ufp_resp)
+        .cache_hit(hit),
+        .cache_read_request(idle ? |ufp_rmask : |ufp_rmask_ff),
+        .cache_write_request(idle ? |ufp_wmask : |ufp_wmask_ff ),
+        .ufp_resp(ufp_resp),
+        .dfp_resp(dfp_resp),
+        .dfp_read(dfp_read),
+        .dfp_write(wb_en),
+        .tag_array_csb0(tag_array_csb0),
+        .data_array_csb0(data_array_csb0),
+        .valid_array_csb0(valid_array_csb0),
+        .write_from_mem(mem_write_cache),
+        .write_from_cpu(write_from_cpu),
+        .idle(idle),
+        .dirty(cache_output[evict_way].dirty)
     );
 
     mutative_plru plru (
