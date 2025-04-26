@@ -1,5 +1,5 @@
 // OpenRAM SRAM model
-// Words: 128
+// Words: 16
 // Word size: 256
 // Write size: 8
 
@@ -14,7 +14,7 @@ module mutative_data_array(
 
   parameter NUM_WMASKS = 32 ;
   parameter DATA_WIDTH = 256 ;
-  parameter ADDR_WIDTH = 7 ;
+  parameter ADDR_WIDTH = 4 ;
   parameter RAM_DEPTH = 1 << ADDR_WIDTH;
 
 `ifdef USE_POWER_PINS

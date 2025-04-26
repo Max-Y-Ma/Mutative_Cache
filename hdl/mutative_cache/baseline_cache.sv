@@ -1,4 +1,4 @@
-module mutative_cache 
+module baseline_cache 
 import mutative_types::*;
 (
     input   logic           clk,
@@ -287,7 +287,9 @@ import mutative_types::*;
         .full_assoc_full(full_assoc_full),
         .cache_ready(ufp_resp),
         .cpu_req(cpu_request),
-        .setup(setup)
+        .setup(/*setup*/)
         );
+
+        assign setup = 3;
 
 endmodule

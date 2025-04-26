@@ -95,11 +95,11 @@ import mutative_types::*;
                         virtual_evict_way = 3'b001;
                         virtual_evict_we = 1 << virtual_evict_way;
                     end
-                    7'b??0??00: begin
+                    7'b??0??10: begin
                         virtual_evict_way = 3'b010;
                         virtual_evict_we = 1 << virtual_evict_way;
                     end
-                    7'b??1??00: begin
+                    7'b??1??10: begin
                         virtual_evict_way = 3'b011;
                         virtual_evict_we = 1 << virtual_evict_way;
                     end

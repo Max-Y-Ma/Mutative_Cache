@@ -2,7 +2,7 @@ package mutative_types;
     localparam CACHELINE_SIZE = 256;
     localparam BLOCKS = CACHELINE_SIZE/8;
     localparam OFFSET_BITS = $clog2(BLOCKS);
-    localparam TOTAL_SIZE = (2**15)*8; //32KiB
+    localparam TOTAL_SIZE = (2**12)*8; //4KiB
     localparam WAYS = 8;
     localparam WAY_IDX_BITS = $clog2(WAYS);
 
