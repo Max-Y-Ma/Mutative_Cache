@@ -97,7 +97,7 @@ icache #(
   .dfp_resp(icache_resp)
 );
 
-baseline_cache mutative_cache0 (
+mutative_cache mutative_cache0 (
   .clk(clk),
   .rst(rst),
 

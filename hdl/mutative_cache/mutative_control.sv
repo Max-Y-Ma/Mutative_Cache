@@ -51,7 +51,7 @@ import mutative_types::*;
 
         unique case (control_state)
             s_idle: begin 
-                if(switch_counter >= 800) begin //random number
+                if(switch_counter >= 50) begin //random number
                     switch_counter_next = '0;
                     if(setup < 3)
                         setup_next = setup+1;
