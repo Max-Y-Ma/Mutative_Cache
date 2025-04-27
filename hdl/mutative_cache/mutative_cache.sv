@@ -183,7 +183,7 @@ import mutative_types::*;
         .hit_way(hit_way),
         .hit(hit),
         .cache_address(cache_address),
-        .setup(),
+        .setup(setup),
         .evict_way(evict_way),
         .evict_we(evict_we)
 
