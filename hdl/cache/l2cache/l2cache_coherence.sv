@@ -45,7 +45,7 @@ import cache_types::*;
   parameter integer TAG_BITS        = 32 - INDEX_WIDTH - CACHELINE_BITS;
 
   llc_memory_state_t [SETS-1:0] state      [WAYS];
-  llc_memory_state_t [SETS-1:0] next_state [WAYS];
+  llc_memory_state_t [SETS-1:0] state_next [WAYS];
 
   // Coherence Logic Signals
   logic                   resp_bus_req_next;
@@ -68,51 +68,51 @@ import cache_types::*;
   assign invalidate_index = invalidate_addr[INDEX_WIDTH-1:0];
 
   always_comb begin
-    next_state = state;
+    state_next = state;
 
     for (int i = 0; i < WAYS; i++) begin
-      if (bus_msg.valid) begin
+      if (req_bus_msg.valid) begin
         unique case (state[i][req_bus_index])
           MI : begin
             // GetS -> EORMRD
             if (req_bus_msg.bus_tx == GETS && cache_hit_vector[i]) begin
-              next_state[i][req_bus_index] = MEORMRD;
+              state_next[i][req_bus_index] = MEORMRD;
             end
             // GetM -> EORMRD
             else if (req_bus_msg.bus_tx == GETM && cache_hit_vector[i]) begin
-              next_state[i][req_bus_index] = MEORMRD;
+              state_next[i][req_bus_index] = MEORMRD;
             end
             // PutM -> ID
             else if (req_bus_msg.bus_tx == PUTM && cache_hit_vector[i]) begin
-              next_state[i][req_bus_index] = MID;
+              state_next[i][req_bus_index] = MID;
             end
           end
           MS : begin
             // GetS -> SRD
             if (req_bus_msg.bus_tx == GETS && cache_hit_vector[i]) begin
-              next_state[i][req_bus_index] = MSRD;
+              state_next[i][req_bus_index] = MSRD;
             end
             // GetM -> EORMRD
             else if (req_bus_msg.bus_tx == GETM && cache_hit_vector[i]) begin
-              next_state[i][req_bus_index] = MEORMRD;
+              state_next[i][req_bus_index] = MEORMRD;
             end
             // PutM -> SD
             else if (req_bus_msg.bus_tx == PUTM && cache_hit_vector[i]) begin
-              next_state[i][req_bus_index] = MSD;
+              state_next[i][req_bus_index] = MSD;
             end
           end
           MEORM : begin
             // GetS -> SD
             if (req_bus_msg.bus_tx == GETS && cache_hit_vector[i]) begin
-              next_state[i][req_bus_index] = MSD;
+              state_next[i][req_bus_index] = MSD;
             end
             // GetM -> EORM
             else if (req_bus_msg.bus_tx == GETM && cache_hit_vector[i]) begin
-              next_state[i][req_bus_index] = MEORM;
+              state_next[i][req_bus_index] = MEORM;
             end
             // PutM -> EORMD
             else if (req_bus_msg.bus_tx == PUTM && cache_hit_vector[i]) begin
-              next_state[i][req_bus_index] = MEORMD;
+              state_next[i][req_bus_index] = MEORMD;
             end
           end
           // Atomic Transactions -> ID, SD, EORMD
@@ -125,53 +125,53 @@ import cache_types::*;
           MID : begin
             // DATA -> I
             if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == DATA && resp_bus_hit_vector[i]) begin
-              next_state[i][resp_bus_index] = MI;
+              state_next[i][resp_bus_index] = MI;
             end
             // NODATA -> I
             else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATA && resp_bus_hit_vector[i]) begin
-              next_state[i][resp_bus_index] = MI;
+              state_next[i][resp_bus_index] = MI;
             end
             // NODATAE -> I
             else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATAE && resp_bus_hit_vector[i]) begin
-              next_state[i][resp_bus_index] = MI;
+              state_next[i][resp_bus_index] = MI;
             end
           end
           MSD : begin
             // DATA -> S
             if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == DATA && resp_bus_hit_vector[i]) begin
-              next_state[i][resp_bus_index] = MS;
+              state_next[i][resp_bus_index] = MS;
             end
             // NODATA -> S
             else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATA && resp_bus_hit_vector[i]) begin
-              next_state[i][resp_bus_index] = MS;
+              state_next[i][resp_bus_index] = MS;
             end
             // NODATAE -> S
             else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATAE && resp_bus_hit_vector[i]) begin
-              next_state[i][resp_bus_index] = MS;
+              state_next[i][resp_bus_index] = MS;
+            end
+          end
           MSRD: begin
+            if (resp_bus_msg.source == ID && resp_bus_msg.way == i) begin
+              state_next[i][resp_bus_index] = MS;
             end
           end
-            if (resp_bus_msg.source == ID && resp_bus_msg.way == i) begin
-              next_state[i][resp_bus_index] = MS;
           MEORMRD: begin
-            end
-          end
             if (resp_bus_msg.source == ID && resp_bus_msg.way == i) begin
-              next_state[i][resp_bus_index] = MEORM;
+              state_next[i][resp_bus_index] = MEORM;
             end
           end
           MEORMD : begin
             // DATA -> I
             if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == DATA && resp_bus_hit_vector[i]) begin
-              next_state[i][resp_bus_index] = MI;
+              state_next[i][resp_bus_index] = MI;
             end
             // NODATA -> EORM
             else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATA && resp_bus_hit_vector[i]) begin
-              next_state[i][resp_bus_index] = MEORM;
+              state_next[i][resp_bus_index] = MEORM;
             end
             // NODATAE -> I
             else if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == NODATAE && resp_bus_hit_vector[i]) begin
-              next_state[i][resp_bus_index] = MI;
+              state_next[i][resp_bus_index] = MI;
             end
           end
           // Ignore Transactions -> I, S, EORM
@@ -186,9 +186,9 @@ import cache_types::*;
   always_comb begin
     resp_dfp_write    = '0;
     resp_dfp_wdata    = 'x;
-    ufp_resp          = resp_bus_gnt;
     resp_bus_req_next = resp_bus_req_reg;
     resp_bus_tx_next  = resp_bus_tx_reg;
+    ufp_resp          = resp_bus_gnt;
 
     for (int i = 0; i < WAYS; i++) begin
       if (req_bus_msg.valid) begin
@@ -262,33 +262,31 @@ import cache_types::*;
         unique case (state[i][resp_bus_index])
           MSRD : begin
             if (resp_bus_msg.source == ID && resp_bus_msg.way == i) begin
-              state_next[i][resp_bus_index] = MS;
               resp_bus_req_next = '0;
             end
           end
-          MSEORMRD : begin
+          MEORMRD : begin
             if (resp_bus_msg.source == ID && resp_bus_msg.way == i) begin
-              state_next[i][resp_bus_index] = MSEORM;
               resp_bus_req_next = '0;
             end
           end
           MID : begin
             // DATA -> Write Data to Memory
-            if (resp_bus_msg.memory_flag && resp_bus_msg.mssg == DATA && resp_bus_hit_vector[i]) begin
+            if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == DATA && resp_bus_hit_vector[i]) begin
               resp_dfp_write = '1;
               resp_dfp_wdata = resp_bus_msg.data;
             end
           end
           MSD : begin
             // DATA -> Write Data to Memory
-            if (resp_bus_msg.memory_flag && resp_bus_msg.mssg == DATA && resp_bus_hit_vector[i]) begin
+            if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == DATA && resp_bus_hit_vector[i]) begin
               resp_dfp_write = '1;
               resp_dfp_wdata = resp_bus_msg.data;
             end
           end
           MEORMD : begin
             // DATA -> Write Data to Memory
-            if (resp_bus_msg.memory_flag && resp_bus_msg.mssg == DATA && resp_bus_hit_vector[i]) begin
+            if (resp_bus_msg.memory_flag && resp_bus_msg.mmsg == DATA && resp_bus_hit_vector[i]) begin
               resp_dfp_write = '1;
               resp_dfp_wdata = resp_bus_msg.data;
             end

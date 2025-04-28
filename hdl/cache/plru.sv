@@ -24,7 +24,7 @@ generate
   logic [PLRU_SIZE-1:0] plru_new_state;
 
   /* Generate regular LRU eviction algorithm */
-  if (WAYS == 2) begin
+  if (WAYS == 2) begin : gen_plru_2way
     /* Determine next state, which is the least recently used */
     logic cache_index;
     always_comb begin
@@ -51,7 +51,7 @@ generate
   end
 
   /* Generate PLRU eviction algorithm */
-  else begin : plru_generate
+  else begin : gen_plru
     logic [PLRU_IDX-1:0]              plru_index;
     logic [WAYS_IDX-1:0]              evict_index;
     logic [WAYS_IDX-1:0]              evict_index_start;

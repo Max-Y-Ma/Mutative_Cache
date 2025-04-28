@@ -93,10 +93,10 @@ icache #(
   .resp_bus_gnt(icache_resp_bus_gnt),
   .resp_bus_req(icache_resp_bus_req),
   .resp_bus_busy(icache_resp_bus_busy),
-  .invalidate_req(invalidate_req),
-  .invalidate_resp(invalidate_resp),
-  .invalidate_addr(invalidate_addr),
-  .invalidate_wdata(invalidate_wdata)
+  .invalidate_req(icache_invalidate_req),
+  .invalidate_resp(icache_invalidate_resp),
+  .invalidate_addr(icache_invalidate_addr),
+  .invalidate_wdata(icache_invalidate_wdata)
 );
 
 dcache #(
@@ -122,10 +122,10 @@ dcache #(
   .resp_bus_gnt(dcache_resp_bus_gnt),
   .resp_bus_req(dcache_resp_bus_req),
   .resp_bus_busy(dcache_resp_bus_busy),
-  .invalidate_req(invalidate_req),
-  .invalidate_resp(invalidate_resp),
-  .invalidate_addr(invalidate_addr),
-  .invalidate_wdata(invalidate_wdata)
+  .invalidate_req(dcache_invalidate_req),
+  .invalidate_resp(dcache_invalidate_resp),
+  .invalidate_addr(dcache_invalidate_addr),
+  .invalidate_wdata(dcache_invalidate_wdata)
 );
 
 endmodule : core

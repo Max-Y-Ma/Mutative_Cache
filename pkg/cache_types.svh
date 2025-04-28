@@ -8,7 +8,7 @@ package cache_types;
   parameter integer L2CACHE_WAYS = 4;
   parameter integer L2CACHE_SETS = 64;
 
-  parameter integer NUM_CORES = 4;
+  parameter integer NUM_CORES = 1;
   parameter integer NUM_CACHE = NUM_CORES * 2;
 
   parameter integer XLEN           = 32;

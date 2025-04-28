@@ -18,9 +18,9 @@ import cache_types::*;
 
 // Chip Signals
 req_msg_t                  req_bus_msg;
-req_msg_t                  req_bus_tx [NUM_CACHE];
-logic      [NUM_CACHE-1:0] req_bus_gnt;
-logic      [NUM_CACHE-1:0] req_bus_req;
+req_msg_t                  req_bus_tx [NUM_CACHE + 1];
+logic      [NUM_CACHE:0]   req_bus_gnt;
+logic      [NUM_CACHE:0]   req_bus_req;
 logic      [NUM_CACHE:0]   req_bus_busy;
 
 resp_msg_t                 resp_bus_msg;
@@ -28,9 +28,6 @@ resp_msg_t                 resp_bus_tx [NUM_CACHE + 1];
 logic      [NUM_CACHE:0]   resp_bus_gnt;
 logic      [NUM_CACHE:0]   resp_bus_req;
 logic      [NUM_CACHE:0]   resp_bus_busy;
-
-logic                      invalidate;
-logic      [XLEN-1:0]      invalidate_addr;
 
 logic      [31:0]          l2cache_addr;
 logic                      l2cache_read;
@@ -64,7 +61,7 @@ assign l2cache_invalidate_wdata = invalidate_wdata[resp_idx];
 for (genvar i = 0; i < NUM_CORES; i++) begin : gen_core_inst
   core #(
     .ID(i)
-  ) core (
+  ) core0 (
     .clk(clk),
     .rst(rst),
     .req_bus_msg(req_bus_msg),
@@ -98,7 +95,7 @@ end
 
 // Request Bus
 arbiter # (
-  .NUM_NODES(NUM_CACHE)
+  .NUM_NODES(NUM_CACHE + 1)
 ) req_arbiter0 (
   .clk(clk),
   .rst(rst),
@@ -108,7 +105,7 @@ arbiter # (
 );
 
 snoop_bus # (
-  .NUM_NODES(NUM_CACHE),
+  .NUM_NODES(NUM_CACHE + 1),
   .DTYPE(req_msg_t)
 ) req_snoop_bus0 (
   .clk(clk),
@@ -159,6 +156,9 @@ line_buffer line_buffer0(
 );
 
 // Instantiate L2 Unified Cache
+assign req_bus_req[NUM_CACHE] = '0;
+assign req_bus_tx[NUM_CACHE]  = '0;
+
 l2cache #(
   .ID(NUM_CACHE),
   .WAYS(L2CACHE_WAYS),

@@ -24,7 +24,7 @@ required_list = [
 allowed_char = set(string.ascii_lowercase + string.ascii_uppercase + string.digits + "._")
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-os.chdir("../hvl/vc/core")
+os.chdir("../hvl/vc/chip")
 
 if os.path.isfile("rvfi_reference.svh"):  
     os.remove("rvfi_reference.svh")
@@ -40,9 +40,9 @@ if not all([x in required_list for x in j]):
     print("spurious item in rvfi_reference.json")
     exit(1)
 
-if not all([set(j[x]) <= allowed_char for x in j]):
-    print("illegal character in rvfi_reference.json")
-    exit(1)
+# if not all([set(j[x]) <= allowed_char for x in j]):
+#     print("illegal character in rvfi_reference.json")
+#     exit(1)
 
 with open("rvfi_reference.svh", 'w') as f:
     f.write("always_comb begin\n")

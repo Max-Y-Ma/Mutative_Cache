@@ -256,7 +256,7 @@ import cache_types::*;
       .addr1      (bus_set_addr),
       .dout1      (tag_array_dout1[i])
     );
-    ff_array_rwr #(.WIDTH(1)) valid_array (
+    ff_array_rwr #(.WIDTH(1), .S_INDEX(SET_BITS)) valid_array (
       .clk0       (clk),
       .rst0       (rst),
       .csb0       (valid_array_csb0[i]),

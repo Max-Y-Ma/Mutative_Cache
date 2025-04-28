@@ -321,7 +321,7 @@ import cache_types::*;
 
       // CPU Request Update Logic
       if (cpu_req) begin
-        unique case (cacheline[i][addr_index].state)
+        unique case (state_array[i][addr_index])
           CS, CSMAD, CSMD, CEIA: begin
             // load -> hit
             if (load_hit[i]) begin

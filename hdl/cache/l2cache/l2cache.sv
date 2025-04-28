@@ -93,18 +93,18 @@ import cache_types::*;
   // UFP Address partition and register
   req_msg_t                  req_bus_msg_reg;
   resp_msg_t                 resp_bus_msg_reg;
-  logic [CACHELINE_BITS-1:0] block_offset;
+  logic [CACHELINE_BITS-1:0] req_bus_block_offset;
   logic [TAG_BITS-1:0]       req_bus_tag_val;
   logic [SET_BITS-1:0]       req_bus_set_addr;
   logic [TAG_BITS-1:0]       resp_bus_tag_val;
   logic [SET_BITS-1:0]       resp_bus_set_addr;
   logic [255:0]              resp_bus_rdata;
 
-  assign block_offset = req_bus_msg_reg.addr[CACHELINE_BITS-1:0];
+  assign req_bus_block_offset = req_bus_msg_reg.addr[CACHELINE_BITS-1:0];
 
-  assign req_bus_tag_val  = req_bus_msg_reg.addr[31:SET_BITS+CACHELINE_BITS];
-  assign req_bus_set_addr = idle ? req_bus_msg.addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS]
-                         : req_bus_msg_reg.addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
+  assign req_bus_tag_val      = req_bus_msg_reg.addr[31:SET_BITS+CACHELINE_BITS];
+  assign req_bus_set_addr     = idle ? req_bus_msg.addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS]
+                                     : req_bus_msg_reg.addr[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
 
   assign resp_bus_tag_val = resp_bus_msg[31:SET_BITS+CACHELINE_BITS];
   assign resp_bus_set_addr = resp_bus_msg[SET_BITS+CACHELINE_BITS-1:CACHELINE_BITS];
@@ -179,13 +179,13 @@ import cache_types::*;
       if (tag_array_dout0[i][TAG_BITS-1:0] == req_bus_tag_val) begin
         // Mark as hit and set the cpu rdata correctly
         cache_hit_vector[i] = valid_array_dout0[i];
-        ufp_rdata = data_array_dout0[i][({bus_block_offset, 3'b0})+:32];
+        ufp_rdata = data_array_dout0[i][({req_bus_block_offset, 3'b0})+:32];
 
         // Write to cache if doing a store and there is a hit
         if (write_from_cpu) begin
           tag_array_web0[i]   = 1'b0;
           data_array_web0[i]  = 1'b0;
-          data_array_din0[i]  = req_bus_msg_reg.data;
+          data_array_din0[i]  = resp_bus_msg_reg.data;
           data_array_wmask[i] = '1;
 
           // Mark array as valid and dirty during a write from cpu
@@ -198,7 +198,7 @@ import cache_types::*;
       // Checks bus tag hits
       resp_bus_rdata = 'x;
       resp_bus_hit_vector[i] = 1'b0;
-      if (tag_array_dout1[i][TAG_BITS-1:0] == bus_tag_val) begin
+      if (tag_array_dout1[i][TAG_BITS-1:0] == resp_bus_tag_val) begin
         resp_bus_rdata = data_array_dout1[i];
         resp_bus_hit_vector[i] = valid_array_dout1[i];
       end
@@ -252,7 +252,7 @@ import cache_types::*;
       .dout0      (data_array_dout0[i]),
       .clk1       (clk),
       .csb1       (data_array_csb1[i]),
-      .addr1      (bus_set_addr),
+      .addr1      (resp_bus_set_addr),
       .dout1      (data_array_dout1[i])
     );
     l2cache_tag_array tag_array (
@@ -264,10 +264,10 @@ import cache_types::*;
       .dout0      (tag_array_dout0[i]),
       .clk1       (clk),
       .csb1       (tag_array_csb1[i]),
-      .addr1      (bus_set_addr),
+      .addr1      (resp_bus_set_addr),
       .dout1      (tag_array_dout1[i])
     );
-    ff_array_rwr #(.WIDTH(1)) valid_array (
+    ff_array_rwr #(.WIDTH(1), .S_INDEX(SET_BITS)) valid_array (
       .clk0       (clk),
       .rst0       (rst),
       .csb0       (valid_array_csb0[i]),
@@ -278,7 +278,7 @@ import cache_types::*;
       .clk1       (clk),
       .rst1       (rst),
       .csb1       (valid_array_csb1[i]),
-      .addr1      (bus_set_addr),
+      .addr1      (resp_bus_set_addr),
       .dout1      (valid_array_dout1[i])
     );
   end endgenerate
@@ -346,7 +346,7 @@ import cache_types::*;
     .clk(clk),
     .rst(rst),
     .evict_update(evict_update),
-    .req_bus_set_addr(req_bus_set_addr),
+    .set_addr(req_bus_set_addr),
     .cache_hit_vector(cache_hit_vector),
     .evict_candidate(evict_candidate)
   );
