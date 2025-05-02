@@ -41,8 +41,6 @@ import mutative_types::*;
         end
     end
 
-
-
     logic   tag_array_csb0    [WAYS-1:0];
     logic   data_array_csb0   [WAYS-1:0];
     logic   valid_array_csb0  [WAYS-1:0];
@@ -66,19 +64,19 @@ import mutative_types::*;
     assign cache_address = idle ? ufp_addr : ufp_addr_ff;
 
     // i chose msb bit of tag array is dirty bit
-    generate for (genvar i = 0; i < WAYS; i++) begin : arrays //TODO 
+    generate for (genvar i = 0; i < WAYS; i++) begin : arrays
         mutative_data_array data_array (
             .clk0       (clk),
-            .csb0       (data_array_csb0[i]), //active low  r/w  en
-            .web0       (!(way_we[i]&& cache_wen)), // active low write signal TODO: look at
-            .wmask0     (cache_data_wmask), 
+            .csb0       (cache_wen ? !way_we[i] : (data_array_csb0[i] || true_csb0[i])), //active low  r/w  en
+            .web0       (!(way_we[i]&& cache_wen)), // active low write signal
+            .wmask0     (cache_data_wmask),
             .addr0      (cache_address.set_index),
             .din0       (cache_wdata),
             .dout0      (cache_output[i].data)
         );
         mutative_tag_array tag_array (
             .clk0       (clk),
-            .csb0       (tag_array_csb0[i]), //active low  r/w  en
+            .csb0       (cache_wen ? !way_we[i] : (tag_array_csb0[i] || true_csb0[i])), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal
             .addr0      (cache_address.set_index),
             .din0       ({dirty_en, cache_address.tag}),
@@ -87,10 +85,10 @@ import mutative_types::*;
         ff_array #(.S_INDEX(SET_BITS), .WIDTH(1)) valid_array (
             .clk0       (clk),
             .rst0       (rst),
-            .csb0       (valid_array_csb0[i]), //active low  r/w  en
+            .csb0       (cache_wen ? !way_we[i] : (valid_array_csb0[i] || true_csb0[i])), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal
             .addr0      (cache_address.set_index),
-            .din0       (1'b1), 
+            .din0       (1'b1),
             .dout0      (cache_output[i].valid)
         );
     end endgenerate
@@ -137,7 +135,7 @@ import mutative_types::*;
                 true_csb0[i] = 1'b0;
                 if(cache_output[i].valid&&(cache_output[i].tag[TAG_BITS-1:0] == cache_address.tag)) begin
                     compare_result[i] = 1'b1;
-                    hit_way = WAY_IDX_BITS'(i); 
+                    hit_way = WAY_IDX_BITS'(i);
                 end
             end
         end
@@ -179,7 +177,7 @@ import mutative_types::*;
     assign cache_wen = mem_write_cache || write_from_cpu;
 
     mutative_fsm #(.WAYS(8)) fsm (
-        .clk(clk), 
+        .clk(clk),
         .rst(rst),
         .cache_hit(hit),
         .cache_read_request(idle ? |ufp_rmask : |ufp_rmask_ff),
@@ -198,7 +196,7 @@ import mutative_types::*;
     );
 
     mutative_plru plru (
-        .clk(clk), 
+        .clk(clk),
         .rst(rst),
         .hit_way(hit_way),
         .hit(hit),
@@ -206,10 +204,7 @@ import mutative_types::*;
         .setup(setup),
         .evict_way(evict_way),
         .evict_we(evict_we)
-
     );
-
-
 
     logic [FULL_TAG_BITS-1:0]       full_assoc_tag;
     full_assoc_t                    full_assoc_cache[SET_SIZE*WAYS];
@@ -241,7 +236,6 @@ import mutative_types::*;
         end
     end
 
-    
     logic virt_valid_array[SET_SIZE][WAYS];
     always_ff @(posedge clk) begin
         if(rst) begin
@@ -279,10 +273,9 @@ import mutative_types::*;
         end
     end
 
-
     mutative_control setup_control (
         .clk(clk),
-        .rst(rst), 
+        .rst(rst),
         .real_cache_valid(full_assoc_cache[full_assoc_hit_idx].valid),
         .real_cache_hit(hit),
         .full_assoc_hit(full_assoc_hit),
@@ -291,6 +284,6 @@ import mutative_types::*;
         .cache_ready(ufp_resp),
         .cpu_req(cpu_request),
         .setup(setup)
-        );
+    );
 
 endmodule

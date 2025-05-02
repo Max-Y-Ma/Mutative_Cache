@@ -1,0 +1,1547 @@
+Info: [VCS_SAVE_RESTORE_INFO] ASLR (Address Space Layout Randomization) is detected on the machine. To enable $save functionality, ASLR will be switched off and simv re-executed.
+Please use '-no_save' simv switch to avoid this.
+
+                           Design Compiler Graphical 
+                                 DC Ultra (TM)
+                                  DFTMAX (TM)
+                              Power Compiler (TM)
+                                 DesignWare (R)
+                                 DC Expert (TM)
+                               Design Vision (TM)
+                               HDL Compiler (TM)
+                               VHDL Compiler (TM)
+                                  DFT Compiler
+                               Design Compiler(R)
+
+                 Version W-2024.09 for linux64 - Aug 27, 2024 
+
+                    Copyright (c) 1988 - 2024 Synopsys, Inc.
+   This software and the associated documentation are proprietary to Synopsys,
+ Inc. This software may only be used in accordance with the terms and conditions
+ of a written license agreement with Synopsys, Inc. All other use, reproduction,
+   or distribution of this software is strictly prohibited.  Licensed Products
+     communicate with Synopsys servers for the purpose of providing software
+    updates, detecting software piracy and verifying that customers are using
+    Licensed Products in conformity with the applicable License Key for such
+  Licensed Products. Synopsys will use information gathered in connection with
+    this process to deliver software updates and pursue software pirates and
+                                   infringers.
+
+ Inclusivity & Diversity - Visit SolvNetPlus to read the "Synopsys Statement on
+            Inclusivity and Diversity" (Refer to article 000036315 at
+                        https://solvnetplus.synopsys.com)
+Initializing...
+Current time:       Fri May  2 00:13:00 2025
+Hostname:           linux-ssh-03.ews.illinois.edu
+CPU Model:          Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz
+CPU Details:        Cores = 12 : Sockets = 23 : Cache Size = 22528 KB : Freq = 2.10 GHz
+OS:                 Linux 4.18.0-553.50.1.el8_10.x86_64
+RAM:                 23 GB (Free  10 GB)
+Swap:                 7 GB (Free   6 GB)
+Work Filesystem:    /home/maxma2 mounted to ews-homes-inst-prod.engrit.illinois.edu:/ewshomes/fspool-m/maxma2/linux
+Tmp Filesystem:     /tmp mounted to /dev/mapper/linux_ssh_03_sys-tmp
+Work Disk:           25 GB (Free  17 GB)
+Tmp Disk:            31 GB (Free  30 GB)
+
+CPU Load: 14%, Ram Free: 10 GB, Swap Free: 6 GB, Work Disk Free: 17 GB, Tmp Disk Free: 30 GB
+# You requested %d cores. However, load on host %s is %0.2y
+suppress_message UIO-231
+if {[getenv ECE411_MIN_POWER] eq "1"} {
+   set power_enable_minpower true
+}
+set hdlin_ff_always_sync_set_reset true
+true
+set hdlin_ff_always_async_set_reset true
+true
+set hdlin_infer_multibit default_all
+default_all
+set hdlin_check_no_latch true
+true
+set hdlin_while_loop_iterations 2000000000
+2000000000
+set_host_options -max_cores 4
+1
+set_app_var report_default_significant_digits 6
+6
+set design_toplevel [getenv SYNTH_TOP]
+core
+# output port '%s' is connected directly to output port '%s'
+suppress_message LINT-31
+# In design '%s', output port '%s' is connected directly to '%s'.
+suppress_message LINT-52
+# '%s' is not connected to any nets
+suppress_message LINT-28
+# output port '%s' is connected directly to output port '%s'
+suppress_message LINT-29
+# a pin on submodule '%s' is connected to logic 1 or logic 0
+suppress_message LINT-32
+# the same net is connected to more than one pin on submodule '%s'
+suppress_message LINT-33
+# '%s' is not connected to any nets
+suppress_message LINT-28
+# In design '%s', cell '%s' does not drive any nets.
+suppress_message LINT-1
+# There are %d potential problems in your design. Please run 'check_design' for more information.
+suppress_message LINT-99
+# In design '%s', net '%s' driven by pin '%s' has no loads.
+suppress_message LINT-2
+# The register '' is a constant and will be removed.
+suppress_message OPT-1206
+# The register '' will be removed.
+suppress_message OPT-1207
+# Can't read link_library file '%s'
+suppress_message UID-3
+# Design '%s' contains %d high-fanout nets.
+suppress_message TIM-134
+# The trip points for the library named %s differ from those in the library named %s.
+suppress_message TIM-164
+# Design has unannotated black box outputs.
+suppress_message PWR-428
+# Skipping clock gating on design %s, since there are no registers.
+suppress_message PWR-806
+# Ungrouping hierarchy %s before Pass 1.
+suppress_message OPT-776
+# Changed wire name %s to %s in module %s.
+suppress_message VO-2
+# Verilog 'assign' or 'tran' statements are written out.
+suppress_message VO-4
+# Verilog writer has added %d nets to module %s using %s as prefix.
+suppress_message VO-11
+# In the design %s,net '%s' is connecting multiple ports.
+suppress_message UCN-1
+# The replacement character (%c) is conflicting with the allowed or restricted character.
+suppress_message UCN-4
+# Design '%s' was renamed to '%s' to avoid a conflict with another design that has the same name but different parameters.
+suppress_message LINK-17
+# There are buffer or inverter cells in the clock tree. The clock tree has to be recreated after retiming.
+suppress_message RTDC-47
+# The design contains the following cellswhich have no influence on the design's function but cannot be removed (e.g. becauseadont_touchattributehas been setset on them). Retiming will ignore these cells in order toachieve good results: %s
+suppress_message RTDC-60
+# The following cells only drive asynchronous pins of sequential cells which have no timing  constraint.  Therefore  retiming will not optimize delay through them
+suppress_message RTDC-115
+# Unable  to  maintain nets '%s' and '%s' as separate entities.
+suppress_message OPT-153
+# The unannotated net '%s' is driven by a primary input port.
+suppress_message PWR-429
+# The unannotated net '%s' is driven by a black box output.
+suppress_message PWR-416
+# %s SV Assertions are ignored for synthesis since %s is not set to true.
+suppress_message ELAB-33
+# %s DEFAULT branch of CASE statement cannot be reached.
+suppress_message ELAB-311
+# Netlist for always_ff block does not contain a flip-flop.
+suppress_message ELAB-976
+# Netlist for always_comb block is empty.
+suppress_message ELAB-982
+# Netlist for always_ff block is empty.
+suppress_message ELAB-984
+# Netlist for always block is empty.
+suppress_message ELAB-985
+define_design_lib WORK -path ./work
+1
+set alib_library_analysis_path [getenv STD_CELL_ALIB]
+/class/ece411/freepdk-45nm/alib
+set symbol_library [list generic.sdb]
+generic.sdb
+set synthetic_library [list dw_foundation.sldb]
+dw_foundation.sldb
+set target_library [getenv STD_CELL_LIB]
+/class/ece411/freepdk-45nm/stdcells.db
+set sram_library [getenv SRAM_LIB]
+if {$sram_library eq ""} {
+   set link_library [list "*" $target_library $synthetic_library]
+} else {
+   set link_library [list "*" $target_library $synthetic_library $sram_library]
+}
+* /class/ece411/freepdk-45nm/stdcells.db dw_foundation.sldb
+set design_clock_pin clk
+clk
+set design_reset_pin rst
+rst
+analyze -library WORK -format sverilog [getenv PKG_SRCS]
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../pkg/types.sv
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../pkg/types.sv:3: Parameter keyword used in local parameter declaration. (VER-329)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../pkg/types.sv:13: Using default enum base size of 32. (VER-533)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../pkg/types.sv:19: Using default enum base size of 32. (VER-533)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../pkg/types.sv:26: Using default enum base size of 32. (VER-533)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../pkg/types.sv:51: Using default enum base size of 32. (VER-533)
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../pkg/rv32imc_types.svh
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../pkg/cache_types.svh
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../pkg/mutative_types.svh
+Presto compilation completed successfully.
+Loading db file '/class/ece411/freepdk-45nm/stdcells.db'
+Loading db file '/software/Synopsys-2024_x86_64/syn/W-2024.09/libraries/syn/dw_foundation.sldb'
+1
+set srams [split [getenv SRAM_SRCS] " "]
+/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/dcache_data_array/dcache_data_array.v /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/mutative_tag_array/mutative_tag_array.v /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/icache_tag_array/icache_tag_array.v /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/dcache_tag_array/dcache_tag_array.v /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/mutative_data_array/mutative_data_array.v /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/icache_data_array/icache_data_array.v
+foreach sram $srams {
+   analyze -library WORK -format verilog "${sram}"
+}
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/dcache_data_array/dcache_data_array.v
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/mutative_tag_array/mutative_tag_array.v
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/icache_tag_array/icache_tag_array.v
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/dcache_tag_array/dcache_tag_array.v
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/mutative_data_array/mutative_data_array.v
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/icache_data_array/icache_data_array.v
+Presto compilation completed successfully.
+set modules [split [getenv RTL_SRCS] " "]
+/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/core.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/if_stage.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/mem_stage.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/cpu.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/fowarding_unit.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/wb_stage.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/detection_unit.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/ex_stage.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/divider.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/multiplier_combinational.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/multiplier.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/alu.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/cmp.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/id_stage.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/regfile.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/control_unit.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/plru.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/icache/icache_control.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/icache/icache.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/dcache/dcache.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/dcache/dcache_control.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/cache_line.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/ff_array.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/baseline_cache.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_fsm.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_control.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/core.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cpu.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/memory.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/arbiter.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/snoop_bus.sv /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/fifo.sv
+foreach module $modules {
+   analyze -library WORK -format sverilog "${module}"
+}
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/core.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/if_stage.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/mem_stage.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/cpu.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/fowarding_unit.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/wb_stage.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/detection_unit.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/ex_stage.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/divider.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/multiplier_combinational.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/multiplier.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/alu.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/cmp.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/id_stage.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/regfile.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/control_unit.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/plru.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/icache/icache_control.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/icache/icache.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/dcache/dcache.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/dcache/dcache_control.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/cache_line.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/ff_array.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/baseline_cache.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_fsm.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_control.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/core.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:550: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:551: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:552: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:553: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:554: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:555: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:556: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:557: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:558: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:559: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:560: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:561: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:562: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:579: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:585: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:588: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:594: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:605: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:611: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:615: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:620: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:623: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:628: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:631: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:636: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:639: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cache.sv:648: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/cpu.sv
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/memory.sv
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/memory.sv:264: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/memory.sv:269: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/memory.sv:274: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/memory.sv:279: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/memory.sv:280: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/memory.sv:281: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/memory.sv:282: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/memory.sv:283: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:51: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:56: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:61: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:68: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:70: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:77: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:82: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:83: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:84: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:88: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/xbar.sv:91: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/arbiter.sv
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/arbiter.sv:45: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/arbiter.sv:50: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/snoop_bus.sv
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/snoop_bus.sv:40: The construct 'property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/snoop_bus.sv:44: The construct 'assert property' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/snoop_bus.sv:48: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/snoop_bus.sv:53: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/snoop_bus.sv:54: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/coherence/snoop_bus.sv:55: The construct 'cover' is not supported in synthesis; it is ignored. (VER-708)
+Presto compilation completed successfully.
+Running PRESTO HDLC
+Compiling source file /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/fifo.sv
+Presto compilation completed successfully.
+elaborate $design_toplevel
+Loading db file '/software/Synopsys-2024_x86_64/syn/W-2024.09/libraries/syn/gtech.db'
+Loading db file '/software/Synopsys-2024_x86_64/syn/W-2024.09/libraries/syn/standard.sldb'
+  Loading link library 'NangateOpenCellLibrary'
+  Loading link library 'gtech'
+Running PRESTO HDLC
+Presto compilation completed successfully. (core)
+Module: core, Ports: 198, Input: 100, Output: 98, Inout: 0
+Module: core, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Elaborated 1 design.
+Current design is now 'core'.
+Information: Building the design 'cache_line'. (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/cache_line.sv'
+============================================================
+|    Line    |  full/ parallel  |      block location      |
+============================================================
+|    129     |    user/user     | always block at line 104 |
+============================================================
+
+Inferred memory devices in process in routine 'cache_line' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/cache_line.sv'.
+=======================================================================================
+|      Register Name       |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+=======================================================================================
+|  prefetch_iaddress_reg   | Flip-flop |  32   |  Y  | Y  | None  | None  | N  |  79  |
+|      curr_state_reg      | Flip-flop |   3   |  Y  | Y  | None  | Sync  | N  |  79  |
+|       arbiter_reg        | Flip-flop |   1   |  N  | N  | None  | Sync  | N  |  79  |
+|     serdes_count_reg     | Flip-flop |   2   |  Y  | Y  | None  | Sync  | N  |  79  |
+|     prefetch_req_reg     | Flip-flop |   1   |  N  | N  | None  | Sync  | N  |  79  |
+|    prefetch_ready_reg    | Flip-flop |   1   |  N  | N  | None  | Sync  | N  |  79  |
+|     prefetch_hit_reg     | Flip-flop |   1   |  N  | N  | None  | Sync  | N  |  79  |
+|     line_buffer_reg      | Flip-flop |  256  |  Y  | Y  | None  | None  | N  |  79  |
+| prefetch_line_buffer_reg | Flip-flop |  256  |  Y  | Y  | None  | None  | N  |  79  |
+=======================================================================================
+Presto compilation completed successfully. (cache_line)
+Module: cache_line, Ports: 1292, Input: 680, Output: 612, Inout: 0
+Module: cache_line, Registers: 553, Async set/reset: 0, Sync set/reset: 9
+Information: Module report end. (ELAB-965)
+Information: Building the design 'icache' instantiated from design 'core' with
+	the parameters "WAYS=2,SETS=16". (HDL-193)
+
+Inferred memory devices in process in routine 'icache_WAYS2_SETS16' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/icache/icache.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|  ufp_rmask_reg_reg  | Flip-flop |   4   |  Y  | Y  | None  | Sync  | N  |  74  |
+|  ufp_addr_reg_reg   | Flip-flop |  32   |  Y  | Y  | None  | Sync  | N  |  74  |
+==================================================================================
+Presto compilation completed successfully. (icache_WAYS2_SETS16)
+Module: icache_WAYS2_SETS16, Ports: 618, Input: 295, Output: 323, Inout: 0
+Module: icache_WAYS2_SETS16, Registers: 36, Async set/reset: 0, Sync set/reset: 36
+Information: Module report end. (ELAB-965)
+Information: Building the design 'mutative_cache'. (HDL-193)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:119: signed to unsigned conversion occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:121: signed to unsigned conversion occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:122: signed to unsigned conversion occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:120: signed to unsigned conversion occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:118: signed to unsigned conversion occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:127: signed to unsigned conversion occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:129: signed to unsigned conversion occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:130: signed to unsigned conversion occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:128: signed to unsigned conversion occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:126: signed to unsigned conversion occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:162: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv:233: signed to unsigned assignment occurs. (VER-318)
+
+Inferred memory devices in process in routine 'mutative_cache' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_cache.sv'.
+===================================================================================
+|    Register Name     |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+===================================================================================
+|   ufp_wdata_ff_reg   | Flip-flop |  32   |  Y  | Y  | None  | Sync  | N  |  30  |
+|   ufp_addr_ff_reg    | Flip-flop |  32   |  Y  | Y  | None  | Sync  | N  |  30  |
+|   ufp_rmask_ff_reg   | Flip-flop |   4   |  Y  | Y  | None  | Sync  | N  |  30  |
+|   ufp_wmask_ff_reg   | Flip-flop |   4   |  Y  | Y  | None  | Sync  | N  |  30  |
+| full_assoc_cache_reg | Flip-flop | 3584  |  Y  | Y  | None  | Sync  | N  | 216  |
+| virt_valid_array_reg | Flip-flop |  128  |  Y  | Y  | None  | Sync  | N  | 240  |
+===================================================================================
+Statistics for MUX_OPs
+========================================================
+|  block name/line   | Inputs | Outputs | # sel inputs |
+========================================================
+| mutative_cache/113 |   8    |   21    |      3       |
+| mutative_cache/120 |   8    |    1    |      3       |
+| mutative_cache/120 |   8    |   21    |      3       |
+| mutative_cache/128 |   8    |    1    |      3       |
+| mutative_cache/128 |   8    |   22    |      3       |
+| mutative_cache/142 |   8    |   256   |      3       |
+| mutative_cache/173 |   8    |   256   |      3       |
+| mutative_cache/175 |   8    |   23    |      3       |
+| mutative_cache/179 |   8    |    1    |      3       |
+| mutative_cache/276 |  128   |    1    |      7       |
+========================================================
+Presto compilation completed successfully. (mutative_cache)
+Module: mutative_cache, Ports: 654, Input: 331, Output: 323, Inout: 0
+Module: mutative_cache, Registers: 3784, Async set/reset: 0, Sync set/reset: 3784
+Information: Module report end. (ELAB-965)
+Information: Building the design 'cpu'. (HDL-193)
+Presto compilation completed successfully. (cpu)
+Module: cpu, Ports: 176, Input: 68, Output: 108, Inout: 0
+Module: cpu, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'icache_data_array'. (HDL-193)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/icache_data_array/icache_data_array.v:35: The statements in initial blocks are ignored. (VER-281)
+
+Inferred memory devices in process in routine 'icache_data_array' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/icache_data_array/icache_data_array.v'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    addr0_reg_reg    | Flip-flop |   4   |  Y  | Y  | None  | None  | N  |  41  |
+|    din0_reg_reg     | Flip-flop |  256  |  Y  | Y  | None  | None  | N  |  41  |
+|    web0_reg_reg     | Flip-flop |   1   |  N  | N  | None  | None  | N  |  41  |
+|   wmask0_reg_reg    | Flip-flop |  32   |  Y  | Y  | None  | None  | N  |  41  |
+|       mem_reg       | Flip-flop | 4096  |  Y  | Y  | None  | None  | N  |  52  |
+==================================================================================
+Statistics for MUX_OPs
+===========================================================
+|   block name/line     | Inputs | Outputs | # sel inputs |
+===========================================================
+| icache_data_array/124 |   16   |   256   |      4       |
+===========================================================
+Presto compilation completed successfully. (icache_data_array)
+Module: icache_data_array, Ports: 551, Input: 295, Output: 256, Inout: 0
+Module: icache_data_array, Registers: 4389, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'icache_tag_array'. (HDL-193)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/icache_tag_array/icache_tag_array.v:32: The statements in initial blocks are ignored. (VER-281)
+
+Inferred memory devices in process in routine 'icache_tag_array' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/icache_tag_array/icache_tag_array.v'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    addr0_reg_reg    | Flip-flop |   4   |  Y  | Y  | None  | None  | N  |  37  |
+|    din0_reg_reg     | Flip-flop |  24   |  Y  | Y  | None  | None  | N  |  37  |
+|    web0_reg_reg     | Flip-flop |   1   |  N  | N  | None  | None  | N  |  37  |
+|       mem_reg       | Flip-flop |  384  |  Y  | Y  | None  | None  | N  |  47  |
+==================================================================================
+Statistics for MUX_OPs
+=========================================================
+|  block name/line    | Inputs | Outputs | # sel inputs |
+=========================================================
+| icache_tag_array/56 |   16   |   24    |      4       |
+=========================================================
+Presto compilation completed successfully. (icache_tag_array)
+Module: icache_tag_array, Ports: 55, Input: 31, Output: 24, Inout: 0
+Module: icache_tag_array, Registers: 413, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'ff_array' instantiated from design 'icache_WAYS2_SETS16' with
+	the parameters "WIDTH=1". (HDL-193)
+
+Inferred memory devices in process in routine 'ff_array_WIDTH1' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/ff_array.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    din0_reg_reg     | Flip-flop |   1   |  N  | N  | None  | None  | N  |  21  |
+|    web0_reg_reg     | Flip-flop |   1   |  N  | N  | None  | Sync  | N  |  21  |
+|    addr0_reg_reg    | Flip-flop |   4   |  Y  | Y  | None  | None  | N  |  21  |
+| internal_array_reg  | Flip-flop |  16   |  Y  | Y  | None  | Sync  | N  |  35  |
+==================================================================================
+Statistics for MUX_OPs
+========================================================
+|  block name/line   | Inputs | Outputs | # sel inputs |
+========================================================
+| ff_array_WIDTH1/48 |   16   |    1    |      4       |
+========================================================
+Presto compilation completed successfully. (ff_array_WIDTH1)
+Module: ff_array_WIDTH1, Ports: 10, Input: 9, Output: 1, Inout: 0
+Module: ff_array_WIDTH1, Registers: 22, Async set/reset: 0, Sync set/reset: 17
+Information: Module report end. (ELAB-965)
+Information: Building the design 'icache_control' instantiated from design 'icache_WAYS2_SETS16' with
+	the parameters "WAYS=2". (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/icache/icache_control.sv'
+===========================================================
+|    Line    |  full/ parallel  |      block location     |
+===========================================================
+|     53     |    user/user     | always block at line 36 |
+===========================================================
+
+Inferred memory devices in process in routine 'icache_control_WAYS2' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/icache/icache_control.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|   curr_state_reg    | Flip-flop |   3   |  Y  | Y  | None  | Sync  | N  | 121  |
+==================================================================================
+Presto compilation completed successfully. (icache_control_WAYS2)
+Module: icache_control_WAYS2, Ports: 16, Input: 5, Output: 11, Inout: 0
+Module: icache_control_WAYS2, Registers: 3, Async set/reset: 0, Sync set/reset: 3
+Information: Module report end. (ELAB-965)
+Information: Building the design 'plru' instantiated from design 'icache_WAYS2_SETS16' with
+	the parameters "WAYS=2". (HDL-193)
+Presto compilation completed successfully. (plru_WAYS2)
+Module: plru_WAYS2, Ports: 11, Input: 9, Output: 2, Inout: 0
+Module: plru_WAYS2, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'mutative_data_array'. (HDL-193)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/mutative_data_array/mutative_data_array.v:35: The statements in initial blocks are ignored. (VER-281)
+
+Inferred memory devices in process in routine 'mutative_data_array' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/mutative_data_array/mutative_data_array.v'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    addr0_reg_reg    | Flip-flop |   4   |  Y  | Y  | None  | None  | N  |  41  |
+|    din0_reg_reg     | Flip-flop |  256  |  Y  | Y  | None  | None  | N  |  41  |
+|    web0_reg_reg     | Flip-flop |   1   |  N  | N  | None  | None  | N  |  41  |
+|   wmask0_reg_reg    | Flip-flop |  32   |  Y  | Y  | None  | None  | N  |  41  |
+|       mem_reg       | Flip-flop | 4096  |  Y  | Y  | None  | None  | N  |  52  |
+==================================================================================
+Statistics for MUX_OPs
+=============================================================
+|    block name/line      | Inputs | Outputs | # sel inputs |
+=============================================================
+| mutative_data_array/124 |   16   |   256   |      4       |
+=============================================================
+Presto compilation completed successfully. (mutative_data_array)
+Module: mutative_data_array, Ports: 551, Input: 295, Output: 256, Inout: 0
+Module: mutative_data_array, Registers: 4389, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'mutative_tag_array'. (HDL-193)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/mutative_tag_array/mutative_tag_array.v:32: The statements in initial blocks are ignored. (VER-281)
+
+Inferred memory devices in process in routine 'mutative_tag_array' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../sram/output/mutative_tag_array/mutative_tag_array.v'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    addr0_reg_reg    | Flip-flop |   4   |  Y  | Y  | None  | None  | N  |  37  |
+|    din0_reg_reg     | Flip-flop |  24   |  Y  | Y  | None  | None  | N  |  37  |
+|    web0_reg_reg     | Flip-flop |   1   |  N  | N  | None  | None  | N  |  37  |
+|       mem_reg       | Flip-flop |  384  |  Y  | Y  | None  | None  | N  |  47  |
+==================================================================================
+Statistics for MUX_OPs
+===========================================================
+|   block name/line     | Inputs | Outputs | # sel inputs |
+===========================================================
+| mutative_tag_array/56 |   16   |   24    |      4       |
+===========================================================
+Presto compilation completed successfully. (mutative_tag_array)
+Module: mutative_tag_array, Ports: 55, Input: 31, Output: 24, Inout: 0
+Module: mutative_tag_array, Registers: 413, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'ff_array' instantiated from design 'mutative_cache' with
+	the parameters "S_INDEX=4,WIDTH=1". (HDL-193)
+
+Inferred memory devices in process in routine 'ff_array_S_INDEX4_WIDTH1' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cache/ff_array.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    din0_reg_reg     | Flip-flop |   1   |  N  | N  | None  | None  | N  |  21  |
+|    web0_reg_reg     | Flip-flop |   1   |  N  | N  | None  | Sync  | N  |  21  |
+|    addr0_reg_reg    | Flip-flop |   4   |  Y  | Y  | None  | None  | N  |  21  |
+| internal_array_reg  | Flip-flop |  16   |  Y  | Y  | None  | Sync  | N  |  35  |
+==================================================================================
+Statistics for MUX_OPs
+=================================================================
+|      block name/line        | Inputs | Outputs | # sel inputs |
+=================================================================
+| ff_array_S_INDEX4_WIDTH1/48 |   16   |    1    |      4       |
+=================================================================
+Presto compilation completed successfully. (ff_array_S_INDEX4_WIDTH1)
+Module: ff_array_S_INDEX4_WIDTH1, Ports: 10, Input: 9, Output: 1, Inout: 0
+Module: ff_array_S_INDEX4_WIDTH1, Registers: 22, Async set/reset: 0, Sync set/reset: 17
+Information: Module report end. (ELAB-965)
+Information: Building the design 'mutative_fsm' instantiated from design 'mutative_cache' with
+	the parameters "WAYS=8". (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_fsm.sv'
+===========================================================
+|    Line    |  full/ parallel  |      block location     |
+===========================================================
+|     59     |    user/user     | always block at line 41 |
+===========================================================
+
+Inferred memory devices in process in routine 'mutative_fsm_WAYS8' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_fsm.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|   curr_state_reg    | Flip-flop |   3   |  Y  | Y  | None  | Sync  | N  | 138  |
+==================================================================================
+Presto compilation completed successfully. (mutative_fsm_WAYS8)
+Module: mutative_fsm_WAYS8, Ports: 37, Input: 7, Output: 30, Inout: 0
+Module: mutative_fsm_WAYS8, Registers: 3, Async set/reset: 0, Sync set/reset: 3
+Information: Module report end. (ELAB-965)
+Information: Building the design 'mutative_plru'. (HDL-193)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:60: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:64: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:92: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:96: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:100: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:104: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:108: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:112: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:116: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:120: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:131: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:135: signed to unsigned assignment occurs. (VER-318)
+Warning:  /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv:139: signed to unsigned assignment occurs. (VER-318)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv'
+============================================================
+|    Line    |  full/ parallel  |      block location      |
+============================================================
+|     29     |    auto/auto     | always block at line 18  |
+|     36     |    auto/auto     | always block at line 18  |
+|     55     |     no/auto      | always block at line 52  |
+|     57     |    auto/auto     | always block at line 52  |
+|     69     |    auto/auto     | always block at line 52  |
+|     89     |    auto/auto     | always block at line 52  |
+|    128     |    user/user     | always block at line 127 |
+============================================================
+
+Inferred memory devices in process in routine 'mutative_plru' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_plru.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    PLRU_bits_reg    | Flip-flop |  112  |  Y  | Y  | None  | Sync  | N  |  18  |
+==================================================================================
+Statistics for MUX_OPs
+======================================================
+| block name/line  | Inputs | Outputs | # sel inputs |
+======================================================
+| mutative_plru/30 |   16   |    6    |      4       |
+| mutative_plru/57 |   16   |    7    |      4       |
+======================================================
+Presto compilation completed successfully. (mutative_plru)
+Module: mutative_plru, Ports: 51, Input: 40, Output: 11, Inout: 0
+Module: mutative_plru, Registers: 112, Async set/reset: 0, Sync set/reset: 112
+Information: Module report end. (ELAB-965)
+Information: Building the design 'mutative_control'. (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_control.sv'
+===========================================================
+|    Line    |  full/ parallel  |      block location     |
+===========================================================
+|     52     |    user/user     | always block at line 45 |
+===========================================================
+
+Inferred memory devices in process in routine 'mutative_control' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/mutative_cache/mutative_control.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|  control_state_reg  | Flip-flop |   3   |  Y  | Y  | None  | Sync  | N  |  29  |
+|      setup_reg      | Flip-flop |   2   |  Y  | Y  | None  | Sync  | N  |  29  |
+| switch_counter_reg  | Flip-flop |  33   |  Y  | Y  | None  | Sync  | N  |  29  |
+==================================================================================
+Presto compilation completed successfully. (mutative_control)
+Module: mutative_control, Ports: 11, Input: 9, Output: 2, Inout: 0
+Module: mutative_control, Registers: 38, Async set/reset: 0, Sync set/reset: 38
+Information: Module report end. (ELAB-965)
+Information: Building the design 'if_stage'. (HDL-193)
+
+Inferred memory devices in process in routine 'if_stage' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/if_stage.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|       pc_reg        | Flip-flop |  32   |  Y  | Y  | Sync  | Sync  | N  |  29  |
+|  if_stage_reg_reg   | Flip-flop |  438  |  Y  | Y  | Sync  | Sync  | N  |  57  |
+==================================================================================
+Presto compilation completed successfully. (if_stage)
+Module: if_stage, Ports: 513, Input: 37, Output: 476, Inout: 0
+Module: if_stage, Registers: 472, Async set/reset: 0, Sync set/reset: 473
+Information: Module report end. (ELAB-965)
+Information: Building the design 'id_stage'. (HDL-193)
+
+Inferred memory devices in process in routine 'id_stage' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/id_stage.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    imem_busy_reg    | Flip-flop |   1   |  N  | N  | Sync  | Sync  | N  |  34  |
+|   inst_buffer_reg   | Flip-flop |  32   |  Y  | Y  | None  | Sync  | N  |  52  |
+|      order_reg      | Flip-flop |  64   |  Y  | Y  | None  | Sync  | N  | 120  |
+|  id_stage_reg_reg   | Flip-flop |  574  |  Y  | Y  | None  | Sync  | N  | 134  |
+==================================================================================
+Presto compilation completed successfully. (id_stage)
+Module: id_stage, Ports: 1096, Input: 520, Output: 576, Inout: 0
+Module: id_stage, Registers: 671, Async set/reset: 0, Sync set/reset: 672
+Information: Module report end. (ELAB-965)
+Information: Building the design 'ex_stage'. (HDL-193)
+
+Inferred memory devices in process in routine 'ex_stage' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/ex_stage.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    mul_start_reg    | Flip-flop |   1   |  N  | N  | Sync  | Sync  | N  | 118  |
+|    div_start_reg    | Flip-flop |   1   |  N  | N  | Sync  | Sync  | N  | 160  |
+|  ex_stage_reg_reg   | Flip-flop |  455  |  Y  | Y  | None  | Sync  | N  | 250  |
+==================================================================================
+Presto compilation completed successfully. (ex_stage)
+Module: ex_stage, Ports: 1523, Input: 1033, Output: 490, Inout: 0
+Module: ex_stage, Registers: 457, Async set/reset: 0, Sync set/reset: 459
+Information: Module report end. (ELAB-965)
+Information: Building the design 'mem_stage'. (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/mem_stage.sv'
+===========================================================
+|    Line    |  full/ parallel  |      block location     |
+===========================================================
+|     34     |    user/user     | always block at line 25 |
+|     47     |    user/user     | always block at line 25 |
+|     53     |    user/user     | always block at line 25 |
+===========================================================
+
+Inferred memory devices in process in routine 'mem_stage' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/mem_stage.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+| rvfi_mem_wmask_reg  | Flip-flop |   4   |  Y  | Y  | None  | Sync  | N  |  64  |
+| rvfi_mem_rmask_reg  | Flip-flop |   4   |  Y  | Y  | None  | Sync  | N  |  64  |
+|  mem_stage_reg_reg  | Flip-flop |  423  |  Y  | Y  | None  | Sync  | N  |  75  |
+==================================================================================
+Presto compilation completed successfully. (mem_stage)
+Module: mem_stage, Ports: 953, Input: 458, Output: 495, Inout: 0
+Module: mem_stage, Registers: 431, Async set/reset: 0, Sync set/reset: 431
+Information: Module report end. (ELAB-965)
+Information: Building the design 'wb_stage'. (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/wb_stage.sv'
+===========================================================
+|    Line    |  full/ parallel  |      block location     |
+===========================================================
+|     75     |    user/user     | always block at line 73 |
+===========================================================
+
+Inferred memory devices in process in routine 'wb_stage' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/wb_stage.sv'.
+====================================================================================
+|     Register Name     |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+====================================================================================
+|     dmem_busy_reg     | Flip-flop |   1   |  N  | N  | Sync  | Sync  | N  |  34  |
+| dmem_rdata_buffer_reg | Flip-flop |  32   |  Y  | Y  | None  | Sync  | N  |  55  |
+|   wb_stage_reg_reg    | Flip-flop |  376  |  Y  | Y  | None  | Sync  | N  |  97  |
+====================================================================================
+Presto compilation completed successfully. (wb_stage)
+Module: wb_stage, Ports: 882, Input: 467, Output: 415, Inout: 0
+Module: wb_stage, Registers: 409, Async set/reset: 0, Sync set/reset: 410
+Information: Module report end. (ELAB-965)
+Information: Building the design 'control_unit'. (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/control_unit.sv'
+===========================================================
+|    Line    |  full/ parallel  |      block location     |
+===========================================================
+|     65     |    user/user     | always block at line 44 |
+|    331     |    user/user     | always block at line 44 |
+|    433     |    user/user     | always block at line 44 |
+===========================================================
+Presto compilation completed successfully. (control_unit)
+Module: control_unit, Ports: 102, Input: 32, Output: 70, Inout: 0
+Module: control_unit, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'regfile' instantiated from design 'id_stage' with
+	the parameters "NUM_REGS=32". (HDL-193)
+
+Inferred memory devices in process in routine 'regfile_NUM_REGS32' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/regfile.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|      data_reg       | Flip-flop | 1024  |  Y  | Y  | None  | Sync  | N  |  16  |
+==================================================================================
+Statistics for MUX_OPs
+===========================================================
+|   block name/line     | Inputs | Outputs | # sel inputs |
+===========================================================
+| regfile_NUM_REGS32/37 |   32   |   32    |      5       |
+| regfile_NUM_REGS32/45 |   32   |   32    |      5       |
+===========================================================
+Presto compilation completed successfully. (regfile_NUM_REGS32)
+Module: regfile_NUM_REGS32, Ports: 114, Input: 50, Output: 64, Inout: 0
+Module: regfile_NUM_REGS32, Registers: 1024, Async set/reset: 0, Sync set/reset: 1024
+Information: Module report end. (ELAB-965)
+Information: Building the design 'detection_unit'. (HDL-193)
+Presto compilation completed successfully. (detection_unit)
+Module: detection_unit, Ports: 17, Input: 16, Output: 1, Inout: 0
+Module: detection_unit, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'forwarding_unit'. (HDL-193)
+Presto compilation completed successfully. (forwarding_unit)
+Module: forwarding_unit, Ports: 26, Input: 22, Output: 4, Inout: 0
+Module: forwarding_unit, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'alu'. (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/alu.sv'
+===========================================================
+|    Line    |  full/ parallel  |      block location     |
+===========================================================
+|     22     |    user/user     | always block at line 21 |
+===========================================================
+Presto compilation completed successfully. (alu)
+Module: alu, Ports: 99, Input: 67, Output: 32, Inout: 0
+Module: alu, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'multiplier'. (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/multiplier.sv'
+===========================================================
+|    Line    |  full/ parallel  |      block location     |
+===========================================================
+|     61     |    user/user     | always block at line 60 |
+===========================================================
+
+Inferred memory devices in process in routine 'multiplier' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/multiplier.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    mul_busy_reg     | Flip-flop |   1   |  N  | N  | None  | None  | N  |  20  |
+|      done_reg       | Flip-flop |   3   |  Y  | Y  | None  | Sync  | N  |  36  |
+|   mul_result_reg    | Flip-flop |  192  |  Y  | Y  | None  | Sync  | N  |  36  |
+==================================================================================
+Information:  Complex logic will not be considered for set/reset inference. (ELAB-2008)
+Presto compilation completed successfully. (multiplier)
+Module: multiplier, Ports: 106, Input: 73, Output: 33, Inout: 0
+Module: multiplier, Registers: 196, Async set/reset: 0, Sync set/reset: 195
+Information: Module report end. (ELAB-965)
+Information: Building the design 'divider'. (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/divider.sv'
+===========================================================
+|    Line    |  full/ parallel  |      block location     |
+===========================================================
+|     89     |    user/user     | always block at line 88 |
+===========================================================
+
+Inferred memory devices in process in routine 'divider' in file
+	 /home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/divider.sv'.
+==================================================================================
+|    Register Name    |   Type    | Width | Bus | MB |  Set  | Reset | ST | Line |
+==================================================================================
+|    div_busy_reg     | Flip-flop |   1   |  N  | N  | None  | None  | N  |  31  |
+==================================================================================
+Information:  Complex logic will not be considered for set/reset inference. (ELAB-2008)
+Presto compilation completed successfully. (divider)
+Module: divider, Ports: 104, Input: 70, Output: 34, Inout: 0
+Module: divider, Registers: 1, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'cmp'. (HDL-193)
+
+Statistics for case statements in always block in file
+	'/home/maxma2/Documents/ECE511/Mutative_Cache/synth/../hdl/cpu/func/cmp.sv'
+===========================================================
+|    Line    |  full/ parallel  |      block location     |
+===========================================================
+|     22     |    user/user     | always block at line 21 |
+===========================================================
+Presto compilation completed successfully. (cmp)
+Module: cmp, Ports: 68, Input: 67, Output: 1, Inout: 0
+Module: cmp, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+Information: Building the design 'multiplier_combinational'. (HDL-193)
+Presto compilation completed successfully. (multiplier_combinational)
+Module: multiplier_combinational, Ports: 130, Input: 66, Output: 64, Inout: 0
+Module: multiplier_combinational, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Information: Module report end. (ELAB-965)
+1
+current_design $design_toplevel
+Current design is 'core'.
+{core}
+change_names -rules verilog -hierarchy
+1
+check_design
+ 
+****************************************
+check_design summary:
+Version:     W-2024.09
+Date:        Fri May  2 00:13:28 2025
+****************************************
+
+                   Name                                            Total
+--------------------------------------------------------------------------------
+No issues found.
+--------------------------------------------------------------------------------
+
+1
+set_wire_load_model -name "5K_hvratio_1_1"
+1
+set_wire_load_mode enclosed
+1
+set clk_name $design_clock_pin
+clk
+set clk_period [expr [getenv ECE411_CLOCK_PERIOD_PS] / 1000.0]
+8.0
+create_clock -period $clk_period -name my_clk $clk_name
+1
+set_fix_hold [get_clocks my_clk]
+1
+set_input_delay 0.5 [all_inputs] -clock my_clk
+1
+set_output_delay 0.5 [all_outputs] -clock my_clk
+1
+set_load 0.1 [all_outputs]
+1
+set_max_fanout 1 [all_inputs]
+1
+set_fanout_load 8 [all_outputs]
+1
+link
+
+  Linking design 'core'
+  Using the following designs and libraries:
+  --------------------------------------------------------------------------
+  * (30 designs)              /home/maxma2/Documents/ECE511/Mutative_Cache/synth/core.db, etc
+  NangateOpenCellLibrary (library)
+                              /class/ece411/freepdk-45nm/stdcells.db
+  dw_foundation.sldb (library)
+                              /software/Synopsys-2024_x86_64/syn/W-2024.09/libraries/syn/dw_foundation.sldb
+
+1
+eval [getenv ECE411_COMPILE_CMD]
+Information: Performing leakage power optimization. (PWR-850)
+CPU Load: 15%, Ram Free: 10 GB, Swap Free: 6 GB, Work Disk Free: 17 GB, Tmp Disk Free: 30 GB
+Alib files are up-to-date.
+Information: Running optimization using a maximum of 4 cores. (OPT-1500)
+Information: Evaluating DesignWare library utilization. (UISN-27)
+
+============================================================================
+| DesignWare Building Block Library  |         Version         | Available |
+============================================================================
+| Basic DW Building Blocks           | W-2024.09-DWBB_202409.0 |     *     |
+| Licensed DW Building Blocks        | W-2024.09-DWBB_202409.0 |     *     |
+============================================================================
+
+====================================================================================================
+| Flow Information                                                                                 |
+----------------------------------------------------------------------------------------------------
+| Flow         | Design Compiler WLM                                                               |
+| Command Line | compile_ultra -no_autoungroup -gate_clock                                         |
+====================================================================================================
+| Design Information                                      | Value                                  |
+====================================================================================================
+| Number of Scenarios                                     | 0                                      |
+| Leaf Cell Count                                         | 78217                                  |
+| Number of User Hierarchies                              | 54                                     |
+| Sequential Cell Count                                   | 56452                                  |
+| Macro Count                                             | 0                                      |
+| Number of Power Domains                                 | 0                                      |
+| Number of Path Groups                                   | 2                                      |
+| Number of VT Class                                      | 0                                      |
+| Number of Clocks                                        | 1                                      |
+| Number of Dont Touch Cells                              | 3182                                   |
+| Number of Dont Touch Nets                               | 0                                      |
+| Number of Size Only Cells                               | 0                                      |
+| Design with UPF Data                                    | false                                  |
+====================================================================================================
+Information: Sequential output inversion is enabled.  SVF file must be used for formal verification. (OPT-1208)
+
+
+Information: Uniquified 2 instances of design 'icache_data_array'. (OPT-1056)
+Information: Uniquified 2 instances of design 'icache_tag_array'. (OPT-1056)
+Information: Uniquified 2 instances of design 'ff_array_WIDTH1'. (OPT-1056)
+Information: Uniquified 8 instances of design 'mutative_data_array'. (OPT-1056)
+Information: Uniquified 8 instances of design 'mutative_tag_array'. (OPT-1056)
+Information: Uniquified 9 instances of design 'ff_array_S_INDEX4_WIDTH1'. (OPT-1056)
+  Simplifying Design 'core'
+Information: Performing clock-gating with positive edge logic: 'integrated' and negative edge logic: 'or'. (PWR-1047)
+Information: propagating constant for register icache0/plru0/plru_array/din0_reg_reg_0_
+Information: propagating constant for register icache0/plru0/plru_array/web0_reg_reg
+Information: propagating constant for register icache0/plru0/plru_array/addr0_reg_reg_3_
+Information: propagating constant for register icache0/plru0/plru_array/addr0_reg_reg_2_
+Information: propagating constant for register icache0/plru0/plru_array/addr0_reg_reg_1_
+Information: propagating constant for register icache0/plru0/plru_array/addr0_reg_reg_0_
+
+Loaded alib file '/class/ece411/freepdk-45nm/alib/alib-52/stdcells.db.alib'
+CPU Load: 14%, Ram Free: 10 GB, Swap Free: 6 GB, Work Disk Free: 17 GB, Tmp Disk Free: 30 GB
+Information: State dependent leakage is now switched from on to off.
+
+  Beginning Pass 1 Mapping
+  ------------------------
+..
+  Processing 'mutative_cache'
+Information: Added key list 'DesignWare' to design 'mutative_cache'. (DDB-72)
+ Implement Synthetic for 'mutative_cache'.
+  Processing 'mutative_data_array_0'
+ Implement Synthetic for 'mutative_data_array_0'.
+  Processing 'icache_data_array_0'
+ Implement Synthetic for 'icache_data_array_0'.
+  Processing 'regfile_NUM_REGS32'
+Information: Added key list 'DesignWare' to design 'regfile_NUM_REGS32'. (DDB-72)
+  Processing 'cache_line'
+Information: Added key list 'DesignWare' to design 'cache_line'. (DDB-72)
+ Implement Synthetic for 'cache_line'.
+  Processing 'multiplier_combinational'
+Information: Added key list 'DesignWare' to design 'multiplier_combinational'. (DDB-72)
+ Implement Synthetic for 'multiplier_combinational'.
+  Processing 'icache_WAYS2_SETS16'
+Information: Added key list 'DesignWare' to design 'icache_WAYS2_SETS16'. (DDB-72)
+  Processing 'mutative_tag_array_0'
+  Processing 'icache_tag_array_0'
+  Processing 'multiplier'
+  Processing 'wb_stage'
+  Processing 'alu'
+ Implement Synthetic for 'alu'.
+Information: Added key list 'DesignWare' to design 'alu'. (DDB-72)
+  Processing 'cpu'
+  Processing 'SNPS_CLOCK_GATE_HIGH_wb_stage'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_ex_stage'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_if_stage'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_ff_array_S_INDEX4_WIDTH1_1_0'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_icache_control_WAYS2'
+  Mapping integrated clock gating circuitry
+  Processing 'plru_WAYS2'
+  Processing 'ex_stage'
+ Implement Synthetic for 'ex_stage'.
+  Processing 'mem_stage'
+Information: Added key list 'DesignWare' to design 'mem_stage'. (DDB-72)
+  Processing 'divider'
+ Implement Synthetic for 'divider'.
+Module: DW_div_seq_a_width32_b_width32_tc_mode1_num_cyc8_rst_mode1_input_mode1_output_mode1_early_start0, Ports: 134, Input: 68, Output: 66, Inout: 0
+Module: DW_div_seq_a_width32_b_width32_tc_mode1_num_cyc8_rst_mode1_input_mode1_output_mode1_early_start0, Registers: 102, Async set/reset: 0, Sync set/reset: 102
+Module: DW_cntr_scnto_width4_count_to8_rst_mode1_dcod_mode0, Ports: 13, Input: 8, Output: 5, Inout: 0
+Module: DW_cntr_scnto_width4_count_to8_rst_mode1_dcod_mode0, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Module: DW_and_tree_width4, Ports: 5, Input: 4, Output: 1, Inout: 0
+Module: DW_and_tree_width4, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Module: DW01_absval_width32, Ports: 64, Input: 32, Output: 32, Inout: 0
+Module: DW01_absval_width32, Registers: 0, Async set/reset: 0, Sync set/reset: 0
+Information: Performing clock-gating on design divider_DW_div_seq_J12_0. (PWR-730)
+  Processing 'divider_DW_div_seq_J12_0'
+  Processing 'divider_DW01_absval_J12_0'
+Information: Performing clock-gating on design divider_DW_cntr_scnto_J12_0. (PWR-730)
+  Processing 'divider_DW_cntr_scnto_J12_0'
+Module: DW_div_seq_a_width32_b_width32_tc_mode0_num_cyc8_rst_mode1_input_mode1_output_mode1_early_start0, Ports: 134, Input: 68, Output: 66, Inout: 0
+Module: DW_div_seq_a_width32_b_width32_tc_mode0_num_cyc8_rst_mode1_input_mode1_output_mode1_early_start0, Registers: 100, Async set/reset: 0, Sync set/reset: 100
+Information: Performing clock-gating on design divider_DW_div_seq_J12_1. (PWR-730)
+  Processing 'divider_DW_div_seq_J12_1'
+Information: Performing clock-gating on design divider_DW_cntr_scnto_J12_1. (PWR-730)
+  Processing 'divider_DW_cntr_scnto_J12_1'
+  Processing 'icache_control_WAYS2'
+  Processing 'forwarding_unit'
+Information: Added key list 'DesignWare' to design 'forwarding_unit'. (DDB-72)
+  Processing 'SNPS_CLOCK_GATE_HIGH_mem_stage'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_regfile_NUM_REGS32_0'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_mutative_fsm_WAYS8'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_ff_array_S_INDEX4_WIDTH1_0'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_cache_line_0'
+  Mapping integrated clock gating circuitry
+  Processing 'mutative_plru'
+Information: Added key list 'DesignWare' to design 'mutative_plru'. (DDB-72)
+ Implement Synthetic for 'mutative_plru'.
+  Processing 'if_stage'
+ Implement Synthetic for 'if_stage'.
+  Processing 'ff_array_WIDTH1_0'
+  Processing 'cmp'
+Information: Added key list 'DesignWare' to design 'cmp'. (DDB-72)
+ Implement Synthetic for 'cmp'.
+  Processing 'detection_unit'
+Information: Added key list 'DesignWare' to design 'detection_unit'. (DDB-72)
+  Processing 'SNPS_CLOCK_GATE_HIGH_id_stage_0'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_mutative_plru_0'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_icache_WAYS2_SETS16'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_icache_data_array_0_0'
+  Mapping integrated clock gating circuitry
+  Processing 'id_stage'
+  Processing 'control_unit'
+  Processing 'ff_array_S_INDEX4_WIDTH1_1'
+  Processing 'ff_array_S_INDEX4_WIDTH1_0'
+  Processing 'SNPS_CLOCK_GATE_HIGH_mutative_control_0'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_mutative_data_array_0_0'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_icache_tag_array_0_0'
+  Mapping integrated clock gating circuitry
+  Processing 'core'
+  Processing 'mutative_control'
+Information: Added key list 'DesignWare' to design 'mutative_control'. (DDB-72)
+ Implement Synthetic for 'mutative_control'.
+  Processing 'mutative_fsm_WAYS8'
+  Processing 'SNPS_CLOCK_GATE_HIGH_mutative_cache_0'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_mutative_tag_array_0_0'
+  Mapping integrated clock gating circuitry
+  Processing 'SNPS_CLOCK_GATE_HIGH_ff_array_WIDTH1_0_0'
+  Mapping integrated clock gating circuitry
+CPU Load: 18%, Ram Free: 10 GB, Swap Free: 6 GB, Work Disk Free: 17 GB, Tmp Disk Free: 30 GB
+
+  Updating timing information
+Information: Updating design information... (UID-85)
+Information: Performing clock-gating on design multiplier. (PWR-730)
+Information: Performing clock-gating on design divider_DW_div_seq_J12_0. (PWR-730)
+Information: Performing clock-gating on design divider_DW_div_seq_J12_1. (PWR-730)
+Information: Performing clock-gating on design ff_array_S_INDEX4_WIDTH1_0. (PWR-730)
+Information: Performing clock-gating on design ex_stage. (PWR-730)
+Information: Performing clock-gating on design if_stage. (PWR-730)
+Information: Performing clock-gating on design divider. (PWR-730)
+Information: Performing clock-gating on design id_stage. (PWR-730)
+Information: Performing clock-gating on design cache_line. (PWR-730)
+Information: Performing clock-gating on design icache_WAYS2_SETS16. (PWR-730)
+Information: Performing clock-gating on design mutative_cache. (PWR-730)
+Information: Performing clock-gating on design icache_data_array_1. (PWR-730)
+Information: Performing clock-gating on design icache_tag_array_1. (PWR-730)
+Information: Performing clock-gating on design ff_array_WIDTH1_1. (PWR-730)
+Information: Performing clock-gating on design icache_control_WAYS2. (PWR-730)
+Information: Performing clock-gating on design mutative_data_array_7. (PWR-730)
+Information: Performing clock-gating on design mutative_tag_array_7. (PWR-730)
+Information: Performing clock-gating on design ff_array_S_INDEX4_WIDTH1_8. (PWR-730)
+Information: Performing clock-gating on design mutative_fsm_WAYS8. (PWR-730)
+Information: Performing clock-gating on design mutative_plru. (PWR-730)
+Information: Performing clock-gating on design mutative_control. (PWR-730)
+Information: Performing clock-gating on design mem_stage. (PWR-730)
+Information: Performing clock-gating on design regfile_NUM_REGS32. (PWR-730)
+Information: Performing clock-gating on design mutative_data_array_0. (PWR-730)
+Information: Performing clock-gating on design mutative_data_array_1. (PWR-730)
+Information: Performing clock-gating on design mutative_data_array_2. (PWR-730)
+Information: Performing clock-gating on design mutative_data_array_3. (PWR-730)
+Information: Performing clock-gating on design mutative_data_array_4. (PWR-730)
+Information: Performing clock-gating on design mutative_data_array_5. (PWR-730)
+Information: Performing clock-gating on design mutative_data_array_6. (PWR-730)
+Information: Performing clock-gating on design icache_data_array_0. (PWR-730)
+Information: Performing clock-gating on design mutative_tag_array_0. (PWR-730)
+Information: Performing clock-gating on design mutative_tag_array_1. (PWR-730)
+Information: Performing clock-gating on design mutative_tag_array_2. (PWR-730)
+Information: Performing clock-gating on design mutative_tag_array_3. (PWR-730)
+Information: Performing clock-gating on design mutative_tag_array_4. (PWR-730)
+Information: Performing clock-gating on design mutative_tag_array_5. (PWR-730)
+Information: Performing clock-gating on design mutative_tag_array_6. (PWR-730)
+Information: Performing clock-gating on design icache_tag_array_0. (PWR-730)
+Information: Performing clock-gating on design ff_array_S_INDEX4_WIDTH1_1. (PWR-730)
+Information: Performing clock-gating on design ff_array_S_INDEX4_WIDTH1_2. (PWR-730)
+Information: Performing clock-gating on design ff_array_S_INDEX4_WIDTH1_3. (PWR-730)
+Information: Performing clock-gating on design ff_array_S_INDEX4_WIDTH1_4. (PWR-730)
+Information: Performing clock-gating on design ff_array_S_INDEX4_WIDTH1_5. (PWR-730)
+Information: Performing clock-gating on design ff_array_S_INDEX4_WIDTH1_6. (PWR-730)
+Information: Performing clock-gating on design ff_array_S_INDEX4_WIDTH1_7. (PWR-730)
+Information: Performing clock-gating on design ff_array_WIDTH1_0. (PWR-730)
+Information: Performing clock-gating on design wb_stage. (PWR-730)
+CGOPT MAP DEBUG: cgopt_ctxt.target_lib refresh required directly after link: FALSE
+Information: Complementing port 'web0' in design 'ff_array_S_INDEX4_WIDTH1_0'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'evict_update' in design 'plru_WAYS2'.
+	 The new name of the port is 'evict_update_BAR'. (OPT-319)
+
+                                  TOTAL                                                            
+   ELAPSED            WORST NEG   SETUP    DESIGN                              LEAKAGE   MIN DELAY 
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT            POWER      COST    
+  --------- --------- --------- --------- --------- ------------------------- --------- -----------
+    0:01:42  388802.1   2584.76 17210554.0 197726726.2                           7041669.5000      0.00  
+    0:01:42  388802.1   2584.76 17210554.0 197726726.2                           7041669.5000      0.00  
+Information: Complementing port 'web0' in design 'mutative_data_array_0'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_tag_array_0'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'ff_array_S_INDEX4_WIDTH1_1'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_data_array_1'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_tag_array_1'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'ff_array_S_INDEX4_WIDTH1_2'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_data_array_2'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_tag_array_2'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'ff_array_S_INDEX4_WIDTH1_3'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_data_array_3'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_tag_array_3'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'ff_array_S_INDEX4_WIDTH1_4'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_data_array_4'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_tag_array_4'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'ff_array_S_INDEX4_WIDTH1_5'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_data_array_5'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_tag_array_5'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'ff_array_S_INDEX4_WIDTH1_6'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_data_array_6'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_tag_array_6'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'ff_array_S_INDEX4_WIDTH1_7'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_data_array_7'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'mutative_tag_array_7'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+Information: Complementing port 'web0' in design 'ff_array_S_INDEX4_WIDTH1_8'.
+	 The new name of the port is 'web0_BAR'. (OPT-319)
+    0:02:07  388809.5   2584.76 17210554.0 197726707.7                           7041985.5000      0.00  
+Information: Complementing port 'o_imm[31]' in design 'control_unit'.
+	 The new name of the port is 'o_imm[31]_BAR'. (OPT-319)
+Information: Complementing port 'o_imm[0]' in design 'control_unit'.
+	 The new name of the port is 'o_imm[0]_BAR'. (OPT-319)
+Information: Complementing port 'ex_ctrl[7]' in design 'control_unit'.
+	 The new name of the port is 'ex_ctrl[7]_BAR'. (OPT-319)
+Information: Complementing port 'ex_ctrl[0]' in design 'control_unit'.
+	 The new name of the port is 'ex_ctrl[0]_BAR'. (OPT-319)
+Information: Complementing port 'inst[12]' in design 'control_unit'.
+	 The new name of the port is 'inst[12]_BAR'. (OPT-319)
+Information: Complementing port 'mem_ctrl[3]' in design 'control_unit'.
+	 The new name of the port is 'mem_ctrl[3]_BAR'. (OPT-319)
+Information: Complementing port 'inst[30]' in design 'control_unit'.
+	 The new name of the port is 'inst[30]_BAR'. (OPT-319)
+Information: Complementing port 'inst[29]' in design 'control_unit'.
+	 The new name of the port is 'inst[29]_BAR'. (OPT-319)
+Information: Complementing port 'inst[28]' in design 'control_unit'.
+	 The new name of the port is 'inst[28]_BAR'. (OPT-319)
+Information: Complementing port 'inst[27]' in design 'control_unit'.
+	 The new name of the port is 'inst[27]_BAR'. (OPT-319)
+Information: Complementing port 'inst[26]' in design 'control_unit'.
+	 The new name of the port is 'inst[26]_BAR'. (OPT-319)
+Information: Complementing port 'inst[25]' in design 'control_unit'.
+	 The new name of the port is 'inst[25]_BAR'. (OPT-319)
+Information: Complementing port 'inst[24]' in design 'control_unit'.
+	 The new name of the port is 'inst[24]_BAR'. (OPT-319)
+Information: Complementing port 'inst[23]' in design 'control_unit'.
+	 The new name of the port is 'inst[23]_BAR'. (OPT-319)
+Information: Complementing port 'inst[22]' in design 'control_unit'.
+	 The new name of the port is 'inst[22]_BAR'. (OPT-319)
+Information: Complementing port 'inst[21]' in design 'control_unit'.
+	 The new name of the port is 'inst[21]_BAR'. (OPT-319)
+Information: Complementing port 'inst[19]' in design 'control_unit'.
+	 The new name of the port is 'inst[19]_BAR'. (OPT-319)
+Information: Complementing port 'inst[18]' in design 'control_unit'.
+	 The new name of the port is 'inst[18]_BAR'. (OPT-319)
+Information: Complementing port 'inst[17]' in design 'control_unit'.
+	 The new name of the port is 'inst[17]_BAR'. (OPT-319)
+Information: Complementing port 'inst[16]' in design 'control_unit'.
+	 The new name of the port is 'inst[16]_BAR'. (OPT-319)
+Information: Complementing port 'inst[15]' in design 'control_unit'.
+	 The new name of the port is 'inst[15]_BAR'. (OPT-319)
+Information: Complementing port 'inst[11]' in design 'control_unit'.
+	 The new name of the port is 'inst[11]_BAR'. (OPT-319)
+Information: Complementing port 'inst[10]' in design 'control_unit'.
+	 The new name of the port is 'inst[10]_BAR'. (OPT-319)
+Information: Complementing port 'inst[9]' in design 'control_unit'.
+	 The new name of the port is 'inst[9]_BAR'. (OPT-319)
+Information: Complementing port 'inst[8]' in design 'control_unit'.
+	 The new name of the port is 'inst[8]_BAR'. (OPT-319)
+Information: Complementing port 'inst[3]' in design 'control_unit'.
+	 The new name of the port is 'inst[3]_BAR'. (OPT-319)
+
+  Beginning Mapping Optimizations  (Ultra High effort)
+  -------------------------------
+Information: Added key list 'DesignWare' to design 'if_stage'. (DDB-72)
+Information: Added key list 'DesignWare' to design 'ex_stage'. (DDB-72)
+Information: Added key list 'DesignWare' to design 'divider'. (DDB-72)
+Information: Updating design information... (UID-85)
+..
+  Mapping Optimization (Phase 1)
+Information: In design 'core', the register 'cpu0/ex_stage0/divider0/sdivider0/start_q_reg' is removed because it is merged to 'cpu0/ex_stage0/divider0/udivider0/start_q_reg'. (OPT-1215)
+
+                                  TOTAL                                                            
+   ELAPSED            WORST NEG   SETUP    DESIGN                              LEAKAGE   MIN DELAY 
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT            POWER      COST    
+  --------- --------- --------- --------- --------- ------------------------- --------- -----------
+    0:04:13  483469.9      4.16    1473.1    6673.5                           12024927.0000      0.00  
+    0:04:19  483408.7      4.65    1489.2    6747.3                           12023402.0000      0.00  
+
+  Beginning Constant Register Removal
+  -----------------------------------
+
+  Beginning Global Optimizations
+  ------------------------------
+  Numerical Synthesis (Phase 1)
+  Numerical Synthesis (Phase 2)
+  Global Optimization (Phase 1)
+  Global Optimization (Phase 2)
+  Global Optimization (Phase 3)
+  Global Optimization (Phase 4)
+  Global Optimization (Phase 5)
+  Global Optimization (Phase 6)
+  Global Optimization (Phase 7)
+  Global Optimization (Phase 8)
+  Global Optimization (Phase 9)
+  Global Optimization (Phase 10)
+  Global Optimization (Phase 11)
+  Global Optimization (Phase 12)
+  Global Optimization (Phase 13)
+  Global Optimization (Phase 14)
+  Global Optimization (Phase 15)
+  Global Optimization (Phase 16)
+  Global Optimization (Phase 17)
+  Global Optimization (Phase 18)
+  Global Optimization (Phase 19)
+  Global Optimization (Phase 20)
+  Global Optimization (Phase 21)
+  Global Optimization (Phase 22)
+  Global Optimization (Phase 23)
+  Global Optimization (Phase 24)
+  Global Optimization (Phase 25)
+  Global Optimization (Phase 26)
+  Global Optimization (Phase 27)
+  Global Optimization (Phase 28)
+  Global Optimization (Phase 29)
+  Global Optimization (Phase 30)
+  Global Optimization (Phase 31)
+  Global Optimization (Phase 32)
+  Global Optimization (Phase 33)
+
+  Beginning Isolate Ports
+  -----------------------
+
+  Beginning Delay Optimization
+  ----------------------------
+    0:05:30  391376.7      4.09     268.9    7215.5                           7125640.5000      0.00  
+    0:05:34  391689.5      2.98     196.0    7215.5                           7138156.0000      0.00  
+    0:05:34  391689.5      2.98     196.0    7215.5                           7138156.0000      0.00  
+    0:05:51  388826.6      2.98     199.5    6742.3                           7147679.5000      0.00  
+    0:06:20  388728.1      2.98     199.2    6925.4                           7145460.0000      0.00  
+    0:06:27  383705.8      3.02     200.0   12622.3                           7036414.0000      0.00  
+
+  Beginning WLM Backend Optimization
+  --------------------------------------
+    0:07:11  383152.8      3.02     198.6   12390.7                           7012787.5000      0.00  
+    0:07:31  382883.3      3.02     198.2   11546.9                           7004164.0000      0.00  
+    0:07:32  382858.3      3.02     198.2   11518.3                           7003492.5000      0.00  
+    0:07:33  382848.2      3.01     195.4   11488.5                           7002993.0000      0.00  
+    0:07:33  382848.2      3.01     195.4   11488.5                           7002993.0000      0.00  
+    0:07:34  382848.2      3.01     195.4   11488.5                           7002993.0000      0.00  
+    0:07:34  382848.2      3.01     195.4   11488.5                           7002993.0000      0.00  
+    0:07:43  382605.6      3.01     192.0   10438.7                           6990939.5000      0.00  
+    0:07:43  382605.6      3.01     192.0   10438.7                           6990939.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+
+
+  Beginning Design Rule Fixing  (max_transition)  (max_fanout)  (max_capacitance)
+  ----------------------------
+
+                                  TOTAL                                                            
+   ELAPSED            WORST NEG   SETUP    DESIGN                              LEAKAGE   MIN DELAY 
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT            POWER      COST    
+  --------- --------- --------- --------- --------- ------------------------- --------- -----------
+    0:07:49  383802.3      0.00       0.0   10584.4                           7033552.5000      0.00  
+  Global Optimization (Phase 34)
+  Global Optimization (Phase 35)
+  Global Optimization (Phase 36)
+    0:07:57  384033.8      0.00       0.0       0.0                           7041134.0000      0.00  
+    0:07:57  384033.8      0.00       0.0       0.0                           7041134.0000      0.00  
+    0:07:57  384033.8      0.00       0.0       0.0                           7041134.0000      0.00  
+    0:07:57  384033.8      0.00       0.0       0.0                           7041134.0000      0.00  
+    0:07:57  384033.8      0.00       0.0       0.0                           7041134.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+    0:08:08  383782.9      0.00       0.0       0.0                           7002528.0000      0.00  
+
+                                  TOTAL                                                            
+   ELAPSED            WORST NEG   SETUP    DESIGN                              LEAKAGE   MIN DELAY 
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT            POWER      COST    
+  --------- --------- --------- --------- --------- ------------------------- --------- -----------
+    0:08:28  383739.6      0.00       0.0       0.0                           7001650.0000      0.00  
+    0:08:39  382995.0      0.00       0.0       0.0                           6982286.0000      0.00  
+    0:08:40  382995.0      0.00       0.0       0.0                           6982286.0000      0.00  
+    0:08:40  382995.0      0.00       0.0       0.0                           6982286.0000      0.00  
+    0:08:47  382990.8      0.00       0.0       0.0                           6981073.0000      0.00  
+    0:09:06  382928.8      0.00       0.0       0.0                           6979669.0000      0.00  
+    0:09:14  382887.6      0.00       0.0       0.0                           6978285.5000      0.00  
+    0:09:14  382887.6      0.00       0.0       0.0                           6978285.5000      0.00  
+    0:09:14  382887.6      0.00       0.0       0.0                           6978285.5000      0.00  
+    0:09:14  382887.6      0.00       0.0       0.0                           6978285.5000      0.00  
+    0:09:14  382887.6      0.00       0.0       0.0                           6978285.5000      0.00  
+    0:09:14  382887.6      0.00       0.0       0.0                           6978285.5000      0.00  
+    0:09:20  382868.4      0.00       0.0      22.0                           6978185.0000      0.00  
+CPU Load: 64%, Ram Free: 9 GB, Swap Free: 6 GB, Work Disk Free: 17 GB, Tmp Disk Free: 30 GB
+Loading db file '/class/ece411/freepdk-45nm/stdcells.db'
+
+
+Note: Symbol # after min delay cost means estimated hold TNS across all active scenarios 
+
+
+  Optimization Complete
+  ---------------------
+Information: State dependent leakage is now switched from off to on.
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+CPU Load: 50%, Ram Free: 9 GB, Swap Free: 6 GB, Work Disk Free: 17 GB, Tmp Disk Free: 30 GB
+Information: Total number of MV cells in the design.
+----------------------------------------------------------------------------------------------------
+ MV Cells                                           Total Number                                   
+----------------------------------------------------------------------------------------------------
+ Level Shifter:                                     0                                             
+ Enable Level Shifter:                              0                                             
+ Isolation Cell:                                    0                                             
+ Retention Cell:                                    0                                             
+ Retention Clamp Cell:                              0                                             
+ Switch Cell:                                       0                                             
+ Always-On Cell:                                    0                                             
+ Repeater Cell:                                     0                                             
+
+----------------------------------------------------------------------------------------------------
+Unmapped MV Cells 
+----------------------------------------------------------------------------------------------------
+0 Isolation Cells are unmapped 
+0 Retention Clamp Cells are unmapped 
+----------------------------------------------------------------------------------------------------
+1
+current_design $design_toplevel
+Current design is 'core'.
+{core}
+report_area -hier > reports/area.rpt
+report_timing -delay max > reports/timing.rpt
+check_design > reports/check.rpt
+write_file -format ddc -hierarchy -output outputs/synth.ddc
+Writing ddc file 'outputs/synth.ddc'.
+1
+write_file -format verilog -hierarchy -output [format "outputs/%s.gate.v" $design_toplevel]
+Writing verilog file '/home/maxma2/Documents/ECE511/Mutative_Cache/synth/outputs/core.gate.v'.
+1
+exit
+
+Memory usage for this session 821 Mbytes.
+Memory usage for this session including child processes 1535 Mbytes.
+CPU usage for this session 929 seconds ( 0.26 hours ).
+Elapsed time for this session 670 seconds ( 0.19 hours ).
+
+Thank you...

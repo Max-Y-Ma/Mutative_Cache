@@ -87,7 +87,7 @@ import mutative_types::*;
             .csb0       (valid_array_csb0[i] || true_csb0[i]), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal
             .addr0      (cache_address.set_index),
-            .din0       (1'b1), 
+            .din0       (1'b1),
             .dout0      (cache_output[i].valid)
         );
     end endgenerate

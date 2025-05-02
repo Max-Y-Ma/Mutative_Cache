@@ -18,7 +18,7 @@ FSDB2SAIF_END   = $(shell tail -n1 ../sim/sim/time.txt)
 # Directory paths
 export SYNTH_TOP := $(TOP)
 export PKG_SRCS  := $(shell find $(PWD)/../pkg -name '*.svh' -o -name '*.sv')
-export RTL_SRCS  := $(shell find $(PWD)/../hdl -name '*.sv') 
+export RTL_SRCS  := $(shell find $(PWD)/../hdl -name '*.sv')
 export SRAM_SRCS := $(shell find $(PWD)/../sram/output/ -name '*.v')
 export SRAM_LIB  := $(shell find $(PWD)/../sram/output/ -name '*.db')
 
@@ -34,13 +34,6 @@ outputs/synth.ddc:
 	python3 get_clock.py
 	python3 get_min_power.py
 	python3 get_compile_cmd.py
-	export SYNTH_TOP=$(TOP) ;\
-	export PKG_SRCS="$(shell find $(PWD)/../pkg -name '*.svh' -o -name '*.sv')" ;\
-	export RTL_SRCS="$(shell find $(PWD)/../hdl -name '*.sv')" ;\
-	export SRAM_SRCS="$(shell find $(PWD)/../sram/output/ -name '*.v')" ;\
-	export SRAM_LIB="$(shell find $(PWD)/../sram/output/ -name '*.db')" ;\
-	export STD_CELL_LIB=$(FREEPDK45)/stdcells.db ;\
-	export STD_CELL_ALIB=$(FREEPDK45)/alib ;\
 	export ECE411_CLOCK_PERIOD_PS=$(shell python3 get_clock.py) ;\
 	export ECE411_MIN_POWER=$(shell python3 get_min_power.py) ;\
 	export ECE411_COMPILE_CMD="$(shell python3 get_compile_cmd.py)" ;\
@@ -50,7 +43,6 @@ outputs/synth.ddc:
 	rm -rf work
 	bash check_synth_error.sh
 
-
 .PHONY: info
 info:
 	@echo -e ${GREEN}WELCOME TO THE SYNTHESIZER!${RESET}
@@ -58,7 +50,6 @@ info:
 	@echo -e ${GREEN}TOP is the top level module in 'hdl/...'${RESET}
 	@echo -e ${GREEN}Example: make synth TOP=...${RESET}
 	@echo -e 
-
 
 ../sim/sim/dump.fsdb.saif: ../sim/sim/dump.fsdb
 	cd ../sim/sim && fsdb2saif dump.fsdb -bt $(FSDB2SAIF_START)ps -et $(FSDB2SAIF_END)ps -s top_tb/dut

@@ -1,0 +1,188 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : core
+Version: W-2024.09
+Date   : Fri May  2 00:23:32 2025
+****************************************
+
+ # A fanout number of 1000 was used for high fanout net computations.
+
+Operating Conditions: typical   Library: NangateOpenCellLibrary
+Wire Load Model Mode: enclosed
+
+  Startpoint: cpu0/ex_stage0/divider0/sdivider0/b_sign_reg
+              (rising edge-triggered flip-flop clocked by my_clk)
+  Endpoint: cpu0/ex_stage0/divider0/sdivider0/part_rem_reg_reg[3]
+            (rising edge-triggered flip-flop clocked by my_clk)
+  Path Group: my_clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  divider            5K_hvratio_1_1        NangateOpenCellLibrary
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock my_clk (rise edge)                            0.000000   0.000000
+  clock network delay (ideal)                         0.000000   0.000000
+  cpu0/ex_stage0/divider0/sdivider0/b_sign_reg/CK (SDFF_X1)
+                                                      0.000000   0.000000 r
+  cpu0/ex_stage0/divider0/sdivider0/b_sign_reg/Q (SDFF_X1)
+                                                      0.079740   0.079740 r
+  cpu0/ex_stage0/divider0/U1824/Z (XOR2_X1)           0.094885   0.174626 r
+  cpu0/ex_stage0/divider0/U1825/ZN (INV_X1)           0.059714   0.234339 f
+  cpu0/ex_stage0/divider0/U1826/ZN (NAND2_X1)         0.044737   0.279076 r
+  cpu0/ex_stage0/divider0/U1827/ZN (OAI21_X1)         0.037089   0.316165 f
+  cpu0/ex_stage0/divider0/U1165/ZN (OR2_X1)           0.062831   0.378997 f
+  cpu0/ex_stage0/divider0/U1828/ZN (NAND2_X1)         0.032648   0.411645 r
+  cpu0/ex_stage0/divider0/U1832/ZN (NAND2_X1)         0.027742   0.439387 f
+  cpu0/ex_stage0/divider0/U494/ZN (NAND2_X1)          0.031340   0.470726 r
+  cpu0/ex_stage0/divider0/U488/ZN (OAI21_X1)          0.042084   0.512810 f
+  cpu0/ex_stage0/divider0/U487/ZN (OAI21_X1)          0.055000   0.567810 r
+  cpu0/ex_stage0/divider0/U1836/ZN (NAND2_X1)         0.034775   0.602585 f
+  cpu0/ex_stage0/divider0/U1838/ZN (NAND2_X1)         0.034627   0.637212 r
+  cpu0/ex_stage0/divider0/U65/ZN (AND3_X1)            0.059034   0.696247 r
+  cpu0/ex_stage0/divider0/U484/ZN (OR3_X1)            0.040777   0.737024 r
+  cpu0/ex_stage0/divider0/U709/ZN (OAI211_X1)         0.060630   0.797654 f
+  cpu0/ex_stage0/divider0/U481/ZN (NAND2_X1)          0.045303   0.842958 r
+  cpu0/ex_stage0/divider0/U480/ZN (AND2_X1)           0.042840   0.885798 r
+  cpu0/ex_stage0/divider0/U703/ZN (NAND4_X1)          0.046982   0.932779 f
+  cpu0/ex_stage0/divider0/U796/ZN (NAND2_X1)          0.043697   0.976477 r
+  cpu0/ex_stage0/divider0/U794/ZN (NAND3_X1)          0.042147   1.018624 f
+  cpu0/ex_stage0/divider0/U855/ZN (NAND2_X1)          0.029763   1.048386 r
+  cpu0/ex_stage0/divider0/U832/ZN (AND2_X1)           0.038515   1.086901 r
+  cpu0/ex_stage0/divider0/U474/ZN (NAND2_X1)          0.037454   1.124356 f
+  cpu0/ex_stage0/divider0/U473/ZN (NAND2_X1)          0.038538   1.162894 r
+  cpu0/ex_stage0/divider0/U700/ZN (AND4_X1)           0.065471   1.228364 r
+  cpu0/ex_stage0/divider0/U472/ZN (OR2_X1)            0.042029   1.270394 r
+  cpu0/ex_stage0/divider0/U691/ZN (NAND3_X1)          0.044849   1.315242 f
+  cpu0/ex_stage0/divider0/U466/ZN (NAND2_X1)          0.045236   1.360478 r
+  cpu0/ex_stage0/divider0/U856/ZN (NAND3_X1)          0.058024   1.418502 f
+  cpu0/ex_stage0/divider0/U671/ZN (NAND2_X1)          0.037010   1.455512 r
+  cpu0/ex_stage0/divider0/U460/ZN (AND2_X1)           0.039386   1.494898 r
+  cpu0/ex_stage0/divider0/U455/ZN (NAND4_X1)          0.042598   1.537496 f
+  cpu0/ex_stage0/divider0/U831/ZN (NAND2_X1)          0.037539   1.575035 r
+  cpu0/ex_stage0/divider0/U817/ZN (AND2_X1)           0.041608   1.616643 r
+  cpu0/ex_stage0/divider0/U818/ZN (NAND2_X1)          0.028870   1.645513 f
+  cpu0/ex_stage0/divider0/U819/ZN (NAND2_X1)          0.028979   1.674492 r
+  cpu0/ex_stage0/divider0/U407/ZN (OAI211_X1)         0.049270   1.723762 f
+  cpu0/ex_stage0/divider0/U983/CO (FA_X1)             0.103933   1.827695 f
+  cpu0/ex_stage0/divider0/U54/ZN (INV_X1)             0.036435   1.864130 r
+  cpu0/ex_stage0/divider0/U1859/ZN (NAND2_X1)         0.031796   1.895926 f
+  cpu0/ex_stage0/divider0/U1860/ZN (NAND2_X1)         0.029917   1.925843 r
+  cpu0/ex_stage0/divider0/U1864/ZN (AND2_X2)          0.047987   1.973830 r
+  cpu0/ex_stage0/divider0/U52/ZN (INV_X1)             0.047335   2.021165 f
+  cpu0/ex_stage0/divider0/U1936/ZN (AND2_X1)          0.049493   2.070658 f
+  cpu0/ex_stage0/divider0/U1937/ZN (XNOR2_X1)         0.059560   2.130218 f
+  cpu0/ex_stage0/divider0/U1938/CO (FA_X1)            0.102095   2.232313 f
+  cpu0/ex_stage0/divider0/U1943/ZN (OAI21_X1)         0.051691   2.284004 r
+  cpu0/ex_stage0/divider0/U1945/ZN (NAND2_X1)         0.033134   2.317138 f
+  cpu0/ex_stage0/divider0/U1948/ZN (OAI21_X1)         0.070342   2.387480 r
+  cpu0/ex_stage0/divider0/U1952/CO (FA_X1)            0.089169   2.476649 r
+  cpu0/ex_stage0/divider0/U1959/ZN (AOI21_X1)         0.037584   2.514233 f
+  cpu0/ex_stage0/divider0/U1964/CO (FA_X1)            0.106420   2.620652 f
+  cpu0/ex_stage0/divider0/U1967/ZN (OAI21_X1)         0.064032   2.684685 r
+  cpu0/ex_stage0/divider0/U1971/CO (FA_X1)            0.082783   2.767467 r
+  cpu0/ex_stage0/divider0/U1973/ZN (AOI22_X1)         0.041426   2.808894 f
+  cpu0/ex_stage0/divider0/U1977/CO (FA_X1)            0.109556   2.918450 f
+  cpu0/ex_stage0/divider0/U1981/ZN (OAI21_X1)         0.064032   2.982482 r
+  cpu0/ex_stage0/divider0/U1985/CO (FA_X1)            0.082783   3.065265 r
+  cpu0/ex_stage0/divider0/U1987/ZN (AOI22_X1)         0.041750   3.107015 f
+  cpu0/ex_stage0/divider0/U1993/CO (FA_X1)            0.109569   3.216584 f
+  cpu0/ex_stage0/divider0/U1996/ZN (OAI21_X1)         0.064032   3.280616 r
+  cpu0/ex_stage0/divider0/U2002/CO (FA_X1)            0.092542   3.373158 r
+  cpu0/ex_stage0/divider0/U364/ZN (NAND2_X1)          0.032718   3.405876 f
+  cpu0/ex_stage0/divider0/U362/ZN (NAND2_X1)          0.036039   3.441915 r
+  cpu0/ex_stage0/divider0/U662/CO (FA_X1)             0.074207   3.516122 r
+  cpu0/ex_stage0/divider0/U2015/ZN (AOI22_X1)         0.045031   3.561153 f
+  cpu0/ex_stage0/divider0/U2020/CO (FA_X1)            0.113199   3.674352 f
+  cpu0/ex_stage0/divider0/U2023/ZN (OAI21_X1)         0.072039   3.746391 r
+  cpu0/ex_stage0/divider0/U2029/CO (FA_X1)            0.087547   3.833938 r
+  cpu0/ex_stage0/divider0/U2031/ZN (AOI22_X1)         0.042019   3.875957 f
+  cpu0/ex_stage0/divider0/U2036/CO (FA_X1)            0.118308   3.994265 f
+  cpu0/ex_stage0/divider0/U806/ZN (OAI21_X1)          0.073783   4.068048 r
+  cpu0/ex_stage0/divider0/U805/CO (FA_X1)             0.100410   4.168458 r
+  cpu0/ex_stage0/divider0/U688/ZN (NAND2_X1)          0.033314   4.201771 f
+  cpu0/ex_stage0/divider0/U355/ZN (NAND2_X1)          0.048582   4.250353 r
+  cpu0/ex_stage0/divider0/U663/ZN (NAND2_X2)          0.068862   4.319215 f
+  cpu0/ex_stage0/divider0/U346/ZN (NAND2_X1)          0.043893   4.363109 r
+  cpu0/ex_stage0/divider0/U1169/ZN (XNOR2_X1)         0.067816   4.430925 r
+  cpu0/ex_stage0/divider0/U2095/CO (FA_X1)            0.094117   4.525042 r
+  cpu0/ex_stage0/divider0/U786/ZN (NAND2_X1)          0.035844   4.560886 f
+  cpu0/ex_stage0/divider0/U789/ZN (NAND3_X1)          0.034234   4.595120 r
+  cpu0/ex_stage0/divider0/U679/ZN (NAND2_X1)          0.033288   4.628408 f
+  cpu0/ex_stage0/divider0/U299/ZN (AND2_X1)           0.037834   4.666243 f
+  cpu0/ex_stage0/divider0/U294/ZN (OAI21_X1)          0.048384   4.714627 r
+  cpu0/ex_stage0/divider0/U2111/ZN (OAI21_X1)         0.046574   4.761201 f
+  cpu0/ex_stage0/divider0/U2115/CO (FA_X1)            0.117401   4.878602 f
+  cpu0/ex_stage0/divider0/U883/ZN (INV_X1)            0.032781   4.911383 r
+  cpu0/ex_stage0/divider0/U280/ZN (OAI21_X1)          0.034413   4.945796 f
+  cpu0/ex_stage0/divider0/U2127/CO (FA_X1)            0.109425   5.055222 f
+  cpu0/ex_stage0/divider0/U2130/ZN (OAI21_X1)         0.073783   5.129004 r
+  cpu0/ex_stage0/divider0/U2134/CO (FA_X1)            0.085172   5.214177 r
+  cpu0/ex_stage0/divider0/U2137/ZN (OAI21_X1)         0.038083   5.252260 f
+  cpu0/ex_stage0/divider0/U2142/CO (FA_X1)            0.112062   5.364322 f
+  cpu0/ex_stage0/divider0/U1000/ZN (NAND2_X1)         0.033973   5.398294 r
+  cpu0/ex_stage0/divider0/U1001/ZN (NAND2_X1)         0.031539   5.429834 f
+  cpu0/ex_stage0/divider0/U2154/CO (FA_X1)            0.105999   5.535832 f
+  cpu0/ex_stage0/divider0/U2157/ZN (OAI21_X1)         0.064032   5.599864 r
+  cpu0/ex_stage0/divider0/U2160/CO (FA_X1)            0.086950   5.686814 r
+  cpu0/ex_stage0/divider0/U2163/ZN (OAI21_X1)         0.039196   5.726010 f
+  cpu0/ex_stage0/divider0/U2166/CO (FA_X1)            0.115456   5.841466 f
+  cpu0/ex_stage0/divider0/U996/ZN (NAND2_X1)          0.034614   5.876080 r
+  cpu0/ex_stage0/divider0/U997/ZN (NAND2_X1)          0.031727   5.907807 f
+  cpu0/ex_stage0/divider0/U2180/CO (FA_X1)            0.121351   6.029158 f
+  cpu0/ex_stage0/divider0/U815/ZN (NAND2_X1)          0.038371   6.067529 r
+  cpu0/ex_stage0/divider0/U12/ZN (NAND4_X1)           0.047440   6.114968 f
+  cpu0/ex_stage0/divider0/U2237/CO (FA_X1)            0.111601   6.226570 f
+  cpu0/ex_stage0/divider0/U2238/ZN (OAI22_X1)         0.055812   6.282382 r
+  cpu0/ex_stage0/divider0/U2239/ZN (NAND2_X1)         0.036807   6.319188 f
+  cpu0/ex_stage0/divider0/U2245/ZN (NAND2_X1)         0.037662   6.356850 r
+  cpu0/ex_stage0/divider0/U1160/ZN (NAND2_X1)         0.030856   6.387706 f
+  cpu0/ex_stage0/divider0/U1163/ZN (NAND2_X1)         0.028670   6.416376 r
+  cpu0/ex_stage0/divider0/U2249/ZN (NAND2_X1)         0.034608   6.450984 f
+  cpu0/ex_stage0/divider0/U2251/ZN (OAI21_X1)         0.070237   6.521221 r
+  cpu0/ex_stage0/divider0/U2255/CO (FA_X1)            0.090631   6.611852 r
+  cpu0/ex_stage0/divider0/U833/ZN (NAND2_X1)          0.034292   6.646143 f
+  cpu0/ex_stage0/divider0/U854/ZN (NAND2_X1)          0.029171   6.675314 r
+  cpu0/ex_stage0/divider0/U2264/ZN (NAND2_X1)         0.032415   6.707729 f
+  cpu0/ex_stage0/divider0/U2266/ZN (OAI21_X1)         0.062799   6.770528 r
+  cpu0/ex_stage0/divider0/U2270/CO (FA_X1)            0.088430   6.858959 r
+  cpu0/ex_stage0/divider0/U187/ZN (NAND4_X1)          0.041373   6.900331 f
+  cpu0/ex_stage0/divider0/U179/ZN (NAND2_X1)          0.042160   6.942492 r
+  cpu0/ex_stage0/divider0/U852/CO (FA_X1)             0.093470   7.035961 r
+  cpu0/ex_stage0/divider0/U167/ZN (OR2_X1)            0.041577   7.077538 r
+  cpu0/ex_stage0/divider0/U669/ZN (NAND3_X1)          0.046817   7.124356 f
+  cpu0/ex_stage0/divider0/U2308/CO (FA_X1)            0.114531   7.238886 f
+  cpu0/ex_stage0/divider0/U2309/ZN (OAI21_X1)         0.065012   7.303898 r
+  cpu0/ex_stage0/divider0/U2314/CO (FA_X1)            0.102494   7.406392 r
+  cpu0/ex_stage0/divider0/U705/ZN (NAND2_X1)          0.034611   7.441003 f
+  cpu0/ex_stage0/divider0/U707/ZN (NAND3_X1)          0.040897   7.481900 r
+  cpu0/ex_stage0/divider0/U2339/CO (FA_X1)            0.090384   7.572284 r
+  cpu0/ex_stage0/divider0/U2344/ZN (NOR2_X1)          0.028714   7.600997 f
+  cpu0/ex_stage0/divider0/U2347/ZN (AOI211_X4)        0.156285   7.757283 r
+  cpu0/ex_stage0/divider0/U2359/ZN (INV_X1)           0.046414   7.803697 f
+  cpu0/ex_stage0/divider0/U2361/ZN (NAND2_X1)         0.029102   7.832799 r
+  cpu0/ex_stage0/divider0/U2362/ZN (XNOR2_X1)         0.058516   7.891315 r
+  cpu0/ex_stage0/divider0/sdivider0/part_rem_reg_reg[3]/SE (SDFF_X1)
+                                                      0.013716   7.905031 r
+  data arrival time                                              7.905031
+
+  clock my_clk (rise edge)                            8.000000   8.000000
+  clock network delay (ideal)                         0.000000   8.000000
+  cpu0/ex_stage0/divider0/sdivider0/part_rem_reg_reg[3]/CK (SDFF_X1)
+                                                      0.000000   8.000000 r
+  library setup time                                  -0.087992  7.912008
+  data required time                                             7.912008
+  --------------------------------------------------------------------------
+  data required time                                             7.912008
+  data arrival time                                              -7.905031
+  --------------------------------------------------------------------------
+  slack (MET)                                                    0.006977
+
+
+1
