@@ -41,6 +41,8 @@ import mutative_types::*;
         end
     end
 
+
+
     logic   tag_array_csb0    [WAYS-1:0];
     logic   data_array_csb0   [WAYS-1:0];
     logic   valid_array_csb0  [WAYS-1:0];
@@ -62,11 +64,12 @@ import mutative_types::*;
     logic [WAYS-1:0] way_we;
     assign cpu_request = idle ? (|ufp_rmask || |ufp_wmask) : (|ufp_rmask_ff || |ufp_wmask_ff);
     assign cache_address = idle ? ufp_addr : ufp_addr_ff;
+
     // i chose msb bit of tag array is dirty bit
     generate for (genvar i = 0; i < WAYS; i++) begin : arrays //TODO 
         mutative_data_array data_array (
             .clk0       (clk),
-            .csb0       (data_array_csb0[i] || true_csb0[i]), //active low  r/w  en
+            .csb0       (data_array_csb0[i]), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal TODO: look at
             .wmask0     (cache_data_wmask), 
             .addr0      (cache_address.set_index),
@@ -75,7 +78,7 @@ import mutative_types::*;
         );
         mutative_tag_array tag_array (
             .clk0       (clk),
-            .csb0       (tag_array_csb0[i] || true_csb0[i]), //active low  r/w  en
+            .csb0       (tag_array_csb0[i]), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal
             .addr0      (cache_address.set_index),
             .din0       ({dirty_en, cache_address.tag}),
@@ -84,7 +87,7 @@ import mutative_types::*;
         ff_array #(.S_INDEX(SET_BITS), .WIDTH(1)) valid_array (
             .clk0       (clk),
             .rst0       (rst),
-            .csb0       (valid_array_csb0[i] || true_csb0[i]), //active low  r/w  en
+            .csb0       (valid_array_csb0[i]), //active low  r/w  en
             .web0       (!(way_we[i]&& cache_wen)), // active low write signal
             .addr0      (cache_address.set_index),
             .din0       (1'b1), 

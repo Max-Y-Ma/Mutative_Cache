@@ -63,6 +63,8 @@ core dut(
 // Monitor Interface DUT Wiring
 `include "../../hvl/vc/core/rvfi_reference.svh"
 
+int csb_zero_cycles[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+int csb_level_changes_cycles[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 // Waveform Dumpfiles and Reset
 initial begin
   $fsdbDumpfile("dump.fsdb");
@@ -77,6 +79,10 @@ int timeout_cycles = 10000000;
 always @(posedge clk) begin
   if (mon_itf.halt) begin
     $display("hit rate: %0f", real'(dut.mutative_cache0.setup_control.hit_counter)/real'(dut.mutative_cache0.setup_control.request_counter));
+    for(int i = 0; i < 8; i++) begin
+      $display("way [%0d] csb level changes (1 -> 0): %0d", i, csb_level_changes_cycles[i]);
+      $display("way [%0d] csb lcycles as zero (values can update): %0d", i, csb_zero_cycles[i]);
+    end
     $finish;
   end
   if (timeout_cycles == 0) begin
@@ -93,5 +99,18 @@ always @(posedge clk) begin
   end
   timeout_cycles <= timeout_cycles - 1;
 end
+
+  generate
+    for (genvar i=0; i<8; ++i) begin
+      always @(posedge clk) begin
+        if($fell(dut.mutative_cache0.arrays[i].data_array.csb0))
+          csb_level_changes_cycles[i] <= csb_level_changes_cycles[i] +1;
+
+        if(!(dut.mutative_cache0.arrays[i].data_array.csb0))
+          csb_zero_cycles[i] <= csb_zero_cycles[i] +1;
+      end
+    end
+  endgenerate
+
 
 endmodule : top_tb
