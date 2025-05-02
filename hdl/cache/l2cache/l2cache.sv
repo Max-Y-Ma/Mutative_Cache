@@ -295,8 +295,6 @@ import cache_types::*;
     .dfp_resp(dfp_resp),
     .resp_dfp_write(resp_dfp_write),
     .resp_dfp_wdata(resp_dfp_wdata),
-    .cache_read_request(cache_read_request),
-    .cache_write_request(cache_write_request),
     .cache_hit_vector(cache_hit_vector),
     .resp_bus_hit_vector(resp_bus_hit_vector),
     .evict_candidate(evict_candidate),

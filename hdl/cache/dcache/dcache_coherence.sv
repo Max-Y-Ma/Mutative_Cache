@@ -96,9 +96,10 @@ import cache_types::*;
 
   // Cacheline State Update Logic
   always_comb begin
-    dfp_rdata = '0;
-    state_array_next  = state_array;
-    req_bus_busy_next = req_bus_busy_reg;
+    dfp_resp             = '0;
+    dfp_rdata            = '0;
+    state_array_next     = state_array;
+    req_bus_busy_next    = req_bus_busy_reg;
     invalidate_resp_next = invalidate_resp_reg;
 
     // Update Cacheline State per Way
@@ -309,11 +310,9 @@ import cache_types::*;
       end
 
       // Back Invalidation
-      if (invalidate_req) begin
-        if (cache_hit_vector[i]) begin
-          state_array_next[i][addr_index] = CI;
-          invalidate_resp_next = '1;
-        end
+      if (invalidate_req && cache_hit_vector[i]) begin
+        state_array_next[i][addr_index] = CI;
+        invalidate_resp_next = '1;
       end
       else begin
         invalidate_resp_next = '0;
@@ -657,6 +656,7 @@ import cache_types::*;
 
   assign resp_bus_req  = req_bus_req_next;
   assign resp_bus_tx   = req_bus_tx_next;
+  assign resp_bus_busy = '0;
 
   // Cache logic
   always_ff @(posedge clk) begin
@@ -665,11 +665,11 @@ import cache_types::*;
         state_array[i] <= '{default: CI};
       end
 
-      req_bus_busy_reg <= '0;
-      req_bus_req_reg  <= '0;
-      req_bus_tx_reg   <= '0;
-      resp_bus_req_reg <= '0;
-      resp_bus_tx_reg  <= '0;
+      req_bus_busy_reg    <= '0;
+      req_bus_req_reg     <= '0;
+      req_bus_tx_reg      <= '0;
+      resp_bus_req_reg    <= '0;
+      resp_bus_tx_reg     <= '0;
       invalidate_resp_reg <= '0;
     end
     else begin
@@ -677,11 +677,11 @@ import cache_types::*;
         state_array[i] <= state_array_next[i];
       end
 
-      req_bus_busy_reg <= req_bus_busy_next;
-      req_bus_req_reg  <= req_bus_req_next;
-      req_bus_tx_reg   <= req_bus_tx_next;
-      resp_bus_req_reg <= resp_bus_req_next;
-      resp_bus_tx_reg  <= resp_bus_tx_next;
+      req_bus_busy_reg    <= req_bus_busy_next;
+      req_bus_req_reg     <= req_bus_req_next;
+      req_bus_tx_reg      <= req_bus_tx_next;
+      resp_bus_req_reg    <= resp_bus_req_next;
+      resp_bus_tx_reg     <= resp_bus_tx_next;
       invalidate_resp_reg <= invalidate_resp_next;
     end
   end

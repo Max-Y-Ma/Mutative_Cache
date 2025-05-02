@@ -16,8 +16,6 @@ import cache_types::*;
   output logic            resp_dfp_write,
   output logic [255:0]    resp_dfp_wdata,
 
-  input  logic            cache_read_request,
-  input  logic            cache_write_request,
   input  logic [WAYS-1:0] cache_hit_vector,
   input  logic [WAYS-1:0] resp_bus_hit_vector,
   input  logic [WAYS-1:0] evict_candidate,

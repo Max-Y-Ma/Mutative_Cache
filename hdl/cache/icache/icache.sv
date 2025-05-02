@@ -129,7 +129,9 @@ import cache_types::*;
       end
 
       // Calculate hit vector and data output
-      ufp_rdata       = 32'b0;
+      ufp_rdata   = 'x;
+      bus_rdata   = 'x;
+      bus_request = req_bus_msg.valid;
       for (int i = 0; i < WAYS; i++) begin
         // Don't write unless memory or cpu writing
         tag_array_web0[i]     = 1'b1;
@@ -149,19 +151,15 @@ import cache_types::*;
         end
 
         // Checks bus tag hits
-        bus_rdata = 'x;
         bus_hit_vector[i] = 1'b0;
         if (tag_array_dout1[i][TAG_BITS-1:0] == bus_tag_val) begin
-          bus_rdata = data_array_dout1[i];
           bus_hit_vector[i] = valid_array_dout1[i];
+          bus_rdata = data_array_dout1[i];
         end
-
-        bus_request = req_bus_msg.valid;
 
         // Write to cache after writeback completes
         // Only overwrite the eviction candidate
         if (write_from_mem && evict_candidate[i] == 1'b1) begin
-          cache_hit_vector[i] = 1'b1;
           tag_array_web0[i]  = 1'b0;
           data_array_web0[i] = 1'b0;
           data_array_wmask[i] = ~32'b0;

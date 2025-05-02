@@ -47,6 +47,7 @@ logic [255:0]              l2cache_invalidate_wdata;
 // Invalidation Selection Logic
 logic [$clog2(NUM_CACHE)-1:0] resp_idx;
 always_comb begin
+  resp_idx = '0;
   for (int i = 0; i < NUM_CACHE; i++) begin
     if (invalidate_resp[i]) begin
       resp_idx = i;
