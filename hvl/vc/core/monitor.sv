@@ -107,41 +107,69 @@ module monitor (
         end
     end
 
+    int time_fd;
+    initial time_fd = $fopen("./time.txt", "w");
+
     longint inst_count = longint'(0);
     longint cycle_count = longint'(0);
     longint start_time = longint'(0);
     longint total_time = longint'(0);
     bit done_print_ipc = 1'b0;
     real ipc = real'(0);
-    always @(posedge itf.clk) begin
-        if ((!itf.rst && itf.valid) && (itf.inst == 32'h00102013)) begin
-            inst_count = longint'(0);
-            cycle_count = longint'(0);
-            start_time = $time;
-            $display("Monitor: Segment Start time is %t",$time); 
-        end else begin
-            cycle_count += longint'(1);
-            if (!itf.rst && itf.valid) begin
-                inst_count += longint'(1);
+    longint power_start_time = longint'(0);
+    bit done_print_power = 1'b0;
+
+    always @(posedge itf.clk iff !itf.rst) begin
+        cycle_count += longint'(1);
+        if (itf.valid) begin
+            inst_count += longint'(1);
+            if (itf.inst == 32'h00102013) begin
+                inst_count = longint'(0);
+                cycle_count = longint'(0);
+                start_time = $time;
+                power_start_time = $time;
+                $display("Monitor: Segment Start time is %t", $time);
             end
-        end
-        if ((!itf.rst && itf.valid) && (itf.inst == 32'h00202013)) begin
-            $display("Monitor: Segment Stop time is %t",$time); 
-            done_print_ipc = 1'b1;
-            ipc = real'(inst_count) / cycle_count;
-            total_time = $time - start_time;
-            $display("Monitor: Segment IPC: %f", ipc);
-            $display("Monitor: Segment Time: %t", total_time);
+            if (itf.inst == 32'h00202013) begin
+                $display("Monitor: Segment Stop time is %t", $time);
+                done_print_ipc = 1'b1;
+                ipc = real'(inst_count) / cycle_count;
+                total_time = $time - start_time;
+                $display("Monitor: Segment IPC: %f", ipc);
+                $display("Monitor: Segment Time: %t", total_time);
+                if (!done_print_power) begin
+                    done_print_power = 1'b1;
+                    $fwrite(time_fd, "%0t\n", power_start_time);
+                    $fwrite(time_fd, "%0t", $time);
+                end
+            end
+            if (itf.inst == 32'h00302013) begin
+                $display("Monitor: Power Start time is %t", $time);
+                power_start_time = $time;
+            end
+            if (itf.inst == 32'h00402013) begin
+                $display("Monitor: Power Stop time is %t", $time);
+                done_print_power = 1'b1;
+                $fwrite(time_fd, "%0t\n", power_start_time);
+                $fwrite(time_fd, "%0t", $time);
+            end
         end
     end
 
     final begin
         if (!done_print_ipc) begin
+            done_print_ipc = 1'b1;
             ipc = real'(inst_count) / cycle_count;
             total_time = $time - start_time;
             $display("Monitor: Total IPC: %f", ipc);
             $display("Monitor: Total Time: %t", total_time);
         end
+        if (!done_print_power) begin
+            done_print_power = 1'b1;
+            $fwrite(time_fd, "%0t\n", power_start_time);
+            $fwrite(time_fd, "%0t", $time);
+        end
+        $fclose(time_fd);
     end
 
     riscv_formal_monitor_rv32imc monitor(
