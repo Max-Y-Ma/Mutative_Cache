@@ -55,7 +55,6 @@ import mutative_types::*;
     logic cache_wen, dirty_en;
     cache_output_t cache_output[WAYS];
     cache_address_t cache_address;
-    logic [WAYS-2:0] PLRU_bits[SET_SIZE]; //N2: chooses btwn W2 and W3 N1:chooses btwn W0 and W1 N0:chooses between Ways0_1 and Ways2_3
     logic mem_write_cache;
     logic [31:0] cache_data_wmask;
     logic [255:0] cache_wdata;
@@ -65,112 +64,79 @@ import mutative_types::*;
     assign cpu_request = idle ? (|ufp_rmask || |ufp_wmask) : (|ufp_rmask_ff || |ufp_wmask_ff);
     assign cache_address = idle ? ufp_addr : ufp_addr_ff;
 
+    logic [WAYS-1:0] real_clk;
+    logic [WAYS-1:0] real_csb;
+    logic [WAYS-1:0] real_web;
+    always_comb begin
+        real_csb = '1;
+        real_web = '1;
+        for (int i = 0; i < WAYS; i++) begin
+            real_clk[i] = clk && !true_csb0[i];
+            real_csb[i] = data_array_csb0[i] || true_csb0[i];
+            real_web[i] = !(way_we[i]&& cache_wen);
+        end
+    end
+
     // i chose msb bit of tag array is dirty bit
     generate for (genvar i = 0; i < WAYS; i++) begin : arrays //TODO 
         mutative_data_array data_array (
-            .clk0       (clk),
-            .csb0       (data_array_csb0[i]), //active low  r/w  en
-            .web0       (!(way_we[i]&& cache_wen)), // active low write signal TODO: look at
+            .clk0       (real_clk[i]),
+            .csb0       (real_csb[i]), //active low  r/w  en
+            .web0       (real_web[i]), // active low write signal TODO: look at
             .wmask0     (cache_data_wmask), 
             .addr0      (cache_address.set_index),
             .din0       (cache_wdata),
             .dout0      (cache_output[i].data)
         );
         mutative_tag_array tag_array (
-            .clk0       (clk),
-            .csb0       (tag_array_csb0[i]), //active low  r/w  en
-            .web0       (!(way_we[i]&& cache_wen)), // active low write signal
+            .clk0       (real_clk[i]),
+            .csb0       (real_csb[i]), //active low  r/w  en
+            .web0       (real_web[i]), // active low write signal
             .addr0      (cache_address.set_index),
             .din0       ({dirty_en, cache_address.tag}),
             .dout0      ({cache_output[i].dirty, cache_output[i].tag})
         );
         ff_array #(.S_INDEX(SET_BITS), .WIDTH(1)) valid_array (
-            .clk0       (clk),
+            .clk0       (real_clk[i]),
             .rst0       (rst),
-            .csb0       (valid_array_csb0[i]), //active low  r/w  en
-            .web0       (!(way_we[i]&& cache_wen)), // active low write signal
+            .csb0       (real_csb[i]), //active low  r/w  en
+            .web0       (real_web[i]), // active low write signal
             .addr0      (cache_address.set_index),
             .din0       (1'b1), 
             .dout0      (cache_output[i].valid)
         );
     end endgenerate
 
-    logic [WAYS-1:0] compare_result;
-    logic [31:0] true_data;
-    logic true_valid;
     logic [WAY_IDX_BITS-1:0] hit_way;
-    logic [2:0] dm_way_index;
-    logic [1:0] two_way_index;
-    logic four_way_index;
-    always_comb begin: comparator_1
-        hit_way = {WAY_IDX_BITS{1'b0}};
-        compare_result = {WAYS{1'b0}};
-        dm_way_index = cache_address.tag[2:0]; //0-8
-        two_way_index = cache_address.tag[1:0]; //0-3
-        four_way_index = cache_address.tag[0]; // 0 or 1
-        for (int i=0; i<WAYS; ++i)
-            true_csb0[i] = 1'b1;
-        if(setup == 0) begin //DM 
-            true_csb0[dm_way_index] = 1'b0;
-            if(cache_output[dm_way_index].valid&&(cache_output[dm_way_index].tag[TAG_BITS-4:0] == cache_address.tag[TAG_BITS-4:0])) begin
-                compare_result[dm_way_index] = 1'b1;
-                hit_way = WAY_IDX_BITS'(dm_way_index); 
-            end
-        end else if(setup == 1) begin //2-way
-            for (int unsigned i = 0; i < (WAYS/4); i++) begin
-                true_csb0[i+ (WAYS/4)*two_way_index] = 1'b0;
-                if(cache_output[i+ (WAYS/4)*two_way_index].valid&&(cache_output[i+ (WAYS/4)*two_way_index].tag[TAG_BITS-3:0] == cache_address.tag[TAG_BITS-3:0])) begin
-                    compare_result[i+ (WAYS/4)*two_way_index] = 1'b1;
-                    hit_way = WAY_IDX_BITS'(i+ (WAYS/4)*two_way_index); 
-                end
-            end
-        end else if(setup == 2) begin //4-way
-            for (int unsigned i = 0; i < (WAYS/2); i++) begin
-                true_csb0[i+ (WAYS/2)*four_way_index] = 1'b0;
-                if(cache_output[i+ (WAYS/2)*four_way_index].valid&&(cache_output[i+ (WAYS/2)*four_way_index].tag[TAG_BITS-2:0] == cache_address.tag[TAG_BITS-2:0])) begin
-                    compare_result[i+ (WAYS/2)*four_way_index] = 1'b1;
-                    hit_way = WAY_IDX_BITS'(i+ (WAYS/2)*four_way_index); 
-                end
-            end
-        end else begin //8-way
-            for (int unsigned i = 0; i < WAYS; i++) begin
-                true_csb0[i] = 1'b0;
-                if(cache_output[i].valid&&(cache_output[i].tag[TAG_BITS-1:0] == cache_address.tag)) begin
-                    compare_result[i] = 1'b1;
-                    hit_way = WAY_IDX_BITS'(i); 
-                end
-            end
-        end
-        true_data = cache_output[hit_way].data[cache_address.block_offset[4:2]*32 +: 32];
-        hit = |compare_result;
-        ufp_rdata = (ufp_resp && |ufp_rmask_ff)? true_data : 'x;
-    end
 
+    mutative_comparator mut_cmp0 (
+        .cache_address(cache_address),
+        .cache_output(cache_output),
+        .setup(setup), 
+        .ufp_rmask_ff(ufp_rmask_ff),
+        .ufp_resp(ufp_resp),
 
-    //32 bits each bit represents 8 bits of 256 so 4 bits high will be 32 bti mask
-    always_comb begin :cache_write_data_logic
-        cache_data_wmask = 32'h00000000;
-        cache_wdata = 'x;
-        dirty_en = 1'b0;
-        if(mem_write_cache) begin //memory writing cache
-            way_we = evict_we;
-            cache_data_wmask = 32'hFFFFFFFF;
-            cache_wdata = dfp_rdata;
-            dirty_en = 1'b0;
-        end
-        else if(write_from_cpu) begin //cpu writing cache
-            cache_data_wmask[4*cache_address.block_offset[4:2] +: 4] = ufp_wmask_ff; // 00100
-            cache_wdata[cache_address.block_offset[4:2]*32 +: 32] = ufp_wdata_ff;
-            way_we = 1 << hit_way;
-            dirty_en = 1'b1;
-        end
-        else begin
-            way_we = {WAYS{1'b0}};
-            cache_data_wmask = 32'h00000000;
-            cache_wdata = 'x;
-            dirty_en = 1'b0;
-        end
-    end
+        .hit_way(hit_way),
+        .true_csb0(true_csb0), 
+        .hit(hit),
+        .ufp_rdata(ufp_rdata)
+    );
+
+    cache_write_data_controller write_logic
+    (
+        .mem_write_cache(mem_write_cache),
+        .write_from_cpu(write_from_cpu),
+        .evict_we(evict_we),
+        .dfp_rdata(dfp_rdata),
+        .ufp_wdata_ff(ufp_wdata_ff),
+        .ufp_wmask_ff(ufp_wmask_ff),
+        .hit_way(hit_way),
+        .cache_address(cache_address),
+        .way_we(way_we),
+        .cache_data_wmask(cache_data_wmask),
+        .cache_wdata(cache_wdata),
+        .dirty_en(dirty_en)
+    );
 
     assign dfp_wdata = wb_en ? cache_output[evict_way].data : 'x;
     assign dfp_write = wb_en;
@@ -211,79 +177,30 @@ import mutative_types::*;
 
 
 
-    logic [FULL_TAG_BITS-1:0]       full_assoc_tag;
-    full_assoc_t                    full_assoc_cache[SET_SIZE*WAYS];
-    logic                           full_assoc_hit;
-    logic [FULL_ASSOC_BITS-1:0]     full_assoc_hit_idx;
-
-    assign full_assoc_tag = ufp_addr_ff >> OFFSET_BITS;
-
-    always_ff @(posedge clk) begin
-        if(rst) begin
-            for(int i = 0; i < (SET_SIZE*WAYS); i++)
-                full_assoc_cache[i] <= '0;
-        end else if(cache_wen) begin
-            full_assoc_cache[full_assoc_hit_idx].valid <= 1'b1;
-            full_assoc_cache[full_assoc_hit_idx].dirty <= dirty_en;
-            full_assoc_cache[full_assoc_hit_idx].tag <= full_assoc_tag;
-        end
-    end
-
-    always_comb begin //comparator 
-        full_assoc_hit_idx = '0;
-        full_assoc_hit = 1'b0;
-        for (int i=0; i < (SET_SIZE*WAYS); ++i) begin
-            if(full_assoc_tag == full_assoc_cache[i].tag && full_assoc_cache[i].valid) begin
-                full_assoc_hit = 1'b1;
-                full_assoc_hit_idx = i;
-                break;
-            end
-        end
-    end
-
-    
-    logic virt_valid_array[SET_SIZE][WAYS];
-    always_ff @(posedge clk) begin
-        if(rst) begin
-            for(int i = 0; i < SET_SIZE; i++) begin
-                for(int j = 0; j < WAYS; j++) begin
-                    virt_valid_array[i][j] <= '0;
-                end
-            end
-        end else if(cache_wen) begin
-            for(int i = 0; i < WAYS; i++) begin
-                if(way_we[i]) begin
-                    virt_valid_array[cache_address.set_index][i] <= 1'b1;
-                end
-            end
-
-        end
-    end
-
+    logic full_assoc_hit;
     logic real_cache_full;
     logic full_assoc_full;
-    always_comb begin
-        real_cache_full = 1'b1;
-        full_assoc_full = 1'b1;
-        for(int i = 0; i < SET_SIZE; i++) begin
-            for(int j = 0; j < WAYS; j++) begin
-                if(virt_valid_array[i][j] == 0) begin
-                    real_cache_full = 1'b0;
-                end
-            end
-        end
-        for (int k=0; k<(SET_SIZE*WAYS); ++k) begin
-            if(full_assoc_cache[k].valid == 0) begin
-                full_assoc_full = 1'b0;
-            end
-        end
-    end
+    logic real_cache_valid;
+
+    associativity assoc (
+        .clk(clk),
+        .rst(rst),
+        .cache_wen(cache_wen),
+        .dirty_en(dirty_en),
+        .ufp_addr_ff(ufp_addr_ff),
+        .way_we(way_we),
+        .cache_address(cache_address),
+        .full_assoc_hit(full_assoc_hit),
+        .real_cache_full(real_cache_full),
+        .full_assoc_full(full_assoc_full),
+        .valid_bit(real_cache_valid)
+    );
 
 
     mutative_control setup_control (
         .clk(clk),
         .rst(rst), 
-        .real_cache_valid(full_assoc_cache[full_assoc_hit_idx].valid),
+        .real_cache_valid(real_cache_valid),
         .real_cache_hit(hit),
         .full_assoc_hit(full_assoc_hit),
         .real_cache_full(real_cache_full),
@@ -291,6 +208,6 @@ import mutative_types::*;
         .cache_ready(ufp_resp),
         .cpu_req(cpu_request),
         .setup(setup)
-        );
+    );
 
 endmodule
