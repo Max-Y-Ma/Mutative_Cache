@@ -12,7 +12,7 @@ package mutative_types;
     localparam TAG_BITS = 32 - SET_BITS - OFFSET_BITS;
 
     localparam FULL_TAG_BITS = 32 - OFFSET_BITS;
-    localparam FULL_ASSOC_BITS = $clog2(SET_SIZE*WAYS);
+    localparam FULL_ASSOC_BITS = $clog2((SET_SIZE*WAYS)/4);
 
     typedef struct packed {
         logic                           valid;

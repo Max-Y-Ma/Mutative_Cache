@@ -99,6 +99,8 @@ import mutative_types::*;
     logic [2:0] dm_way_index;
     logic [1:0] two_way_index;
     logic four_way_index;
+    logic sampled_hit;
+    logic use_full_assoc;
     always_comb begin: comparator_1
         hit_way = {WAY_IDX_BITS{1'b0}};
         compare_result = {WAYS{1'b0}};
@@ -140,6 +142,8 @@ import mutative_types::*;
         end
         true_data = cache_output[hit_way].data[cache_address.block_offset[4:2]*32 +: 32];
         hit = |compare_result;
+        if (hit && use_full_assoc)
+            sampled_hit = '1;
         ufp_rdata = (ufp_resp && |ufp_rmask_ff)? true_data : 'x;
     end
 
@@ -209,17 +213,50 @@ import mutative_types::*;
 
 
     logic [FULL_TAG_BITS-1:0]       full_assoc_tag;
-    full_assoc_t                    full_assoc_cache[SET_SIZE*WAYS];
+    full_assoc_t                    full_assoc_cache[(SET_SIZE*WAYS)/4]; //probably divide this by 4 to do 4 samples 
     logic                           full_assoc_hit;
     logic [FULL_ASSOC_BITS-1:0]     full_assoc_hit_idx;
 
     assign full_assoc_tag = ufp_addr_ff >> OFFSET_BITS;
 
+    //we only want to do our checks for set 0,4,8,12 (sampling)
+
+    
+    always_comb begin
+        case (setup)
+            2'b00: begin
+                if ((cache_address.set_index % 4 == 0) && (cache_address.set_index >= 0) && (cache_address.set_index <= 124))
+                    use_full_assoc = '1;
+                else 
+                    use_full_assoc = '0;
+            end
+            2'b01: begin
+                if ((cache_address.set_index % 4 == 0) && (cache_address.set_index >= 0) && (cache_address.set_index <= 60))
+                    use_full_assoc = '1;
+                else 
+                    use_full_assoc = '0;
+            end
+            2'b10: begin
+                if ((cache_address.set_index % 4 == 0) && (cache_address.set_index >= 0) && (cache_address.set_index <= 28))
+                    use_full_assoc = '1;
+                else 
+                    use_full_assoc = '0;
+            end
+            2'b11: begin
+                if ((cache_address.set_index % 4 == 0) && (cache_address.set_index >= 0) && (cache_address.set_index <= 12))
+                    use_full_assoc = '1;
+                else 
+                    use_full_assoc = '0;
+            end
+        endcase
+    end
+
+
     always_ff @(posedge clk) begin
         if(rst) begin
-            for(int i = 0; i < (SET_SIZE*WAYS); i++)
+            for(int i = 0; i < (SET_SIZE*WAYS)/4; i++) //divide by 4 here too
                 full_assoc_cache[i] <= '0;
-        end else if(cache_wen) begin
+        end else if(cache_wen && use_full_assoc) begin
             full_assoc_cache[full_assoc_hit_idx].valid <= 1'b1;
             full_assoc_cache[full_assoc_hit_idx].dirty <= dirty_en;
             full_assoc_cache[full_assoc_hit_idx].tag <= full_assoc_tag;
@@ -229,11 +266,13 @@ import mutative_types::*;
     always_comb begin //comparator 
         full_assoc_hit_idx = '0;
         full_assoc_hit = 1'b0;
-        for (int i=0; i < (SET_SIZE*WAYS); ++i) begin
-            if(full_assoc_tag == full_assoc_cache[i].tag && full_assoc_cache[i].valid) begin
-                full_assoc_hit = 1'b1;
-                full_assoc_hit_idx = i;
-                break;
+        if (use_full_assoc) begin
+            for (int i=0; i < (SET_SIZE*WAYS)/4; ++i) begin //divide by 4
+                if(full_assoc_tag == full_assoc_cache[i].tag && full_assoc_cache[i].valid) begin
+                    full_assoc_hit = 1'b1;
+                    full_assoc_hit_idx = i;
+                    break;
+                end
             end
         end
     end
@@ -269,7 +308,7 @@ import mutative_types::*;
                 end
             end
         end
-        for (int k=0; k<(SET_SIZE*WAYS); ++k) begin
+        for (int k=0; k<(SET_SIZE*WAYS)/4; ++k) begin //div by 4
             if(full_assoc_cache[k].valid == 0) begin
                 full_assoc_full = 1'b0;
             end
@@ -281,7 +320,7 @@ import mutative_types::*;
         .clk(clk),
         .rst(rst), 
         .real_cache_valid(full_assoc_cache[full_assoc_hit_idx].valid),
-        .real_cache_hit(hit),
+        .real_cache_hit(sampled_hit),
         .full_assoc_hit(full_assoc_hit),
         .real_cache_full(real_cache_full),
         .full_assoc_full(full_assoc_full),
