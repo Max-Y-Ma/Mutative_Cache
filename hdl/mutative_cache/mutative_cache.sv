@@ -64,14 +64,14 @@ import mutative_types::*;
     assign cpu_request = idle ? (|ufp_rmask || |ufp_wmask) : (|ufp_rmask_ff || |ufp_wmask_ff);
     assign cache_address = idle ? ufp_addr : ufp_addr_ff;
 
-    logic [WAYS-1:0] real_clk;
+    // logic [WAYS-1:0] real_clk;
     logic [WAYS-1:0] real_csb;
     logic [WAYS-1:0] real_web;
     always_comb begin
         real_csb = '1;
         real_web = '1;
         for (int i = 0; i < WAYS; i++) begin
-            real_clk[i] = clk && !true_csb0[i];
+            // real_clk[i] = clk && !true_csb0[i];
             real_csb[i] = data_array_csb0[i] || true_csb0[i];
             real_web[i] = !(way_we[i]&& cache_wen);
         end
@@ -80,7 +80,7 @@ import mutative_types::*;
     // i chose msb bit of tag array is dirty bit
     generate for (genvar i = 0; i < WAYS; i++) begin : arrays //TODO 
         mutative_data_array data_array (
-            .clk0       (real_clk[i]),
+            .clk0       (clk),
             .csb0       (real_csb[i]), //active low  r/w  en
             .web0       (real_web[i]), // active low write signal TODO: look at
             .wmask0     (cache_data_wmask), 
@@ -89,7 +89,7 @@ import mutative_types::*;
             .dout0      (cache_output[i].data)
         );
         mutative_tag_array tag_array (
-            .clk0       (real_clk[i]),
+            .clk0       (clk),
             .csb0       (real_csb[i]), //active low  r/w  en
             .web0       (real_web[i]), // active low write signal
             .addr0      (cache_address.set_index),
@@ -97,7 +97,7 @@ import mutative_types::*;
             .dout0      ({cache_output[i].dirty, cache_output[i].tag})
         );
         ff_array #(.S_INDEX(SET_BITS), .WIDTH(1)) valid_array (
-            .clk0       (real_clk[i]),
+            .clk0       (clk),
             .rst0       (rst),
             .csb0       (real_csb[i]), //active low  r/w  en
             .web0       (real_web[i]), // active low write signal

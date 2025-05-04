@@ -78,7 +78,7 @@ end
 int timeout_cycles = 10000000;
 always @(posedge clk) begin
   if (mon_itf.halt) begin
-    $display("hit rate: %0f", real'(dut.mutative_cache0.setup_control.hit_counter)/real'(dut.mutative_cache0.setup_control.request_counter));
+    // $display("hit rate: %0f", real'(dut.mutative_cache0.setup_control.hit_counter)/real'(dut.mutative_cache0.setup_control.request_counter));
     for(int i = 0; i < 8; i++) begin
       $display("way [%0d] csb level changes (1 -> 0): %0d", i, csb_level_changes_cycles[i]);
       $display("way [%0d] csb lcycles as zero (values can update): %0d", i, csb_zero_cycles[i]);
