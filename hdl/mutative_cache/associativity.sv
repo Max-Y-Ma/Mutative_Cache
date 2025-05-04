@@ -1,29 +1,29 @@
 module associativity
 import mutative_types::*;
 (
-    input  logic                         clk,
-    input  logic                         rst,
-    input  logic                         cache_wen,
-    input  logic                         dirty_en,
-    input  logic   [31:0]                ufp_addr_ff,
-    input  logic [WAYS-1:0]              way_we,
-    input  cache_address_t               cache_address,
+    input  logic            clk,
+    input  logic            rst,
+    input  logic            cache_wen,
+    input  logic            dirty_en,
+    input  logic [31:0]     ufp_addr_ff,
+    input  logic [WAYS-1:0] way_we,
+    input  cache_address_t  cache_address,
 
-    // Outputs
-    output logic                         full_assoc_hit,
-    output logic                         real_cache_full,
-    output logic                         full_assoc_full,
-    output logic                         valid_bit
+    // Upscale and Downscale Logic
+    input  logic            cpu_req,
+    input  logic            setup_ready,
+    output logic            setup_valid,
+    output logic            setup_update
 );
 
-    logic [FULL_TAG_BITS-1:0]       full_assoc_tag;
-    full_assoc_t                    full_assoc_cache[SET_SIZE*WAYS];
-    logic [FULL_ASSOC_BITS-1:0]     full_assoc_hit_idx;
+    logic [FULL_TAG_BITS-1:0]   full_assoc_tag;
+    full_assoc_t                full_assoc_cache[SET_SIZE*WAYS];
+    logic [FULL_ASSOC_BITS-1:0] full_assoc_hit_idx;
 
     assign full_assoc_tag = ufp_addr_ff >> OFFSET_BITS;
     assign valid_bit = full_assoc_cache[full_assoc_hit_idx].valid;
 
-    always_comb begin //comparator 
+    always_comb begin
         full_assoc_hit_idx = '0;
         full_assoc_hit = 1'b0;
         for (int i=0; i < (SET_SIZE*WAYS); ++i) begin
@@ -46,7 +46,7 @@ import mutative_types::*;
         end
     end
 
-    
+
     logic virt_valid_array[SET_SIZE][WAYS];
     always_ff @(posedge clk) begin
         if(rst) begin
@@ -81,6 +81,122 @@ import mutative_types::*;
                 full_assoc_full = 1'b0;
             end
         end
+    end
+
+    // Prediction Logic
+    typedef enum logic [2:0] {
+        s_idle, s_update, s_waiting
+    } assoc_state_t;
+
+    assoc_state_t control_state;
+    assoc_state_t control_state_next;
+
+    logic [31:0] hit_counter;
+    logic [31:0] hit_counter_next;
+    logic [31:0] request_counter;
+    logic [31:0] request_counter_next;
+    logic [32:0] switch_counter;
+    logic [32:0] switch_counter_next;
+
+    logic        setup_valid_reg;
+    logic        setup_valid_next;
+    logic        setup_update_reg;
+    logic        setup_update_next;
+
+    always_ff @( posedge clk ) begin
+        if (rst) begin
+            control_state   <= s_idle;
+            switch_counter  <= '0;
+            hit_counter     <= '0;
+            request_counter <= '0;
+        end else begin
+            control_state   <= control_state_next;
+            switch_counter  <= switch_counter_next;
+            hit_counter     <= hit_counter_next;
+            request_counter <= request_counter_next;
+        end
+    end
+
+    // Upscale and Downscale Logic
+    always_comb begin
+        setup_valid_next  = setup_valid_reg;
+        setup_update_next = setup_update_reg;
+
+        if(switch_counter >= 45) begin
+            if(setup < 3) begin
+                setup_valid_next = '1;
+                setup_update_next = '1;
+            end
+        end
+        else if (switch_counter <= 15) begin
+            if (setup > 0) begin
+                setup_valid_next = '1;
+                setup_update_next = '0;
+            end
+        end
+
+        if (setup_ready) begin
+            setup_valid_next = '0;
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if (rst) begin
+            setup_valid_reg  <= '0;
+            setup_update_reg <= '0;
+        end else begin
+            setup_valid_reg  <= setup_valid_next;
+            setup_update_reg <= setup_update_next;
+        end
+    end
+
+    assign setup_valid  = setup_valid_next;
+    assign setup_update = setup_update_next;
+
+    always_comb begin
+        // Prediction Update Logic
+        control_state_next   = control_state;
+        switch_counter_next  = switch_counter;
+        hit_counter_next     = hit_counter;
+        request_counter_next = request_counter;
+
+        unique case (control_state)
+            s_idle: begin
+                if(switch_counter >= 45) begin
+                    switch_counter_next = 30;
+                end
+                else if (switch_counter <= 15) begin
+                    switch_counter_next = 30;
+                end
+
+                if(cpu_req) begin
+                    control_state_next = s_update;
+                end
+            end
+            s_update: begin
+                request_counter_next++;
+                if(real_cache_valid) begin // Ignoring Compulsory Misses
+                    if( (!real_cache_hit && full_assoc_hit) || (!real_cache_hit && !full_assoc_hit && !real_cache_full)) begin // Conflict Miss
+                        switch_counter_next += 2;
+                    end
+                    else if((!real_cache_hit && !full_assoc_hit && real_cache_full && full_assoc_full)) begin // Capacity Miss
+                        switch_counter_next -= 1;
+                    end
+                    else begin
+                        hit_counter_next++;
+                    end
+                end
+
+                control_state_next = (cache_ready) ? s_idle : s_waiting;
+            end
+            s_waiting: begin
+                if(cache_ready) begin
+                    control_state_next = s_idle;
+                end
+            end
+            default: begin
+            end
+        endcase
     end
 
 endmodule

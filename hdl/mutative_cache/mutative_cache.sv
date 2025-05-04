@@ -1,4 +1,4 @@
-module mutative_cache 
+module mutative_cache
 import mutative_types::*;
 (
     input   logic           clk,
@@ -41,8 +41,6 @@ import mutative_types::*;
         end
     end
 
-
-
     logic   tag_array_csb0    [WAYS-1:0];
     logic   data_array_csb0   [WAYS-1:0];
     logic   valid_array_csb0  [WAYS-1:0];
@@ -63,6 +61,9 @@ import mutative_types::*;
     logic [WAYS-1:0] way_we;
     assign cpu_request = idle ? (|ufp_rmask || |ufp_wmask) : (|ufp_rmask_ff || |ufp_wmask_ff);
     assign cache_address = idle ? ufp_addr : ufp_addr_ff;
+
+    logic [WAYS-1:0]           dirty_vector;
+    logic [CACHELINE_SIZE-1:0] dirty_data_vector [WAYS];
 
     // logic [WAYS-1:0] real_clk;
     logic [WAYS-1:0] real_csb;
@@ -112,12 +113,11 @@ import mutative_types::*;
     mutative_comparator mut_cmp0 (
         .cache_address(cache_address),
         .cache_output(cache_output),
-        .setup(setup), 
+        .setup(setup),
         .ufp_rmask_ff(ufp_rmask_ff),
         .ufp_resp(ufp_resp),
-
         .hit_way(hit_way),
-        .true_csb0(true_csb0), 
+        .true_csb0(true_csb0),
         .hit(hit),
         .ufp_rdata(ufp_rdata)
     );
@@ -140,7 +140,7 @@ import mutative_types::*;
 
     assign dfp_wdata = wb_en ? cache_output[evict_way].data : 'x;
     assign dfp_write = wb_en;
-    assign dfp_addr = wb_en ? {cache_output[evict_way].tag, cache_address.set_index, {OFFSET_BITS{1'b0}}} : {cache_address[31:OFFSET_BITS], {OFFSET_BITS{1'b0}}};
+    assign dfp_addr  = wb_en ? {cache_output[evict_way].tag, cache_address.set_index, {OFFSET_BITS{1'b0}}} : {cache_address[31:OFFSET_BITS], {OFFSET_BITS{1'b0}}};
 
     assign cache_wen = mem_write_cache || write_from_cpu;
 
@@ -175,8 +175,6 @@ import mutative_types::*;
 
     );
 
-
-
     logic full_assoc_hit;
     logic real_cache_full;
     logic full_assoc_full;
@@ -196,17 +194,16 @@ import mutative_types::*;
         .valid_bit(real_cache_valid)
     );
 
+    // Generate dirty vector signals
+    always_comb begin
+        for (int i = 0; i < WAYS; i++) begin
+            dirty_vector[i] = cache_output[i].dirty;
+        end
+    end
 
     mutative_control setup_control (
         .clk(clk),
-        .rst(rst), 
-        .real_cache_valid(real_cache_valid),
-        .real_cache_hit(hit),
-        .full_assoc_hit(full_assoc_hit),
-        .real_cache_full(real_cache_full),
-        .full_assoc_full(full_assoc_full),
-        .cache_ready(ufp_resp),
-        .cpu_req(cpu_request),
+        .rst(rst),
         .setup(setup)
     );
 

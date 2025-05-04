@@ -73,12 +73,7 @@ always_comb begin
       if (cache_hit) begin
         write_from_cpu = cache_write_request;
         ufp_resp = 1'b1;
-        // if (cache_request) begin
-        //   next_state = CHECK;
-        // end
-        // else begin
-          next_state = IDLE;
-        // end
+        next_state = IDLE;
 
         /* Assert Chip Select Signals */
         for (int i = 0; i < WAYS; i++) begin

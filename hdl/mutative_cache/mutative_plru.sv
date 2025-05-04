@@ -10,7 +10,7 @@ import mutative_types::*;
     output logic [WAYS-1:0] evict_we
 
 );
-    logic [WAYS-2:0] PLRU_bits[SET_SIZE]; 
+    logic [WAYS-2:0] PLRU_bits[SET_SIZE];
     logic [WAY_IDX_BITS-1:0] virtual_evict_way;
     logic [WAYS-1:0] virtual_evict_we;
 
@@ -46,8 +46,8 @@ import mutative_types::*;
             end
         end
     end
- 
- 
+
+
 
     always_comb begin : replacement_1 //TODO: MAKE 4 and FIX
         virtual_evict_way = '0;

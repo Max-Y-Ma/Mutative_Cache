@@ -8,7 +8,7 @@ import mutative_types::*;
     input logic         ufp_resp,
 
     output logic [WAY_IDX_BITS-1:0] hit_way,
-    output logic                    true_csb0[WAYS-1:0], 
+    output logic                    true_csb0[WAYS-1:0],
     output logic                    hit,
     output logic [31:0]             ufp_rdata
 
@@ -27,18 +27,18 @@ import mutative_types::*;
         four_way_index = cache_address.tag[0]  << 2; // 0 or 1
         for (int i=0; i<WAYS; ++i)
             true_csb0[i] = 1'b1;
-        if(setup == 0) begin //DM 
+        if(setup == 0) begin //DM
             true_csb0[dm_way_index] = 1'b0;
             if(cache_output[dm_way_index].valid&&(cache_output[dm_way_index].tag[TAG_BITS-4:0] == cache_address.tag[TAG_BITS-4:0])) begin
                 compare_result[dm_way_index] = 1'b1;
-                hit_way = WAY_IDX_BITS'(dm_way_index); 
+                hit_way = WAY_IDX_BITS'(dm_way_index);
             end
         end else if(setup == 1) begin //2-way
             for (int unsigned i = 0; i < 2; i++) begin
                 true_csb0[i+ two_way_index] = 1'b0;
                 if(cache_output[i+ two_way_index].valid&&(cache_output[i+ two_way_index].tag[TAG_BITS-3:0] == cache_address.tag[TAG_BITS-3:0])) begin
                     compare_result[i+ two_way_index] = 1'b1;
-                    hit_way = WAY_IDX_BITS'(i+ two_way_index); 
+                    hit_way = WAY_IDX_BITS'(i+ two_way_index);
                 end
             end
         end else if(setup == 2) begin //4-way
@@ -46,7 +46,7 @@ import mutative_types::*;
                 true_csb0[i+ four_way_index] = 1'b0;
                 if(cache_output[i+ four_way_index].valid&&(cache_output[i+ four_way_index].tag[TAG_BITS-2:0] == cache_address.tag[TAG_BITS-2:0])) begin
                     compare_result[i+ four_way_index] = 1'b1;
-                    hit_way = WAY_IDX_BITS'(i+ four_way_index); 
+                    hit_way = WAY_IDX_BITS'(i+ four_way_index);
                 end
             end
         end else begin //8-way
@@ -54,7 +54,7 @@ import mutative_types::*;
                 true_csb0[i] = 1'b0;
                 if(cache_output[i].valid&&(cache_output[i].tag[TAG_BITS-1:0] == cache_address.tag)) begin
                     compare_result[i] = 1'b1;
-                    hit_way = WAY_IDX_BITS'(i); 
+                    hit_way = WAY_IDX_BITS'(i);
                 end
             end
         end

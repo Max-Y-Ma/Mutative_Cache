@@ -9,10 +9,10 @@ import mutative_types::*;
     input logic [31:0] ufp_wdata_ff,   // Data from CPU (flop-flop)
     input logic [3:0] ufp_wmask_ff,    // Write mask from CPU (flop-flop)
     input logic [WAY_IDX_BITS-1:0] hit_way,
-    
+
     // Cache address components
     input cache_address_t cache_address,
-    
+
     // Output signals
     output logic [WAYS-1:0] way_we,            // Way enable for writing
     output logic [31:0] cache_data_wmask,      // Byte enable mask for cache data
@@ -44,5 +44,5 @@ import mutative_types::*;
             dirty_en = 1'b0;
         end
     end
-    
+
 endmodule

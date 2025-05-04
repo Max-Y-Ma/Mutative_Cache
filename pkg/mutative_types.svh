@@ -17,13 +17,13 @@ package mutative_types;
     typedef struct packed {
         logic                           valid;
         logic                           dirty;
-        logic [TAG_BITS-1:0]            tag; 
+        logic [TAG_BITS-1:0]            tag;
         logic [CACHELINE_SIZE-1:0]      data;
     } cache_output_t;
 
     typedef struct packed {
-        logic [TAG_BITS-1:0]        tag; 
-        logic [SET_BITS-1:0]        set_index;    
+        logic [TAG_BITS-1:0]        tag;
+        logic [SET_BITS-1:0]        set_index;
         logic [OFFSET_BITS-1:0]     block_offset;
     } cache_address_t;
 

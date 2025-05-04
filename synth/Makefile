@@ -18,7 +18,7 @@ FSDB2SAIF_END   = $(shell tail -n1 ../sim/sim/time.txt)
 # Directory paths
 export SYNTH_TOP := $(TOP)
 export PKG_SRCS  := $(shell find $(PWD)/../pkg -name '*.svh' -o -name '*.sv')
-export RTL_SRCS  := $(shell find $(PWD)/../hdl -name '*.sv') 
+export RTL_SRCS  := $(shell find $(PWD)/../hdl -name '*.sv')
 export SRAM_SRCS := $(shell find $(PWD)/../sram/output/ -name '*.v')
 export SRAM_LIB  := $(shell find $(PWD)/../sram/output/ -name '*.db')
 
