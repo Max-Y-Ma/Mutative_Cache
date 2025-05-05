@@ -294,4 +294,38 @@ import mutative_types::*;
         .setup(setup)
     );
 
+    //count accesses that each setup is in
+    logic [63:0] dm_cnt, two_way_cnt, four_way_cnt, eight_way_cnt;
+    logic [63:0] cycle_counter;
+
+    logic [1:0]  prev_cache_mode;
+
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            dm_cnt         <= 0;
+            two_way_cnt    <= 0;
+            four_way_cnt   <= 0;
+            eight_way_cnt  <= 0;
+            cycle_counter  <= 0;
+            prev_cache_mode <= 2'b00;
+        end else begin
+            cycle_counter <= cycle_counter + 1;
+
+            // Time tracking
+            case (setup)
+                2'b00: dm_cnt        <= dm_cnt + 1;
+                2'b01: two_way_cnt   <= two_way_cnt + 1;
+                2'b10: four_way_cnt  <= four_way_cnt + 1;
+                2'b11: eight_way_cnt <= eight_way_cnt + 1;
+            endcase
+
+            // Change detection
+            if (setup != prev_cache_mode) begin
+                $display("Cache mode changed from %0d to %0d at cycle %0d", 
+                          prev_cache_mode, setup, cycle_counter);
+                prev_cache_mode <= setup;
+            end
+        end
+    end
+
 endmodule
