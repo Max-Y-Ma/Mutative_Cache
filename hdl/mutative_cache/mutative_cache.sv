@@ -244,21 +244,17 @@ import mutative_types::*;
 
     );
 
-    logic switch_dir;
-    logic switch_valid;
-    logic setup_ready;
-
     associativity assoc (
         .clk(clk),
         .rst(rst),
         .cache_address(cache_address),
-        .cpu_req(cpu_request),
+        .cpu_request(cpu_request),
         .cache_ready(ufp_resp),
         .setup_ready(setup_ready),
         .setup(setup),
         .plru_bit0(1'b0),
-        .switch_dir(switch_dir),
-        .switch_valid(switch_valid)
+        .setup_update(setup_update),
+        .setup_valid(setup_valid)
     );
 
     // Generate dirty vector signals
