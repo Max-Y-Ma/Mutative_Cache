@@ -10,8 +10,11 @@ import mutative_types::*;
     input logic full_assoc_full,
     input logic cache_ready,
     input logic cpu_req,
+    input logic switch_dir,
+    input logic switch_valid,
 
-    output logic [1:0] setup
+    output logic [1:0] setup,
+    output logic setup_ready
 );
 
     logic [31:0] hit_counter;
@@ -48,13 +51,22 @@ import mutative_types::*;
         switch_counter_next = switch_counter;
         hit_counter_next = hit_counter;
         request_counter_next = request_counter;
+        
+        setup_ready = 1'b0;
 
         unique case (control_state)
             s_idle: begin 
-                if(switch_counter >= 50) begin //random number
-                    switch_counter_next = '0;
-                    if(setup < 3)
-                        setup_next = setup+1;
+                // if(switch_counter >= 50) begin //random number
+                //     switch_counter_next = '0;
+                //     if(setup < 3)
+                //         setup_next = setup+1;
+                // end
+                if (switch_valid) begin
+                    if (switch_dir == 1'b1) begin
+                        if (setup < 3)
+                            setup_next = setup+1;
+                    end
+                    setup_ready = '1;
                 end
                 if(cpu_req) begin
                     control_state_next = s_update;

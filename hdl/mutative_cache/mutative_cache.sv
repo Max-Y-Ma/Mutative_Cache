@@ -177,23 +177,21 @@ import mutative_types::*;
 
 
 
-    logic full_assoc_hit;
-    logic real_cache_full;
-    logic full_assoc_full;
-    logic real_cache_valid;
+    logic switch_dir;
+    logic switch_valid;
+    logic setup_ready;
 
     associativity assoc (
         .clk(clk),
         .rst(rst),
-        .cache_wen(cache_wen),
-        .dirty_en(dirty_en),
-        .ufp_addr_ff(ufp_addr_ff),
-        .way_we(way_we),
         .cache_address(cache_address),
-        .full_assoc_hit(full_assoc_hit),
-        .real_cache_full(real_cache_full),
-        .full_assoc_full(full_assoc_full),
-        .valid_bit(real_cache_valid)
+        .cpu_req(cpu_request),
+        .cache_ready(ufp_resp),
+        .setup_ready(setup_ready),
+        .setup(setup),
+        .plru_bit0(1'b0),
+        .switch_dir(switch_dir),
+        .switch_valid(switch_valid)
     );
 
 
@@ -207,7 +205,10 @@ import mutative_types::*;
         .full_assoc_full(full_assoc_full),
         .cache_ready(ufp_resp),
         .cpu_req(cpu_request),
-        .setup(setup)
+        .switch_dir(switch_dir),
+        .switch_valid(switch_valid),
+        .setup(setup),
+        .setup_ready(setup_ready)
     );
 
 endmodule

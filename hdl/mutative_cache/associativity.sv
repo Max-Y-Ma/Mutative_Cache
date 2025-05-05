@@ -3,84 +3,232 @@ import mutative_types::*;
 (
     input  logic                         clk,
     input  logic                         rst,
-    input  logic                         cache_wen,
-    input  logic                         dirty_en,
-    input  logic   [31:0]                ufp_addr_ff,
-    input  logic [WAYS-1:0]              way_we,
     input  cache_address_t               cache_address,
+    input  logic                         cpu_req,
+    input  logic                         cache_ready,
+    input  logic                         setup_ready,
+    input  logic [1:0]                   setup,
+    input  logic                         plru_bit0,
 
-    // Outputs
-    output logic                         full_assoc_hit,
-    output logic                         real_cache_full,
-    output logic                         full_assoc_full,
-    output logic                         valid_bit
+    output logic                         switch_dir,
+    output logic                         switch_valid
 );
 
-    logic [FULL_TAG_BITS-1:0]       full_assoc_tag;
-    full_assoc_t                    full_assoc_cache[SET_SIZE*WAYS];
-    logic [FULL_ASSOC_BITS-1:0]     full_assoc_hit_idx;
+    logic setup_ready_read;
 
-    assign full_assoc_tag = ufp_addr_ff >> OFFSET_BITS;
-    assign valid_bit = full_assoc_cache[full_assoc_hit_idx].valid;
+    logic switched;
 
-    always_comb begin //comparator 
-        full_assoc_hit_idx = '0;
-        full_assoc_hit = 1'b0;
-        for (int i=0; i < (SET_SIZE*WAYS); ++i) begin
-            if(full_assoc_tag == full_assoc_cache[i].tag && full_assoc_cache[i].valid) begin
-                full_assoc_hit = 1'b1;
-                full_assoc_hit_idx = i;
-                break;
-            end
-        end
-    end
+    logic [16:0] total_accesses;
+    logic [16:0] total_accesses_next;
+
+    logic [1:0] dead_set_counter [0:(WAYS*SET_SIZE)-1];
+    logic [3:0] stack_distance [0:((WAYS*SET_SIZE)/2)-1];
+    logic [1:0] dead_set_counter_next [0:(WAYS*SET_SIZE)-1];
+    logic [3:0] stack_distance_next [0:((WAYS*SET_SIZE)/2)-1];
+
+    logic [7:0] total_dead_sets;
+    logic [7:0] total_saturated_sets;
+    logic [7:0] total_dead_sets_next;
+    logic [7:0] total_saturated_sets_next;
+
+    logic [2:0] dm_way_index = cache_address.tag[2:0] ;
+    logic [1:0] two_way_index = cache_address.tag[1:0];
+    logic       four_way_index = cache_address.tag[0] ;
+    logic true_set_index;
+
+    enum logic [2:0] {
+    a_ready, a_wait, a_switch, a_switch_decision, a_switch_wait
+    } a_state, a_next_state;
 
     always_ff @(posedge clk) begin
-        if(rst) begin
-            for(int i = 0; i < (SET_SIZE*WAYS); i++)
-                full_assoc_cache[i] <= '0;
-        end else if(cache_wen) begin
-            full_assoc_cache[full_assoc_hit_idx].valid <= 1'b1;
-            full_assoc_cache[full_assoc_hit_idx].dirty <= dirty_en;
-            full_assoc_cache[full_assoc_hit_idx].tag <= full_assoc_tag;
-        end
+        switched <= switch_valid;
+        setup_ready_read <= setup_ready;
+    end
+
+    always_comb begin
+        case (setup)
+            2'b00: true_set_index = cache_address.set_index + dm_way_index;
+            2'b01: true_set_index = cache_address.set_index + two_way_index;
+            2'b10: true_set_index = cache_address.set_index + four_way_index;
+            2'b11: true_set_index = cache_address.set_index;
+        endcase
     end
 
     
-    logic virt_valid_array[SET_SIZE][WAYS];
-    always_ff @(posedge clk) begin
-        if(rst) begin
-            for(int i = 0; i < SET_SIZE; i++) begin
-                for(int j = 0; j < WAYS; j++) begin
-                    virt_valid_array[i][j] <= '0;
-                end
-            end
-        end else if(cache_wen) begin
-            for(int i = 0; i < WAYS; i++) begin
-                if(way_we[i]) begin
-                    virt_valid_array[cache_address.set_index][i] <= 1'b1;
-                end
-            end
 
+    always_comb begin
+        dead_set_counter_next = dead_set_counter;
+        stack_distance_next = stack_distance;
+        total_accesses_next = total_accesses;
+        total_saturated_sets_next = total_saturated_sets;
+        total_dead_sets_next = total_dead_sets;
+        if (rst) begin
+            for (int i = 0; i < 128; i++) begin
+                dead_set_counter_next[i] = 2'b00;
+                stack_distance_next[i] = 4'd7;
+                total_accesses_next = '0;
+                total_dead_sets_next = '0;
+                total_saturated_sets_next = '0;
+            end
+        end else begin
+            case (a_state)
+                a_ready: begin
+                    if (cpu_req) begin
+                        if (dead_set_counter[true_set_index] < 2'b11)
+                            dead_set_counter_next[true_set_index] = dead_set_counter[true_set_index] + 1'b1;
+                        if (setup != '0) begin
+                            if (plru_bit0 == '0) begin
+                                if (stack_distance[true_set_index] > '0)
+                                    stack_distance_next[true_set_index] = stack_distance[true_set_index] - 1'b1;
+                            end else begin
+                                if (stack_distance[true_set_index] < 4'b1111)
+                                    stack_distance_next[true_set_index] = stack_distance[true_set_index] + 1'b1;
+                            end
+                        end
+                        total_accesses_next = total_accesses_next + 1'b1;
+                    end  
+                end
+                a_switch: begin
+                    case (setup)
+                        2'b00: begin
+                            for (int i = 0; i < 128; i++) begin
+                                if (dead_set_counter[i] != 2'b11) begin
+                                    
+                                    total_dead_sets_next = total_dead_sets_next + 1'b1;
+                                    $display("Incremented: total_dead_sets_next = %0d", total_dead_sets_next);
+                                end
+                            end
+                        end 
+                        2'b01: begin
+                            for (int i = 0; i < 64; i++) begin
+                                if (dead_set_counter[i] != 2'b11) 
+                                    total_dead_sets_next = total_dead_sets_next + 1'b1;
+                                if (stack_distance[i] == 4'b0000 || stack_distance[i] == 4'b0001 || stack_distance[i] == 4'b1110 || stack_distance[i] == 4'b1111)
+                                    total_saturated_sets_next =total_saturated_sets_next + 1'b1;
+                            end
+                        end 
+                        2'b10: begin
+                            for (int i = 0; i < 32; i++) begin
+                                if (dead_set_counter[i] != 2'b11) 
+                                    total_dead_sets_next = total_dead_sets_next + 1'b1;
+                                if (stack_distance[i] == 4'b0000 || stack_distance[i] == 4'b0001 || stack_distance[i] == 4'b1110 || stack_distance[i] == 4'b1111)
+                                    total_saturated_sets_next =total_saturated_sets_next + 1'b1;
+                            end
+                        end
+                        2'b11: begin
+                            for (int i = 0; i < 16; i++) begin
+                                if (dead_set_counter[i] != 2'b11) 
+                                    total_dead_sets_next = total_dead_sets_next + 1'b1;
+                                if (stack_distance[i] == 4'b0000 || stack_distance[i] == 4'b0001 || stack_distance[i] == 4'b1110 || stack_distance[i] == 4'b1111)
+                                    total_saturated_sets_next = total_saturated_sets_next + 1'b1;
+                            end
+                        end
+                    endcase
+                end
+                a_switch_decision: begin
+                    switch_valid = '0;
+                    case (setup)
+                        2'b00: begin
+                            if (total_dead_sets >= 82) begin
+                                switch_dir = '1;
+                                switch_valid = '1;
+                            end
+                        end 
+                        2'b01: begin
+                            if (total_dead_sets >= 43 && total_saturated_sets <= 22) begin
+                                switch_dir = '1;
+                                switch_valid = '1;
+                            end else if (total_saturated_sets >= 43 && total_dead_sets <= 22) begin
+                                switch_dir = '0;
+                                switch_valid = '1;
+                            end
+                        end 
+                        2'b10: begin
+                            if (total_dead_sets >= 21 && total_saturated_sets <= 11) begin
+                                switch_dir = '1;
+                                switch_valid = '1;
+                            end else if (total_saturated_sets >= 22 && total_dead_sets <= 11) begin
+                                switch_dir = '0;
+                                switch_valid = '1;
+                            end
+                        end
+                        2'b11: begin
+                            if (total_dead_sets >= 11 && total_saturated_sets <= 5) begin
+                                switch_dir = '1;
+                                switch_valid = '1;
+                            end else if (total_saturated_sets >= 11 && total_dead_sets <= 5) begin
+                                switch_dir = '0;
+                                switch_valid = '1;
+                            end
+                        end
+                    endcase
+                end
+                a_switch_wait: begin
+                    if (!switched) begin
+                        for (int i = 0; i < 128; i++) begin
+                            dead_set_counter_next[i] = 2'b00;
+                            stack_distance_next[i] = 4'd7;
+                            total_accesses_next = '0;
+                            total_dead_sets_next = '0;
+                            total_saturated_sets_next = '0;
+                        end
+                    end
+                    else if (setup_ready_read) begin
+                        switch_valid = '0;
+                        for (int i = 0; i < 128; i++) begin
+                            dead_set_counter_next[i] = 2'b00;
+                            stack_distance_next[i] = 4'd7;
+                            total_accesses_next = '0;
+                            total_dead_sets_next = '0;
+                            total_saturated_sets_next = '0;
+                        end
+                    end
+                end
+            endcase
         end
     end
 
+    always_ff @(posedge clk) begin
+        dead_set_counter <= dead_set_counter_next;
+        stack_distance <= stack_distance_next;
+        total_accesses <= total_accesses_next;
+        total_saturated_sets <= total_saturated_sets_next;
+        total_dead_sets <= total_dead_sets_next;
+    end
 
-    always_comb begin
-        real_cache_full = 1'b1;
-        full_assoc_full = 1'b1;
-        for(int i = 0; i < SET_SIZE; i++) begin
-            for(int j = 0; j < WAYS; j++) begin
-                if(virt_valid_array[i][j] == 0) begin
-                    real_cache_full = 1'b0;
-                end
+    always_comb begin //next_state logic
+        a_next_state = a_state;
+        case (a_state)
+            a_ready: begin
+                if (total_accesses >= 17'd10000) 
+                    a_next_state = a_switch;
+                else if (cpu_req)
+                    a_next_state = a_wait;
             end
-        end
-        for (int k=0; k<(SET_SIZE*WAYS); ++k) begin
-            if(full_assoc_cache[k].valid == 0) begin
-                full_assoc_full = 1'b0;
+            a_switch: begin
+                a_next_state = a_switch_decision;
             end
-        end
+            a_switch_decision: begin
+                a_next_state = a_switch_wait;
+            end
+            a_switch_wait: begin
+                if (!switched) 
+                    a_next_state = a_ready;
+                else if (setup_ready_read)
+                    a_next_state = a_ready;
+            end
+            a_wait: begin
+                if (cache_ready)
+                    a_next_state = a_ready;
+            end
+        endcase
+    end
+
+    always_ff @(posedge clk) begin
+        if (rst) 
+            a_state <= a_ready;
+        else 
+            a_state <= a_next_state;
     end
 
 endmodule
