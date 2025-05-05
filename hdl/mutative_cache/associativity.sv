@@ -31,10 +31,15 @@ import mutative_types::*;
     logic [7:0] total_dead_sets_next;
     logic [7:0] total_saturated_sets_next;
 
-    logic [2:0] dm_way_index = cache_address.tag[2:0] ;
-    logic [1:0] two_way_index = cache_address.tag[1:0];
-    logic       four_way_index = cache_address.tag[0] ;
-    logic true_set_index;
+    logic [2:0] dm_way_index; 
+    logic [1:0] two_way_index; 
+    logic       four_way_index;
+    logic [6:0] true_set_index;
+
+    assign dm_way_index = cache_address.tag[2:0];
+    assign two_way_index = cache_address.tag[1:0];
+    assign four_way_index = cache_address.tag[0] ;
+
 
     enum logic [2:0] {
     a_ready, a_wait, a_switch, a_switch_decision, a_switch_wait
