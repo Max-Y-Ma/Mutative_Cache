@@ -62,9 +62,21 @@ always_comb begin
   unique case (curr_state)
     IDLE: begin
       if (flush_stall) begin
-        next_state = IDLE;
+        next_state = FLUSH;
       end
       else if (cache_request) begin
+        /* Assert Chip Select Signals */
+        for (int i = 0; i < WAYS; i++) begin
+          tag_array_csb0[i]   = 1'b0;
+          data_array_csb0[i]  = 1'b0;
+          valid_array_csb0[i] = 1'b0;
+        end
+
+        next_state = CHECK;
+      end
+    end
+    FLUSH: begin
+      if (~flush_stall && cache_request) begin
         /* Assert Chip Select Signals */
         for (int i = 0; i < WAYS; i++) begin
           tag_array_csb0[i]   = 1'b0;

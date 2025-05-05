@@ -78,11 +78,7 @@ import mutative_types::*;
         cpu_request = '0;
         cache_address = '0;
 
-        if (flush_stall) begin
-            cpu_request = |ufp_rmask_ff || |ufp_wmask_ff;
-            cache_address = ufp_addr_ff;
-        end
-        else if (idle && ~flush_stall) begin
+        if (idle && ~flush_stall) begin
             cpu_request = |ufp_rmask || |ufp_wmask;
             cache_address = ufp_addr;
         end
@@ -220,8 +216,8 @@ import mutative_types::*;
         .clk(clk),
         .rst(rst),
         .cache_hit(hit),
-        .cache_read_request(flush_stall ? |ufp_rmask_ff : (idle ? |ufp_rmask : |ufp_rmask_ff)),
-        .cache_write_request(flush_stall ? |ufp_wmask_ff : (idle ? |ufp_wmask : |ufp_wmask_ff)),
+        .cache_read_request(idle ? |ufp_rmask : |ufp_rmask_ff),
+        .cache_write_request(idle ? |ufp_wmask : |ufp_wmask_ff),
         .ufp_resp(ufp_resp),
         .dfp_resp(dfp_resp),
         .dfp_read(dfp_read),

@@ -1,6 +1,7 @@
 package cache_types;
   typedef enum logic [2:0] {
     IDLE,
+    FLUSH,
     CHECK,
     WRITEBACK,
     FETCH,

@@ -206,10 +206,9 @@ import mutative_types::*;
             end
             f_flush : begin
                 if (flush_true) begin
-                    flush_clean        = '1;
-                    flush_dfp_wdata    = flush_data_vector[flush_clean_idx];
-                    flush_dfp_write    = '1;
-                    flush_dfp_addr     = {flush_tag_vector[flush_clean_idx], flush_set_addr , {OFFSET_BITS{1'b0}}};
+                    flush_dfp_wdata = flush_data_vector[flush_clean_idx];
+                    flush_dfp_write = '1;
+                    flush_dfp_addr  = {flush_tag_vector[flush_clean_idx], flush_set_addr , {OFFSET_BITS{1'b0}}};
                     control_state_next = f_wait;
                 end else begin
                     // Assert Data SRAM Read Signals
@@ -226,7 +225,11 @@ import mutative_types::*;
                 end
             end
             f_wait : begin
+                flush_dfp_wdata = flush_data_vector[flush_clean_idx];
+                flush_dfp_write = '1;
+                flush_dfp_addr  = {flush_tag_vector[flush_clean_idx], flush_set_addr , {OFFSET_BITS{1'b0}}};
                 if (dfp_resp) begin
+                    flush_clean        = '1;
                     control_state_next = f_flush;
                 end
             end
