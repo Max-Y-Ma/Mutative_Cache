@@ -30,7 +30,10 @@ import cache_types::*;
   output logic idle,
 
   // Dirty Bit
-  input logic  dirty
+  input  logic dirty,
+
+  // Flush Stall
+  input  logic flush_stall
 );
 
 controller_state_t curr_state;
@@ -58,7 +61,10 @@ always_comb begin
 
   unique case (curr_state)
     IDLE: begin
-      if (cache_request) begin
+      if (flush_stall) begin
+        next_state = IDLE;
+      end
+      else if (cache_request) begin
         /* Assert Chip Select Signals */
         for (int i = 0; i < WAYS; i++) begin
           tag_array_csb0[i]   = 1'b0;

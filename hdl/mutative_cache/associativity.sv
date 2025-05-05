@@ -8,9 +8,12 @@ import mutative_types::*;
     input  logic [31:0]     ufp_addr_ff,
     input  logic [WAYS-1:0] way_we,
     input  cache_address_t  cache_address,
+    input  logic            cache_ready,
+    input  logic            real_cache_hit,
 
     // Upscale and Downscale Logic
-    input  logic            cpu_req,
+    input  logic [1:0]      setup,
+    input  logic            cpu_request,
     input  logic            setup_ready,
     output logic            setup_valid,
     output logic            setup_update
@@ -20,12 +23,16 @@ import mutative_types::*;
     full_assoc_t                full_assoc_cache[SET_SIZE*WAYS];
     logic [FULL_ASSOC_BITS-1:0] full_assoc_hit_idx;
 
+    logic                       real_cache_full;
+    logic                       full_assoc_full;
+    logic                       full_assoc_hit;
+
     assign full_assoc_tag = ufp_addr_ff >> OFFSET_BITS;
     assign valid_bit = full_assoc_cache[full_assoc_hit_idx].valid;
 
     always_comb begin
-        full_assoc_hit_idx = '0;
         full_assoc_hit = 1'b0;
+        full_assoc_hit_idx = '0;
         for (int i=0; i < (SET_SIZE*WAYS); ++i) begin
             if(full_assoc_tag == full_assoc_cache[i].tag && full_assoc_cache[i].valid) begin
                 full_assoc_hit = 1'b1;
@@ -122,17 +129,19 @@ import mutative_types::*;
         setup_valid_next  = setup_valid_reg;
         setup_update_next = setup_update_reg;
 
-        if(switch_counter >= 45) begin
-            if(setup < 3) begin
-                setup_valid_next = '1;
-                setup_update_next = '1;
-            end
-        end
-        else if (switch_counter <= 15) begin
-            if (setup > 0) begin
-                setup_valid_next = '1;
-                setup_update_next = '0;
-            end
+        if (control_state == s_idle) begin
+          if(switch_counter >= 45) begin
+              if(setup < 3) begin
+                  setup_valid_next = '1;
+                  setup_update_next = '0;
+              end
+          end
+          else if (switch_counter <= 15) begin
+              if (setup > 0) begin
+                  setup_valid_next = '1;
+                  setup_update_next = '1;
+              end
+          end
         end
 
         if (setup_ready) begin
@@ -150,7 +159,7 @@ import mutative_types::*;
         end
     end
 
-    assign setup_valid  = setup_valid_next;
+    assign setup_valid  = setup_valid_next | setup_valid_reg;
     assign setup_update = setup_update_next;
 
     always_comb begin
@@ -169,13 +178,13 @@ import mutative_types::*;
                     switch_counter_next = 30;
                 end
 
-                if(cpu_req) begin
+                if(cpu_request) begin
                     control_state_next = s_update;
                 end
             end
             s_update: begin
                 request_counter_next++;
-                if(real_cache_valid) begin // Ignoring Compulsory Misses
+                if(valid_bit) begin // Ignoring Compulsory Misses
                     if( (!real_cache_hit && full_assoc_hit) || (!real_cache_hit && !full_assoc_hit && !real_cache_full)) begin // Conflict Miss
                         switch_counter_next += 2;
                     end

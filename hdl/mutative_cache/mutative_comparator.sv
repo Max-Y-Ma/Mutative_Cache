@@ -2,8 +2,8 @@ module mutative_comparator
 import mutative_types::*;
 (
     input cache_address_t cache_address,
-    input cache_output_t cache_output[WAYS],
-    input logic [1:0]   setup, 
+    input cache_output_t cache_output [WAYS],
+    input logic [1:0]   setup,
     input logic [3:0]   ufp_rmask_ff,
     input logic         ufp_resp,
 
