@@ -159,7 +159,6 @@ import mutative_types::*;
 
         unique case (control_state)
             f_idle : begin
-                flush_stall_next = '0;
                 if (setup_valid) begin
                     if (~setup_update && ~setup_ready) begin
                         flush_stall_next = '1;
@@ -174,7 +173,6 @@ import mutative_types::*;
                         control_state_next = f_check;
                     end
                     else begin
-                        flush_stall_next = '1;
                         setup_ready_next = ~setup_ready_reg;
                     end
                 end

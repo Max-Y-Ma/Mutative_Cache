@@ -18,8 +18,8 @@ import mutative_types::*;
     logic [WAYS-1:0] plru_bits[SET_SIZE];
 
     assign dm_way_index = cache_address.tag[2:0]  << 0; //0-8 *1
-    assign two_way_index = cache_address.tag[1:0] << 1; //0-3 *2
-    assign four_way_index = cache_address.tag[0]  << 2; // 0 or 1 *4
+    assign two_way_index = cache_address.tag[2:1] << 1; //0-3 *2
+    assign four_way_index = cache_address.tag[2]  << 2; // 0 or 1 *4
 
     logic almost_full;
     logic[3:0] zero_count;

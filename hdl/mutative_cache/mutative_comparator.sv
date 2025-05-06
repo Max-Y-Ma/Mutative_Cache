@@ -23,8 +23,8 @@ import mutative_types::*;
         hit_way = {WAY_IDX_BITS{1'b0}};
         compare_result = {WAYS{1'b0}};
         dm_way_index = cache_address.tag[2:0]  << 0; //0-8
-        two_way_index = cache_address.tag[1:0] << 1; //0-3
-        four_way_index = cache_address.tag[0]  << 2; // 0 or 1
+        two_way_index = cache_address.tag[2:1] << 1; //0-3
+        four_way_index = cache_address.tag[2]  << 2; // 0 or 1
         for (int i=0; i<WAYS; ++i)
             true_csb0[i] = 1'b1;
         if(setup == 0) begin //DM
