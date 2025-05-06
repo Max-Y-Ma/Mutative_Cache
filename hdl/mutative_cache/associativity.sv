@@ -28,13 +28,13 @@ import mutative_types::*;
     logic [7:0] total_dead_sets_next;
     logic [7:0] total_saturated_sets_next;
 
-    logic [2:0] dm_way_index = cache_address.tag[2:0];
-    logic [1:0] two_way_index = cache_address.tag[2:1];
-    logic       four_way_index = cache_address.tag[2];
+    logic [2:0] dm_way_index;
+    logic [1:0] two_way_index;
+    logic       four_way_index;
 
     logic       setup_ready_read;
     logic       switched;
-    logic       true_set_index;
+    logic [6:0] true_set_index;
 
     logic       setup_valid_reg;
     logic       setup_valid_next;
@@ -53,12 +53,17 @@ import mutative_types::*;
         setup_ready_read <= setup_ready;
     end
 
+    assign dm_way_index = cache_address.tag[2:0];
+    assign two_way_index = cache_address.tag[2:1];
+    assign four_way_index = cache_address.tag[2];
+
     always_comb begin
+        true_set_index = '0;
         case (setup)
             2'b00: true_set_index = {dm_way_index, cache_address.set_index};
             2'b01: true_set_index = {two_way_index, cache_address.tag[0], cache_address.set_index};
             2'b10: true_set_index = {four_way_index, cache_address.tag[1:0], cache_address.set_index};
-            2'b11: true_set_index = cache_address.set_index;
+            2'b11: true_set_index = {3'b000, cache_address.set_index};
         endcase
     end
 

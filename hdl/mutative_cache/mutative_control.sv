@@ -160,7 +160,7 @@ import mutative_types::*;
         unique case (control_state)
             f_idle : begin
                 if (setup_valid) begin
-                    if (~setup_ready) begin
+                    if (~setup_update && ~setup_ready) begin
                         flush_stall_next = '1;
 
                         // Assert Data SRAM Read Signals
