@@ -7,7 +7,7 @@ import mutative_types::*;
     input  logic                         cpu_request,
     input  logic                         cache_ready,
     input  logic                         setup_ready,
-    input  logic [1:0]                   setup,
+    input  logic [1:0]                   setup_reg,
     input  logic                         plru_bit0,
     input  logic                         tie,
 
@@ -59,7 +59,7 @@ import mutative_types::*;
 
     always_comb begin
         true_set_index = '0;
-        case (setup)
+        case (setup_reg)
             2'b00: true_set_index = {dm_way_index, cache_address.set_index};
             2'b01: true_set_index = {two_way_index, cache_address.tag[0], cache_address.set_index};
             2'b10: true_set_index = {four_way_index, cache_address.tag[1:0], cache_address.set_index};
@@ -90,7 +90,7 @@ import mutative_types::*;
                     if (cpu_request) begin
                         if (dead_set_counter[true_set_index] < 2'b11)
                             dead_set_counter_next[true_set_index] = dead_set_counter[true_set_index] + 1'b1;
-                        if (setup != '0 || tie) begin
+                        if (setup_reg != '0 || tie) begin
                             if (plru_bit0 == '0) begin
                                 if (stack_distance[true_set_index] > '0)
                                     stack_distance_next[true_set_index] = stack_distance[true_set_index] - 1'b1;
@@ -103,7 +103,7 @@ import mutative_types::*;
                     end
                 end
                 a_switch: begin
-                    case (setup)
+                    case (setup_reg)
                         2'b00: begin
                             for (int i = 0; i < 128; i++) begin
                                 if (dead_set_counter[i] != 2'b11) begin
@@ -141,7 +141,7 @@ import mutative_types::*;
                 end
                 a_switch_decision: begin
                     setup_valid_next = '0;
-                    case (setup)
+                    case (setup_reg)
                         2'b00: begin
                             if (total_dead_sets >= 82) begin
                                 setup_update_next = '1;

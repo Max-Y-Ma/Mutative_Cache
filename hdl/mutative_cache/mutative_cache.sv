@@ -46,7 +46,8 @@ import mutative_types::*;
     logic                      hit;
     logic                      wb_en;
     logic                      write_from_cpu;
-    logic [1:0]                setup; //0: DM, 1: 2-WAY, 2: 4-WAY, 3: 8-WAY
+    logic [1:0]                setup; //0: DM, 1: 2-WAY, 2: 4-WAY, 3: 8-WAY\
+    logic [1:0]                setup_reg;
     logic                      cache_wen;
     logic                      dirty_en;
     cache_output_t             cache_output [WAYS];
@@ -255,7 +256,7 @@ import mutative_types::*;
         .cpu_request(cpu_request),
         .cache_ready(ufp_resp),
         .setup_ready(setup_ready),
-        .setup(setup),
+        .setup_reg(setup_reg),
         .plru_bit0(plru_bit0),
         .tie(tie),
         .setup_update(setup_update),
@@ -296,6 +297,7 @@ import mutative_types::*;
         .setup_valid(setup_valid),
         .setup_update(setup_update),
         .flush_stall(flush_stall),
+        .setup_reg(setup_reg),
         .setup(setup)
     );
 

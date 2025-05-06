@@ -24,6 +24,7 @@ import mutative_types::*;
     input  logic                      setup_valid,
     input  logic                      setup_update,
     output logic                      flush_stall,
+    output logic [1:0]                setup_reg,
     output logic [1:0]                setup
 );
 
@@ -40,7 +41,6 @@ import mutative_types::*;
     mutative_cache_flush_t control_state_next;
 
     // Setup Control Logic
-    logic [1:0]                setup_reg;
     logic [1:0]                setup_next;
 
     logic                      setup_ready_reg;
@@ -69,10 +69,10 @@ import mutative_types::*;
 
         if (setup_valid & setup_ready) begin
             if (setup_update) begin
-                setup_next += (setup_next < 3);
+                setup_next += (setup_reg < 3);
             end
             else begin
-                setup_next -= (setup_next > 0);
+                setup_next -= (setup_reg > 0);
             end
         end
     end
@@ -135,7 +135,7 @@ import mutative_types::*;
         end
     end
 
-    assign flush_set_addr = flush_set_addr_inc ? flush_set_addr_reg + 1 : flush_set_addr_reg;
+    assign flush_set_addr = flush_set_addr_reg;
 
     always_comb begin
         flush_check        = '0;
