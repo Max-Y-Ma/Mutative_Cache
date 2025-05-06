@@ -94,7 +94,7 @@ import mutative_types::*;
                             end
                         end
                         total_accesses_next = total_accesses_next + 1'b1;
-                    end  
+                    end
                 end
                 a_switch: begin
                     case (setup)
@@ -106,7 +106,7 @@ import mutative_types::*;
                                     $display("Incremented: total_dead_sets_next = %0d", total_dead_sets_next);
                                 end
                             end
-                        end 
+                        end
                         2'b01: begin
                             for (int i = 0; i < 64; i++) begin
                                 if (dead_set_counter[i] != 2'b11) 
@@ -141,7 +141,7 @@ import mutative_types::*;
                                 setup_update_next = '1;
                                 setup_valid_next = '1;
                             end
-                        end 
+                        end
                         2'b01: begin
                             if (total_dead_sets >= 43 && total_saturated_sets <= 22) begin
                                 setup_update_next = '1;
@@ -150,7 +150,7 @@ import mutative_types::*;
                                 setup_update_next = '0;
                                 setup_valid_next = '1;
                             end
-                        end 
+                        end
                         2'b10: begin
                             if (total_dead_sets >= 21 && total_saturated_sets <= 11) begin
                                 setup_update_next = '1;
