@@ -232,6 +232,8 @@ import mutative_types::*;
         .flush_stall(flush_stall)
     );
 
+    logic plru_bit0;
+    logic tie;
     mutative_plru plru (
         .clk(clk),
         .rst(rst),
@@ -240,7 +242,9 @@ import mutative_types::*;
         .cache_address(cache_address),
         .setup(setup),
         .evict_way(evict_way),
-        .evict_we(evict_we)
+        .evict_we(evict_we),
+        .left_or_right(plru_bit0),
+        .tie(tie)
 
     );
 
@@ -252,7 +256,8 @@ import mutative_types::*;
         .cache_ready(ufp_resp),
         .setup_ready(setup_ready),
         .setup(setup),
-        .plru_bit0(1'b0),
+        .plru_bit0(plru_bit0),
+        .tie(tie),
         .setup_update(setup_update),
         .setup_valid(setup_valid)
     );

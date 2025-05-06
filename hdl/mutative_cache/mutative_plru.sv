@@ -1,15 +1,15 @@
 module mutative_plru
 import mutative_types::*;
 (
-    input  logic                     clk,
-    input  logic                     rst,
-    input  logic [WAY_IDX_BITS-1:0]  hit_way,
-    input  logic                     hit,
-    input  cache_address_t           cache_address,
-    input  logic [1:0]               setup,
-    output logic [WAY_IDX_BITS-1:0]  evict_way,
-    output logic [WAYS-1:0]          evict_we
-
+    input logic clk, rst,
+    input logic [WAY_IDX_BITS-1:0] hit_way,
+    input logic hit,
+    input cache_address_t cache_address,
+    input logic [1:0] setup,
+    output logic [WAY_IDX_BITS-1:0] evict_way,
+    output logic [WAYS-1:0] evict_we,
+    output logic left_or_right,
+    output logic tie
 );
 
     logic [2:0] dm_way_index;
@@ -135,6 +135,49 @@ import mutative_types::*;
             end
         endcase
     end
+
+    logic [2:0] left_counter;
+    logic [2:0] right_counter;
+
+    assign left_or_right = (left_counter < right_counter); //left > right: 0, left < right: 1
+    assign tie = (left_counter == right_counter);
+
+    always_comb begin
+        left_counter = '0;
+        right_counter = '0;
+        unique case (setup)
+            2'b01: begin //2-way
+                for (int i=0; i<2; ++i) begin
+                    if(plru_bits[cache_address.set_index][i + two_way_index] == 1 && i == 0) begin
+                        left_counter++;
+                    end else if (plru_bits[cache_address.set_index][i + two_way_index] == 1 && i == 1) begin
+                        right_counter++;
+                    end
+                end
+            end
+            2'b10: begin //4-way
+                for (int i=0; i<4; ++i) begin
+                    if(plru_bits[cache_address.set_index][i + four_way_index] == 1 && i < 2) begin //[0-3][4-7]
+                        left_counter++;
+                    end else if(plru_bits[cache_address.set_index][i] == 1 && i >= 2) begin
+                        right_counter++;
+                    end
+                end
+            end
+            2'b11: begin//8-way
+                for (int i=0; i<8; ++i) begin
+                    if(plru_bits[cache_address.set_index][i] == 1 && i < 4) begin
+                        left_counter++;
+                    end else if(plru_bits[cache_address.set_index][i] == 1 && i >= 4) begin
+                        right_counter++;
+                    end
+                end
+            end
+            default: begin
+            end
+        endcase
+    end
+
 
 
 endmodule
