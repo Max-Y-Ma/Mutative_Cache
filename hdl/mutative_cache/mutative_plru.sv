@@ -10,137 +10,126 @@ import mutative_types::*;
     output logic [WAYS-1:0] evict_we
 
 );
-    logic [WAYS-2:0] PLRU_bits[SET_SIZE];
-    logic [WAY_IDX_BITS-1:0] virtual_evict_way;
-    logic [WAYS-1:0] virtual_evict_we;
 
+    logic [2:0] dm_way_index;
+    logic [2:0] two_way_index;
+    logic [2:0] four_way_index;
 
-    always_ff @(posedge clk)begin: plru_1 //TODO: FIX MAYBE MAKE $ OF THEM
-        if(rst) begin
-            for(int unsigned i = 0; i < SET_SIZE; i++) begin
-                PLRU_bits[i] <= {(WAYS-1){1'b0}};
-            end
-        end
-        else if(hit)begin
-            if (setup == 2'b01) begin
-                PLRU_bits[cache_address.set_index] <= hit_way;
-            end
-            else if (setup == 2'b10) begin
-                case (hit_way)
-                    2'd0: PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][2], 2'b00};
-                    2'd1: PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][2], 2'b10};
-                    2'd2: PLRU_bits[cache_address.set_index] <= {1'b0, PLRU_bits[cache_address.set_index][1], 1'b1};
-                    2'd3: PLRU_bits[cache_address.set_index] <= {1'b1, PLRU_bits[cache_address.set_index][1], 1'b1};
-                endcase
-            end else if (setup == 2'b11) begin
-                case (hit_way)
-                    3'd0: PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][6:4], 1'b0, PLRU_bits[cache_address.set_index][2], 2'b00};
-                    3'd1: PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][6:4], 1'b1, PLRU_bits[cache_address.set_index][2], 2'b00};
-                    3'd2: PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][6:5], 1'b0, PLRU_bits[cache_address.set_index][3:2], 2'b10};
-                    3'd3: PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][6:5], 1'b1, PLRU_bits[cache_address.set_index][3:2], 2'b10};
-                    3'd4: PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][6], 1'b0, PLRU_bits[cache_address.set_index][4:3], 1'b0, PLRU_bits[cache_address.set_index][1], 1'b1};
-                    3'd5: PLRU_bits[cache_address.set_index] <= {PLRU_bits[cache_address.set_index][6], 1'b1, PLRU_bits[cache_address.set_index][4:3], 1'b0, PLRU_bits[cache_address.set_index][1], 1'b1};
-                    3'd6: PLRU_bits[cache_address.set_index] <= {1'b0, PLRU_bits[cache_address.set_index][5:3], 1'b1, PLRU_bits[cache_address.set_index][1], 1'b1};
-                    3'd7: PLRU_bits[cache_address.set_index] <= {1'b1, PLRU_bits[cache_address.set_index][5:3], 1'b1, PLRU_bits[cache_address.set_index][1], 1'b1};
-                endcase
-            end
-        end
-    end
+    logic [WAYS-1:0] plru_bits[SET_SIZE];
 
+    assign dm_way_index = cache_address.tag[2:0]  << 0; //0-8 *1
+    assign two_way_index = cache_address.tag[1:0] << 1; //0-3 *2
+    assign four_way_index = cache_address.tag[0]  << 2; // 0 or 1 *4
 
+    logic almost_full;
+    logic[3:0] zero_count;
+    assign almost_full = (zero_count == 1);
 
-    always_comb begin : replacement_1 //TODO: MAKE 4 and FIX
-        virtual_evict_way = '0;
-        virtual_evict_we = '0;
-        case (setup)
-            2'b01: begin
-                case (~PLRU_bits[cache_address.set_index]) 
-                    1'b0: begin
-                        virtual_evict_way = '0;
-                        virtual_evict_we = 1 << virtual_evict_way;
-                    end
-                    1'b1: begin
-                        virtual_evict_way = '1;
-                        virtual_evict_we = 1 << virtual_evict_way;
-                    end
-                endcase
+    always_comb begin // only one 0 left
+        zero_count = 0;
+        unique case (setup)
+            2'b00: begin //dm
+
             end
-            2'b10: begin
-                casez (~PLRU_bits[cache_address.set_index])
-                    3'b?00: begin
-                        virtual_evict_we = 4'b0001;//replace way 0
-                        virtual_evict_way = 2'b00;
+            2'b01: begin //2-way
+                for (int i=0; i<2; ++i) begin
+                    if(plru_bits[cache_address.set_index][i + two_way_index] == 0) begin
+                        zero_count++;
                     end
-                    3'b?10: begin
-                        virtual_evict_we = 4'b0010;//replace way 1
-                        virtual_evict_way = 2'b01;
-                    end
-                    3'b0?1: begin 
-                        virtual_evict_we = 4'b0100;//replace way 2
-                        virtual_evict_way = 2'b10;
-                    end
-                    3'b1?1: begin 
-                        virtual_evict_we = 4'b1000;//replace way 3
-                        virtual_evict_way = 2'b11;
-                    end
-                endcase
+                end
             end
-            2'b11: begin
-                casez (~PLRU_bits[cache_address.set_index])
-                    7'b???0?00: begin
-                        virtual_evict_way = '0;
-                        virtual_evict_we = 1 << virtual_evict_way;
+            2'b10: begin //4-way
+                for (int i=0; i<4; ++i) begin
+                    if(plru_bits[cache_address.set_index][i + four_way_index] == 0) begin
+                        zero_count++;
                     end
-                    7'b???1?00: begin
-                        virtual_evict_way = 3'b001;
-                        virtual_evict_we = 1 << virtual_evict_way;
+                end
+            end
+            2'b11: begin//8-way
+                for (int i=0; i<8; ++i) begin
+                    if(plru_bits[cache_address.set_index][i] == 0) begin
+                        zero_count++;
                     end
-                    7'b??0??10: begin
-                        virtual_evict_way = 3'b010;
-                        virtual_evict_we = 1 << virtual_evict_way;
-                    end
-                    7'b??1??10: begin
-                        virtual_evict_way = 3'b011;
-                        virtual_evict_we = 1 << virtual_evict_way;
-                    end
-                    7'b?0??0?1: begin
-                        virtual_evict_way = 3'b100;
-                        virtual_evict_we = 1 << virtual_evict_way;
-                    end
-                    7'b?1??0?1: begin
-                        virtual_evict_way = 3'b101;
-                        virtual_evict_we = 1 << virtual_evict_way;
-                    end
-                    7'b0???1?1: begin
-                        virtual_evict_way = 3'b110;
-                        virtual_evict_we = 1 << virtual_evict_way;
-                    end
-                    7'b1???1?1: begin
-                        virtual_evict_way = 3'b111;
-                        virtual_evict_we = 1 << virtual_evict_way;
-                    end
-                endcase
+                end
+            end
+            default: begin
             end
         endcase
     end
 
-    always_comb begin //offsetting virtual eviction signals to actual location
+    always_ff @(posedge clk) begin // update plru logic
+        if(rst) begin
+            for(int i = 0; i < SET_SIZE; i++) begin
+                plru_bits[i] <= '0;
+            end
+            
+        end else if (hit) begin
+            unique case (setup)
+                2'b00: begin //dm
+
+                end
+                2'b01: begin //2-way
+                    if( (plru_bits[cache_address.set_index][hit_way] == 1'b0) && almost_full) begin //reset
+                        plru_bits[cache_address.set_index][two_way_index+:2] <= 2'd0;
+                        plru_bits[cache_address.set_index][hit_way] <= 1'b1;
+                    end else if((plru_bits[cache_address.set_index][hit_way] == 1'b0))begin
+                        plru_bits[cache_address.set_index][hit_way] <= 1'b1;
+                    end
+                end
+                2'b10: begin //4-way
+                    if( (plru_bits[cache_address.set_index][hit_way] == 1'b0) && almost_full) begin //reset
+                        plru_bits[cache_address.set_index][four_way_index+:4] <= 4'd0;
+                        plru_bits[cache_address.set_index][hit_way] <= 1'b1;
+                    end else if((plru_bits[cache_address.set_index][hit_way] == 1'b0))begin
+                        plru_bits[cache_address.set_index][hit_way] <= 1'b1;
+                    end
+                end
+                2'b11: begin//8-way
+                    if( (plru_bits[cache_address.set_index][hit_way] == 1'b0) && almost_full) begin //reset
+                        plru_bits[cache_address.set_index] <= '0;
+                        plru_bits[cache_address.set_index][hit_way] <= 1'b1;
+                    end else if((plru_bits[cache_address.set_index][hit_way] == 1'b0))begin
+                        plru_bits[cache_address.set_index][hit_way] <= 1'b1;
+                    end
+                end
+                default: begin
+                end
+            endcase
+        end
+    end
+
+    always_comb begin
         unique case (setup)
             2'b00: begin //dm
-                evict_way =  cache_address.tag[2:0];
-                evict_we = 1 << cache_address.tag[2:0];
+                evict_way = dm_way_index;
+                evict_we = 1 << evict_way;
             end
             2'b01: begin //2-way
-                evict_way = WAY_IDX_BITS'(virtual_evict_way+ (2)*cache_address.tag[1:0]);
+                for (int i=0; i<2; ++i) begin
+                    if(plru_bits[cache_address.set_index][i + two_way_index] == 0) begin
+                        evict_way = i + two_way_index;
+                        break;
+                    end
+                end
                 evict_we = 1 << evict_way;
             end
             2'b10: begin //4-way
-                evict_way =  WAY_IDX_BITS'(virtual_evict_way + (4)*cache_address.tag[0]);
+                for (int i=0; i<4; ++i) begin
+                    if(plru_bits[cache_address.set_index][i + four_way_index] == 0) begin
+                        evict_way = i + four_way_index;
+                        break;
+                    end
+                end
                 evict_we = 1 << evict_way;
             end
             2'b11: begin//8-way
-                evict_way =  virtual_evict_way;
-                evict_we = virtual_evict_we;
+                for (int i=0; i<8; ++i) begin
+                    if(plru_bits[cache_address.set_index][i] == 0) begin
+                        evict_way = i;
+                        break;
+                    end
+                end
+                evict_we = 1 << evict_way;
             end
             default: begin
             end
