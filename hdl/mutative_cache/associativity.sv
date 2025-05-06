@@ -85,7 +85,7 @@ import mutative_types::*;
                     if (cpu_request) begin
                         if (dead_set_counter[true_set_index] < 2'b11)
                             dead_set_counter_next[true_set_index] = dead_set_counter[true_set_index] + 1'b1;
-                        if (setup != '0) begin
+                        if (setup != '0 || tie) begin
                             if (plru_bit0 == '0) begin
                                 if (stack_distance[true_set_index] > '0)
                                     stack_distance_next[true_set_index] = stack_distance[true_set_index] - 1'b1;
