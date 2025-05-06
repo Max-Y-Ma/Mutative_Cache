@@ -15,6 +15,8 @@ timeprecision 1ps;
   `include "uvm_macros.svh"
 `endif
 
+import cache_types::*;
+
 // Clock Generation
 int clock_half_period_ps = getenv("ECE411_CLOCK_PERIOD_PS").atoi() / 2;
 
@@ -76,9 +78,11 @@ end
 
 // End Condition
 int timeout_cycles = 10000000;
+int hit_counter = 0;
+int request_counter = 0;
 always @(posedge clk) begin
   if (mon_itf.halt) begin
-    // $display("hit rate: %0f", real'(dut.mutative_cache0.setup_control.hit_counter)/real'(dut.mutative_cache0.setup_control.request_counter));
+    $display("hit rate: %0f", real'(hit_counter)/real'(request_counter));
     for(int i = 0; i < 8; i++) begin
       $display("way [%0d] csb level changes (1 -> 0): %0d", i, csb_level_changes_cycles[i]);
       $display("way [%0d] csb lcycles as zero (values can update): %0d", i, csb_zero_cycles[i]);
@@ -98,6 +102,16 @@ always @(posedge clk) begin
       $finish;
   end
   timeout_cycles <= timeout_cycles - 1;
+
+  if(dut.mutative_cache0.fsm.curr_state == CHECK && dut.mutative_cache0.fsm.cache_hit) begin
+    hit_counter++;
+  end else if(dut.mutative_cache0.fsm.curr_state == CHECK && !dut.mutative_cache0.fsm.cache_hit) begin
+    hit_counter--;
+  end
+
+  if(dut.mutative_cache0.fsm.curr_state == IDLE && !dut.mutative_cache0.fsm.flush_stall && dut.mutative_cache0.fsm.cache_request) begin
+    request_counter++;
+  end
 end
 
   generate

@@ -1,4 +1,4 @@
-module mutative_cache
+module baseline_cache
 import mutative_types::*;
 (
     input   logic           clk,
