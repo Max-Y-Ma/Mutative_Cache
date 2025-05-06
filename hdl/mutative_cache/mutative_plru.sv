@@ -1,13 +1,14 @@
 module mutative_plru
 import mutative_types::*;
 (
-    input logic clk, rst,
-    input logic [WAY_IDX_BITS-1:0] hit_way,
-    input logic hit,
-    input cache_address_t cache_address,
-    input logic [1:0] setup,
-    output logic [WAY_IDX_BITS-1:0] evict_way,
-    output logic [WAYS-1:0] evict_we
+    input  logic                     clk,
+    input  logic                     rst,
+    input  logic [WAY_IDX_BITS-1:0]  hit_way,
+    input  logic                     hit,
+    input  cache_address_t           cache_address,
+    input  logic [1:0]               setup,
+    output logic [WAY_IDX_BITS-1:0]  evict_way,
+    output logic [WAYS-1:0]          evict_we
 
 );
 
@@ -62,7 +63,6 @@ import mutative_types::*;
             for(int i = 0; i < SET_SIZE; i++) begin
                 plru_bits[i] <= '0;
             end
-            
         end else if (hit) begin
             unique case (setup)
                 2'b00: begin //dm

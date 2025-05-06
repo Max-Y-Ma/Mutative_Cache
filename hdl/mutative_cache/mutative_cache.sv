@@ -65,7 +65,7 @@ import mutative_types::*;
     logic [TAG_BITS-1:0]       dirty_tag_vector [WAYS];
     logic [CACHELINE_SIZE-1:0] dirty_data_vector [WAYS];
 
-    logic [SET_BITS-1:0]       flush_set_addr;
+    logic [SET_BITS:0]         flush_set_addr;
     logic [255:0]              flush_dfp_wdata;
     logic                      flush_dfp_write;
     logic [31:0]               flush_dfp_addr;
@@ -130,7 +130,7 @@ import mutative_types::*;
                 real_tag_array_csb0[i]   = '0;
                 real_data_array_csb0[i]  = '0;
                 real_valid_array_csb0[i] = '0;
-                real_set_addr[i]         = flush_set_addr;
+                real_set_addr[i]         = flush_set_addr[SET_BITS-1:0];
             end
         end
     end

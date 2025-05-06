@@ -6,7 +6,7 @@ import mutative_types::*;
 
     // Prediction Signals
     input  logic                      dfp_resp,
-    output logic [SET_BITS-1:0]       flush_set_addr,
+    output logic [SET_BITS:0]         flush_set_addr,
     output logic [255:0]              flush_dfp_wdata,
     output logic                      flush_dfp_write,
     output logic [31:0]               flush_dfp_addr,
@@ -57,7 +57,7 @@ import mutative_types::*;
     logic [WAYS-1:0]           flush_vector_reg;
     logic [TAG_BITS-1:0]       flush_tag_vector  [WAYS];
     logic [CACHELINE_SIZE-1:0] flush_data_vector [WAYS];
-    logic [SET_BITS-1:0]       flush_set_addr_reg;
+    logic [SET_BITS:0]         flush_set_addr_reg;
 
     logic                      flush_check;
     logic                      flush_clean;
@@ -160,7 +160,7 @@ import mutative_types::*;
         unique case (control_state)
             f_idle : begin
                 if (setup_valid) begin
-                    if (~setup_update && ~setup_ready) begin
+                    if (~setup_ready) begin
                         flush_stall_next = '1;
 
                         // Assert Data SRAM Read Signals
@@ -178,7 +178,7 @@ import mutative_types::*;
                 end
             end
             f_check : begin
-                if (flush_set_addr_reg != (SET_SIZE - 1)) begin
+                if (flush_set_addr_reg != SET_SIZE) begin
                     flush_check = '1;
                 end
 
@@ -186,7 +186,7 @@ import mutative_types::*;
                     control_state_next = f_flush;
                 end
                 else begin
-                    if (flush_set_addr == (SET_SIZE - 1)) begin
+                    if (flush_set_addr == SET_SIZE) begin
                         flush_stall_next = '0;
                         setup_ready_next = ~setup_ready_reg;
                         control_state_next = f_idle;
@@ -208,13 +208,14 @@ import mutative_types::*;
                 if (flush_true) begin
                     flush_dfp_wdata = flush_data_vector[flush_clean_idx];
                     flush_dfp_write = '1;
-                    flush_dfp_addr  = {flush_tag_vector[flush_clean_idx], flush_set_addr , {OFFSET_BITS{1'b0}}};
+                    flush_dfp_addr  = {flush_tag_vector[flush_clean_idx], flush_set_addr[SET_BITS-1:0] , {OFFSET_BITS{1'b0}}};
                     control_state_next = f_wait;
                 end else begin
-                    // Assert Data SRAM Read Signals
-                    if (flush_set_addr_reg != (SET_SIZE - 1)) begin
+                    if (flush_set_addr_reg != SET_SIZE) begin
                         flush_set_addr_inc = '1;
                     end
+
+                    // Assert Data SRAM Read Signals
                     for (int i = 0; i < WAYS; i++) begin
                         flush_tag_array_csb0[i]   = 1'b0;
                         flush_data_array_csb0[i]  = 1'b0;
@@ -227,7 +228,7 @@ import mutative_types::*;
             f_wait : begin
                 flush_dfp_wdata = flush_data_vector[flush_clean_idx];
                 flush_dfp_write = '1;
-                flush_dfp_addr  = {flush_tag_vector[flush_clean_idx], flush_set_addr , {OFFSET_BITS{1'b0}}};
+                flush_dfp_addr  = {flush_tag_vector[flush_clean_idx], flush_set_addr[SET_BITS-1:0] , {OFFSET_BITS{1'b0}}};
                 if (dfp_resp) begin
                     flush_clean        = '1;
                     control_state_next = f_flush;
