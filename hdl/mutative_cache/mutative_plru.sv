@@ -99,6 +99,8 @@ import mutative_types::*;
     end
 
     always_comb begin
+        evict_way = '0;
+        evict_we = '0;
         unique case (setup)
             2'b00: begin //dm
                 evict_way = dm_way_index;

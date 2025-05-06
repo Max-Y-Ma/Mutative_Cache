@@ -87,6 +87,10 @@ always @(posedge clk) begin
       $display("way [%0d] csb level changes (1 -> 0): %0d", i, csb_level_changes_cycles[i]);
       $display("way [%0d] csb lcycles as zero (values can update): %0d", i, csb_zero_cycles[i]);
     end
+    $display("dm_cnt: %0d", dut.mutative_cache0.dm_cnt);
+    $display("two_way_cnt: %0d", dut.mutative_cache0.two_way_cnt);
+    $display("four_way_cnt: %0d", dut.mutative_cache0.four_way_cnt);
+    $display("eight_way_cnt: %0d", dut.mutative_cache0.eight_way_cnt);
     $finish;
   end
   if (timeout_cycles == 0) begin

@@ -326,7 +326,7 @@ import mutative_types::*;
 
             // Change detection
             if (setup != prev_cache_mode) begin
-                $display("Cache mode changed from %0d to %0d at cycle %0d", 
+                $display("Cache mode changed from %0d to %0d at cycle %0d",
                           prev_cache_mode, setup, cycle_counter);
                 prev_cache_mode <= setup;
             end
